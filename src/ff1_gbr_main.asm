@@ -47,15 +47,16 @@
         
 RSRVD1: .DS     1       ; RESERVED
 IS_RAM: .DB     0       ; USED BY ROM/RAM SWAP TO DETERMINE IF RAM ALREADY ACTIVE (0 = ROM)
-REDIST: .DB     0       ; USED BY PHASE 2 CODE REDISTRIBUTION (0 = NOT REDISTRIBUTED )
-SWSHDW: .DS     1       ; SHADOW COPY OF CFG SWITCH BITS USED BY INIT RETURN
-SPARE1: .DS     1       ; SPARE BYTE
+SPARE1: .DS     0       ; SPARE BYTE
+SPARE2: .DS     0       ; SPARE BYTE
+SPARE3: .DS     0       ; SPARE BYTE
 
 ;; -------------------------------------------------------------
 ;; ZERO PAGE JUMP VECTORS & INTERRUPT HANDLERS
 ;; -------------------------------------------------------------
         ;; MODE 0 MASKABLE INTERRUPT VECTORS
         ;; NB - RET INSTEAD OF RETI/RETN SINCE WE'RE NOT GOING TO USE IM1 BUT RATHER CALL AS SUBS
+        ;;      (SO NO USE UNTIL AFTER STACK HAS BEEN ESTABLISHED :) )
         
         .ORG    08H     ; RST08 
         RET             ; UNUSED
@@ -100,6 +101,9 @@ INTVEC: .ORG    $ & 0FFFF0H | 10H
 RESET:  .EQU    $
         DI                  ; NO INTERRUPTS UNTIL WE WANT THEM
         LD      SP, STACK   ; INIT STACK POINTER SO WE CAN CALL SUBS
+
+;; SWAP OUT LOWER 32K ROM FOR RAM (EXECUTION CONTINUES IN RAM IMAGE OF ROM)
+#INCLUDE "rom2ram.asm"      ; INLINED
         
         
     
@@ -107,10 +111,11 @@ RESET:  .EQU    $
 
 
 ;; -------------------------------------------------------------
-;; SUPPORT MODULES
-;; -------------------------------------------------------------
+;; SUPPORT MODULES;; -------------------------------------------------------------
 #INCLUDE "hwdefs.asm"       ;; I/O MAP AND CONSTANTS FOR THE REV 1 BOARD
 
+;; INSTALL MISC RESIDENT HELPERS
+        // TO-DO:  WRITE THE RST08 DEBUG HELPER 7 SET UP VECTOR TABLE
 
 
 ;; -------------------------------------------------------------

@@ -5,12 +5,13 @@
 ;; -----------------------------------------------------
 ;; HARDWARE EQUATES AND CONSTANTS
 ;; -----------------------------------------------------
-LOWMEM: .EQU    0
-HIMEM:  .EQU    FFFFH
-ROMSIZ: .EQU    8000H       ; 32K TYP.
+LOWMEM: .EQU    0           ; 0000H-7FFFH
+HIMEM:  .EQU    8000H       ; 8000H-FFFFH
+ROMSIZ: .EQU    8000H       ; 32K
+HIMSIZ: .EQU    8000H       ; 32K
 ROMBEG: .EQU    LOWMEM
 ROMEND: .EQU    ROMBEG + ROMSIZ
-STACK:  .EQU    HIMEM       ; STACK AT TOP OF RAM, GROWS DOWN
+STACK:  .EQU    MEMTOP      ; STACK AT TOP OF RAM, GROWS DOWN
 STKSIZ: .EQU    128         ; 128-BYTE STACK (MAY NEED TO ADJUST)
 
 ;; -----------------------------------------------------

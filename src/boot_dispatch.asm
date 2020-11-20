@@ -1,0 +1,54 @@
+.NOLIST
+;;  USAGE:  INLINE INCLUSION
+;;  DEPS:   HWDESFS.ASM
+;;  STACK:  REQUIRED
+.LIST
+
+;; -------------------------------------------------------------
+;; ROUTE EXECUTION TO PATH SELECTED BY ONBOARD CONFIG SWITCH
+;;
+;; THE LOWER THREE (3) BITS OF THE BYTE READABLE FROM THE
+;;  SYSCONFIG PORT (PORT 0) ALLOW FOR THE SELECTION OF EIGHT (8)
+;;  USER-SELECTABLE ROUTINES.
+;;
+;; ADAPTED FROM LANCE LEVANTHAL '9H JUMP TABLE (JTAB)'
+;; -------------------------------------------------------------
+        .MODULE BOOT_DISPATCH
+
+;; >>>> TO-DO:  READ SWITCH VALUE & MASK OFF LOWER BITS
+;; >>>>         INDEX VALUE MUST BE IN A
+
+JTAB:   ;; EXIT WITH CARRY SET IF ROUTINE NUMBER IS INVALID,
+        ;; THAT IS, IF IT IS TOO LARGE FOR TABLE (> LENSUB-1)
+        CP      LENSUB      ; COMPARE ROUTINE NUMBER, TABLE SIZE
+        CCF                 ; COMPLIMENT CARRY FOR ERROR INDICATOR
+        RET     C           ; RETURN IF ROUTINE NUMBER TOO LARGE
+                            ;  WITH CARRY SET
+
+        ;; INDEX INTO TABLE OF WORD-LENGTH ADDRESSES
+        ;; LEAVE REGISTER PAIRS UNCHANGED SO THEY CAN BE USED FOR PASSING PARAMS
+        PUSH    HL          ; SAVE HL
+        ADD     A,A         ; DOUBLE INDEX FOR WORD-LENGTH ENTRIES
+        LD      HL,JMPTAB   ; INDEX INTO TABLE USING 8-BIT ADDITION
+        ADD     A,L         ; TO AVOID DISTURBING ANOTHER REGISTER PAIR
+        LD      L,A
+        LD      A,0
+        ADC     A,H
+        LD      H,A         ; ACCESS ROUTINE ADDRESS
+
+        ;; OBTAIN ROUTINE ADDRESS FROM TABLE AND TRANSFER CONTROL TO IT,
+        ;;  LEAVING ALL REGISTER PAIRS UNCHANGED
+        LD      A,(HL)      ; MOVE ROUTINE ADDRESS TO HL
+        INC     HL
+        LD      H,(HL)
+        LD      L,A
+        EX      (SP),HL     ;RESTORE OLD HL, PUSH ROUTINE ADDRESS
+
+        RET                 ; JUMP TO ROUTINE
+
+LENSUB  .EQU    3           ;NUMBER OF SUBROUTINES IN TABLE
+
+JMPTAB:                     ; JUMP TABLE
+        .DW     SUB0        ; ROUTINE 0             <---- FIXUP W/ ACTUALS
+        .DW     SUB1        ; ROUTINE 1
+        .DW     SUB2        ; ROUTINE 2

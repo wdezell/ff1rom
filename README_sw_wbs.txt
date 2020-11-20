@@ -1,55 +1,55 @@
-    Work-In-Progress Work Breakdown Schedule for Firefly SBC ROM/BIOS
+        Work-In-Progress Work Breakdown Schedule for Firefly SBC ROM/BIOS
 
 
-    1. Page Zero Skeleton
+DONE    1. Page Zero Skeleton
 
-        Defs for the IRQ handlers and vectors 
-        Boot jump
-        Define general memory layout
-        
-    2. ROM-2-RAM Switcher
+y           Defs for the IRQ handlers and vectors
+y           Boot jump
+            Define general memory layout
 
-        Copy ROM to RAM on boot
+DONE    2. ROM-2-RAM Switcher
 
-    3. Initializations
+            Copy ROM to RAM on boot
 
-        General HW defs for board
-        Define & enable Stack
-        Initialize basic board operational params like default serial console baud
-        Boot console splash
-        
-    4. Boot Mode Switch Dispatcher
+        3. Initializations
 
-        Stubs for dispatch targets
-        Read boot switches and transfer execution to mode-appropriate code
+y           General HW defs for board
+y           Define & enable Stack
+            Initialize basic board operational params like default serial console baud
+            Boot console splash
 
-    5. Diagnostics Simple I/O Package
+        4. Boot Mode Switch Dispatcher
 
-        Wrapper for hex LED output?
-        Simple serial output
+            Stubs for dispatch targets
+            Read boot switches and transfer execution to mode-appropriate code
 
-    6. Diagnostics
+        5. Diagnostics Simple I/O Package
 
-        RAM test, output to LEDs
-        RAM test, output to serial console 
-        Serial Port tests
-        RO/RI/RTS/CTS tests
-        Baud & param changes w/ dummy text output
-        Port A R/W
-        Port B R/W
-        PIO Tests
-        Loopback
-        Port A R/W
-        Port B R/W
+            Wrapper for hex LED output?
+            Simple serial output
 
-    7. Mode 2 IRQ I/O Package
+        6. Diagnostics
 
-    8. Machine Language Monitor
+            RAM test, output to LEDs
+            RAM test, output to serial console
+            Serial Port tests
+            RO/RI/RTS/CTS tests
+            Baud & param changes w/ dummy text output
+            Port A R/W
+            Port B R/W
+            PIO Tests
+            Loopback
+            Port A R/W
+            Port B R/W
 
-    9. Board Hardware Utilities
-    
-        Card format & copy
-        
-    10. Forth Interpeter
+        7. Mode 2 IRQ I/O Package
 
-    11. CP/M loader
+        8. Machine Language Monitor
+
+        9. Board Hardware Utilities
+
+            Card format & copy
+
+        10. Forth Interpeter
+
+        11. CP/M loader
