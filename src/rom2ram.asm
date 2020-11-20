@@ -1,3 +1,6 @@
+#IFNDEF rom2ram_asm         ; TASM-specific guard
+#DEFINE rom2ram_asm  1
+
 .NOLIST
 ;;  USAGE:  INLINE INCLUSION
 ;;  DEPS:   HWDESFS.ASM
@@ -61,3 +64,5 @@ _WIPE:	LD	A, 0		; PUT A ZERO IN THE FIRST BYTE OF UPPER MEMORY
 
         ;; -------------------------------------------------------------
 _NXTLN:	.EQU $		;; WHEN ASSEMBLED THIS LABEL MARKED THE NEXT ADDRESS IN LOWMEM
+
+#ENDIF

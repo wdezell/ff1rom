@@ -102,17 +102,49 @@ RESET:  .EQU    $
         DI                  ; NO INTERRUPTS UNTIL WE WANT THEM
         LD      SP, STACK   ; INIT STACK POINTER SO WE CAN CALL SUBS
 
-;; SWAP OUT LOWER 32K ROM FOR RAM (EXECUTION CONTINUES IN RAM IMAGE OF ROM)
+        ;; SWAP OUT LOWER 32K ROM FOR RAM (EXECUTION CONTINUES IN RAM
+        ;;  IMAGE OF ROM)
 #INCLUDE "rom2ram.asm"      ; INLINED
-        
-        
-    
-        ;; WIP CALL SWITCH READ & GET MODES
 
+        ;; INITIALIZE SERIAL PORT A FOR SIMPLE CONSOLE OUTPUT
+#INCLUDE "initcons.asm"     ; INLINED
+
+        ;; THE LOWER THREE (3) BITS OF THE BYTE READABLE FROM THE
+        ;;  SYSCONFIG PORT (PORT 0) ALLOW FOR THE SELECTION OF EIGHT (8)
+        ;;  USER-SELECTABLE ROUTINES.
+        ;;
+        ;; READ CONFIG SWITCH, GET BOOT MODE & ROUTE EXECUTION TO PATH
+        ;;  SELECTED BY ONBOARD CONFIG SWITCH
+        IN      A,(SYSCFG)
+        AND     00000111B   ; MASK OFF THE BITS WE DON'T CARE ABOUT
+
+        ;; TRANSFER EXECUTION TO ROUTINE RESPONSIBLE FOR MANAGING
+        ;;  SELECTED BOOT MODE
+        CALL    BOOTJP
+
+        ;; IF WE REACH THIS POINT TABLE DISPATCH RETURNED WITH AN ERROR (CARRY SET)
+        HALT                ; TO-DO:  INDICATE AN ERROR OR SOMETHING
+        JR      $
 
 ;; -------------------------------------------------------------
-;; SUPPORT MODULES;; -------------------------------------------------------------
+;; BOOT MODE INITIALIZERS
+;;   EACH WILL FURTHER HANDLE SETUP AND LAUNCH FOR RESPECTIVE
+;;   FUNCTIONAL MODE
+;; -------------------------------------------------------------
+#INCLUDE "boot0.asm"        ; DIAGNOSTICS
+#INCLUDE "boot1.asm"
+#INCLUDE "boot2.asm"
+#INCLUDE "boot3.asm"
+#INCLUDE "boot4.asm"
+#INCLUDE "boot5.asm"
+#INCLUDE "boot6.asm"
+#INCLUDE "boot7.asm"
+
+;; -------------------------------------------------------------
+;; SUPPORT ROUTINES
+;; -------------------------------------------------------------
 #INCLUDE "hwdefs.asm"       ;; I/O MAP AND CONSTANTS FOR THE REV 1 BOARD
+#INCLUDE "bootdsp.asm"
 
 ;; INSTALL MISC RESIDENT HELPERS
         // TO-DO:  WRITE THE RST08 DEBUG HELPER 7 SET UP VECTOR TABLE

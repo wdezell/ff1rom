@@ -1,4 +1,3 @@
-
 #IFNDEF hwdefs_asm          ; TASM-specific guard
 #DEFINE hwdefs_asm  1
 
