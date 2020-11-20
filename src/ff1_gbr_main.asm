@@ -40,7 +40,7 @@
                 
 
         ;; *** BOOTSTRAP ***
-        .ORG    ROM
+        .ORG    ROMBEG
         JP      RESET
 
         .ORG    03H
@@ -147,7 +147,7 @@ RESET:  .EQU    $
 #INCLUDE "bootdsp.asm"
 
 ;; INSTALL MISC RESIDENT HELPERS
-        // TO-DO:  WRITE THE RST08 DEBUG HELPER 7 SET UP VECTOR TABLE
+        ;; TO-DO:  WRITE THE RST08 DEBUG HELPER 7 SET UP VECTOR TABLE
 
 
 ;; -------------------------------------------------------------
