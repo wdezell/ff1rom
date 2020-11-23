@@ -77,5 +77,6 @@ PMODE3:    .EQU    11001111B    ; PIO MODE 3 - CONTROL
 ;; SIO MODE PROGRAMMING CONSTANTS
 
 
-;; END -- HWDEFS.ASM
+
+        ;; -------------------------------------------------------------
 #ENDIF

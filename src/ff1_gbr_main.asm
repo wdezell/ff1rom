@@ -30,7 +30,7 @@
     ;;
     ;;  SOURCE FORMATTING NOTE:
     ;;    USING SOFT TABS @ 4 SPACES FOR COLUMNAR ALIGNMENT
-    ;;    OPCODE IN COL 9, OPERAND IN COL 17, COMMENTS COL 25 TYP
+    ;;    OPCODE IN COL 9, OPERAND IN COL 17, COMMENTS COL 25 OR 29 TYP
     ;;
     ;; **********************************************************************
         .CODES
@@ -45,35 +45,35 @@
 
         .ORG    03H
         
-RSRVD1: .DS     1       ; RESERVED
+RSRVD1: .DB     0       ; RESERVED
 IS_RAM: .DB     0       ; USED BY ROM/RAM SWAP TO DETERMINE IF RAM ALREADY ACTIVE (0 = ROM)
-SPARE1: .DS     0       ; SPARE BYTE
-SPARE2: .DS     0       ; SPARE BYTE
-SPARE3: .DS     0       ; SPARE BYTE
+SPARE1: .DB     0       ; SPARE BYTE
+SPARE2: .DB     0       ; SPARE BYTE
+SPARE3: .DB       ; SPARE BYTE
 
 ;; -------------------------------------------------------------
 ;; ZERO PAGE JUMP VECTORS & INTERRUPT HANDLERS
 ;; -------------------------------------------------------------
         ;; MODE 0 MASKABLE INTERRUPT VECTORS
-        ;; NB - RET INSTEAD OF RETI/RETN SINCE WE'RE NOT GOING TO USE IM1 BUT RATHER CALL AS SUBS
-        ;;      (SO NO USE UNTIL AFTER STACK HAS BEEN ESTABLISHED :) )
+        ;;  WE'RE NOT GOING TO USE IM0 BUT RATHER USE AS 1-BYTE
+        ;;  SUBROUTINE CALLS, SO WE'LL USE RET RATHER THAN RETI
         
-        .ORG    08H     ; RST08 
+        .ORG    08H     ; RST 08H
+        JP      DRST08  ; DEBUG -- OUTPUT PC OF CALLING RST 08H TO DS4L/R
+    
+        .ORG    10H     ; RST 10H
         RET             ; UNUSED
     
-        .ORG    10H     ; RST10 
+        .ORG    18H     ; RST 18H
         RET             ; UNUSED
     
-        .ORG    18H     ; RST18 
+        .ORG    20H     ; RST 20H
         RET             ; UNUSED
     
-        .ORG    20H     ; RST20 
+        .ORG    28H     ; RST 28H
         RET             ; UNUSED
     
-        .ORG    28H     ; RST28 
-        RET             ; UNUSED
-    
-        .ORG    30H     ; RST30 
+        .ORG    30H     ; RST 30H
         RET             ; UNUSED
         
 
@@ -102,12 +102,11 @@ RESET:  .EQU    $
         DI                  ; NO INTERRUPTS UNTIL WE WANT THEM
         LD      SP, STACK   ; INIT STACK POINTER SO WE CAN CALL SUBS
 
-        ;; SWAP OUT LOWER 32K ROM FOR RAM (EXECUTION CONTINUES IN RAM
-        ;;  IMAGE OF ROM)
 #INCLUDE "rom2ram.asm"      ; INLINED
 
-        ;; INITIALIZE SERIAL PORT A FOR SIMPLE CONSOLE OUTPUT
-#INCLUDE "initcons.asm"     ; INLINED
+        ;; INITIALIZE SERIAL CONSOLE
+        ;;  SIO A WILL BE CONFIGURED TO 9600-N-8-1 FOR TX & SIMPLE POLLED-MOD RX
+        ;;CALL    INITCONS
 
         ;; THE LOWER THREE (3) BITS OF THE BYTE READABLE FROM THE
         ;;  SYSCONFIG PORT (PORT 0) ALLOW FOR THE SELECTION OF EIGHT (8)
@@ -144,20 +143,29 @@ RESET:  .EQU    $
 ;; SUPPORT ROUTINES
 ;; -------------------------------------------------------------
 #INCLUDE "hwdefs.asm"       ;; I/O MAP AND CONSTANTS FOR THE REV 1 BOARD
-#INCLUDE "bootdsp.asm"
-
-;; INSTALL MISC RESIDENT HELPERS
-        ;; TO-DO:  WRITE THE RST08 DEBUG HELPER 7 SET UP VECTOR TABLE
+#INCLUDE "bootdsp.asm"      ;; SWITCH-DISPATCHED BOOT MENU
+;;#INCLUDE "bioscore.asm"     ;; ROUTINES OF GENERAL PURPOSE TO MOST BOOT MODES
+#INCLUDE "dbgutils.asm"     ;; MISC DEBUG TOOLS
 
 
 ;; -------------------------------------------------------------
-;; TASM ROM MARKER
-;;
-;; FORCE TASM TO TOUCH A SINGLE BYTE AT THE END OF ROM IN ORDER
-;; IMAGE SIZED EXACTLY FOR THE ROM, ELSE CODE GENERATION WILL 
-;; STOP AFTER THE LAST INSTRUCTION OR DATA BLOCK DEFINITION.
+;; END OF THE LINE MINUTIA
 ;; -------------------------------------------------------------
-        .ORG    ROMEND-1
+        ;; GENERATE AN INVALID STATEMENT TO THROW AN ERROR IF WATERLINE IS EXCEEDED
+        ;;  THIS ALLOWS EASY INCREMENTAL FEATURE ADDITION WITHOUT WORRYING ABOUT CODE SIZE
+
+#IF ( $ >= (ROMEND - 1024 ))    ;; WARN AT 31K (EVENTUALLY SET TO 32K)
+        !!! ROM BOUNDS EXCEEDED
+#ENDIF
+
+        .ORG     ROMCHK-21
+        .DB     "WDEZELL FIREFLY REV 1"
+
+        ;; FORCE TASM TO TOUCH A SINGLE BYTE AT THE END OF ROM IN ORDER
+        ;; TO GENERATE IMAGE SIZED EXACTLY FOR THE ROM, ELSE CODE GENERATION
+        ;; WILL STOP AFTER THE LAST INSTRUCTION OR DATA BLOCK DEFINITION.
+        ;; -------------------------------------------------------------
+ROMCHK: .ORG    ROMEND-1
         .CHK    LOWMEM  ; BYTE VALUE = CHECKSUM FROM ADDRESS 00H THRU PREV BYTE
         .END
 
