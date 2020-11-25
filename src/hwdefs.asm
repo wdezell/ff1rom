@@ -11,8 +11,6 @@ HIMSIZ: .EQU    8000H       ; 32K
 MEMTOP: .EQU    0FFFFH      ; TOP OF RAM
 ROMBEG: .EQU    LOWMEM
 ROMEND: .EQU    ROMBEG + ROMSIZ
-STACK:  .EQU    MEMTOP      ; STACK AT TOP OF RAM, GROWS DOWN
-STKSIZ: .EQU    128         ; 128-BYTE STACK (MAY NEED TO ADJUST)
 
 ;; -----------------------------------------------------
 ;; -- I/O MAP FOR FIREFLY REV 1 BOARD (WDE8016)

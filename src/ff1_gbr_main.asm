@@ -16,7 +16,7 @@
     ;;  BY THOMAS N. ANDERSON, SQUAK VALLEY SOFTWARE
     ;;
     ;;  USING THE FOLLOWING TASM SETTINGS:
-    ;;    EXPORT TASMOPTS='-80 -A -B -E -F00 -LAL -S -Y'     
+    ;;    EXPORT TASMOPTS='-80 -A -B -E -F00 -H -LAL -S -Y'
     ;;
     ;;    -80   Z80 INSTRUCTION SET
     ;;    -A    ENABLE ALL ASSEMBLY CONTROL CHECKS (WARNINGS)
@@ -24,6 +24,7 @@
     ;;          (-C 'CONTIGUOUS BLOCK' IS IMPLIED)
     ;;    -E    EXPAND SOURCE MACROS/INCLUDES
     ;;    -F    FILL UNUSED MEMORY WITH VALUE
+    ;;    -H    INCLUDE HEX TABLE OF OBJECT FILE AT END OF LISTING
     ;;    -LAL  SHOW ALL LABELS IN LONG FORM
     ;;    -S    SYMBOL FILE GENERATION
     ;;    -Y    ENABLE ASSEMBLY TIMING
@@ -44,12 +45,12 @@
         JP      RESET
 
         .ORG    03H
-        
-RSRVD1: .DB     0       ; RESERVED
+
 IS_RAM: .DB     0       ; USED BY ROM/RAM SWAP TO DETERMINE IF RAM ALREADY ACTIVE (0 = ROM)
-SPARE1: .DB     0       ; SPARE BYTE
-SPARE2: .DB     0       ; SPARE BYTE
-SPARE3: .DB       ; SPARE BYTE
+SCRAT1: .DB     0       ; GENERAL USE SCRATCH BYTE
+SCRAT2: .DB     0       ; GENERAL USE SCRATCH BYTE
+SCRAT3: .DB             ; GENERAL USE SCRATCH BYTE
+SCRAT4: .DB     0       ; GENERAL USE SCRATCH BYTE
 
 ;; -------------------------------------------------------------
 ;; ZERO PAGE JUMP VECTORS & INTERRUPT HANDLERS
@@ -104,9 +105,15 @@ RESET:  .EQU    $
 
 #INCLUDE "rom2ram.asm"      ; INLINED
 
-        ;; INITIALIZE SERIAL CONSOLE
-        ;;  SIO A WILL BE CONFIGURED TO 9600-N-8-1 FOR TX & SIMPLE POLLED-MOD RX
-        ;;CALL    INITCONS
+        ;; INITIALIZE SIO CHANNEL A ("CONSOLE") TO 9600 BAUD E-7-1
+        CALL    CONINIT
+
+        ;; BOOT SPLASH
+        CALL    INLPRT
+        .TEXT   "Firefly Z80 Rev 1\n\r"
+        .TEXT   "BIOS 0.0\n\r"
+        .TEXT   "William D. Ezell\n\r"
+        .TEXT   "2017-2020\n\r\n\r\n\r\000"
 
         ;; THE LOWER THREE (3) BITS OF THE BYTE READABLE FROM THE
         ;;  SYSCONFIG PORT (PORT 0) ALLOW FOR THE SELECTION OF EIGHT (8)
@@ -142,9 +149,10 @@ RESET:  .EQU    $
 ;; -------------------------------------------------------------
 ;; SUPPORT ROUTINES
 ;; -------------------------------------------------------------
-#INCLUDE "hwdefs.asm"       ;; I/O MAP AND CONSTANTS FOR THE REV 1 BOARD
+#INCLUDE "hwdefs.asm"       ;; I/O MAP AND HARDWARE CONSTANTS FOR THE REV 1 BOARD
+#INCLUDE "memdefs.asm"      ;  MEMORY MAP FOR THE REV 1 BOARD
 #INCLUDE "bootdsp.asm"      ;; SWITCH-DISPATCHED BOOT MENU
-;;#INCLUDE "bioscore.asm"     ;; ROUTINES OF GENERAL PURPOSE TO MOST BOOT MODES
+#INCLUDE "bioscore.asm"     ;; ROUTINES OF GENERAL PURPOSE TO MOST BOOT MODES
 #INCLUDE "dbgutils.asm"     ;; MISC DEBUG TOOLS
 
 
@@ -155,7 +163,7 @@ RESET:  .EQU    $
         ;;  THIS ALLOWS EASY INCREMENTAL FEATURE ADDITION WITHOUT WORRYING ABOUT CODE SIZE
 
 #IF ( $ >= (ROMEND - 1024 ))    ;; WARN AT 31K (EVENTUALLY SET TO 32K)
-        !!! ROM BOUNDS EXCEEDED
+        !!! CODE SIZE LIMIT EXCEEDED
 #ENDIF
 
         .ORG     ROMCHK-21

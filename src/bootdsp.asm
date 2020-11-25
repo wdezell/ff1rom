@@ -56,14 +56,14 @@ JTAB:   ;; EXIT WITH CARRY SET IF ROUTINE NUMBER IS INVALID,
 _NMSUB: .EQU    3           ; NUMBER OF SUBROUTINES IN TABLE
 
 _JMPTB:                     ; JUMP TABLE
-        .DW     BOOT0       ; DIAGNOSTICS
-        .DW     BOOT1       ; MONITOR
-        .DW     BOOT2       ; BOARD UTILS
-        .DW     BOOT3       ; FORTH
-        .DW     BOOT4       ; CP/M
-        .DW     BOOT5       ; TBD
-        .DW     BOOT6       ; TBD
-        .DW     BOOT7       ; TBD
+        .DW     BOOT0       ; CONSOLE MENU -- DIAGNOSTICS, BOARD UTILS, MONITOR, LAUNCH OTHER MODES
+        .DW     BOOT1       ; CP/M
+        .DW     BOOT2       ; FORTH
+        .DW     BOOT3       ; BASIC
+        .DW     BOOT4       ; REMOTE LOAD/EXECUTE SLAVE
+        .DW     BOOT5       ; RESERVED
+        .DW     BOOT6       ; RESERVED
+        .DW     BOOT7       ; RESERVED
 
         ;; -------------------------------------------------------------
 #ENDIF

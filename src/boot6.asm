@@ -14,6 +14,11 @@
 
 BOOT6:  .EQU    $
 
+        ;; DEBUG / REMOVE
+        RST     08H
+        CALL    INLPRT
+        .TEXT   "BOOT 60\n\r\000"
+
         ;; PLACEHOLDER -- ADAPT AS PER FINAL ROUTINE REQUIREMENTS
         HALT
         JR      $
