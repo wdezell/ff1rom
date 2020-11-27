@@ -49,7 +49,7 @@
 IS_RAM: .DB     0       ; USED BY ROM/RAM SWAP TO DETERMINE IF RAM ALREADY ACTIVE (0 = ROM)
 SCRAT1: .DB     0       ; GENERAL USE SCRATCH BYTE
 SCRAT2: .DB     0       ; GENERAL USE SCRATCH BYTE
-SCRAT3: .DB             ; GENERAL USE SCRATCH BYTE
+SCRAT3: .DB     0       ; GENERAL USE SCRATCH BYTE
 SCRAT4: .DB     0       ; GENERAL USE SCRATCH BYTE
 
 ;; -------------------------------------------------------------
@@ -101,7 +101,7 @@ INTVEC: .ORG    $ & 0FFFF0H | 10H
 ;; -------------------------------------------------------------
 RESET:  .EQU    $
         DI                  ; NO INTERRUPTS UNTIL WE WANT THEM
-        LD      SP, STACK   ; INIT STACK POINTER SO WE CAN CALL SUBS
+        LD      SP,STACK    ; INIT STACK POINTER SO WE CAN CALL SUBS
 
 #INCLUDE "rom2ram.asm"      ; INLINED
 
@@ -149,33 +149,32 @@ RESET:  .EQU    $
 ;; -------------------------------------------------------------
 ;; SUPPORT ROUTINES
 ;; -------------------------------------------------------------
-#INCLUDE "hwdefs.asm"       ;; I/O MAP AND HARDWARE CONSTANTS FOR THE REV 1 BOARD
-#INCLUDE "memdefs.asm"      ;  MEMORY MAP FOR THE REV 1 BOARD
 #INCLUDE "bootdsp.asm"      ;; SWITCH-DISPATCHED BOOT MENU
 #INCLUDE "bioscore.asm"     ;; ROUTINES OF GENERAL PURPOSE TO MOST BOOT MODES
 #INCLUDE "dbgutils.asm"     ;; MISC DEBUG TOOLS
-
 
 ;; -------------------------------------------------------------
 ;; END OF THE LINE MINUTIA
 ;; -------------------------------------------------------------
         ;; GENERATE AN INVALID STATEMENT TO THROW AN ERROR IF WATERLINE IS EXCEEDED
         ;;  THIS ALLOWS EASY INCREMENTAL FEATURE ADDITION WITHOUT WORRYING ABOUT CODE SIZE
+        ;;
+        ;; WARN AT 31K (EVENTUALLY SET TO 32K)
+        ;;
+        #IF ( $ >= (ROMEND - 1024 ))
+                !!! CODE SIZE LIMIT EXCEEDED
+        #ENDIF
 
-#IF ( $ >= (ROMEND - 1024 ))    ;; WARN AT 31K (EVENTUALLY SET TO 32K)
-        !!! CODE SIZE LIMIT EXCEEDED
-#ENDIF
-
-        .ORG     ROMCHK-21
+        .ORG     ROMEND-21
         .DB     "WDEZELL FIREFLY REV 1"
 
         ;; FORCE TASM TO TOUCH A SINGLE BYTE AT THE END OF ROM IN ORDER
         ;; TO GENERATE IMAGE SIZED EXACTLY FOR THE ROM, ELSE CODE GENERATION
         ;; WILL STOP AFTER THE LAST INSTRUCTION OR DATA BLOCK DEFINITION.
         ;; -------------------------------------------------------------
-ROMCHK: .ORG    ROMEND-1
-        .CHK    LOWMEM  ; BYTE VALUE = CHECKSUM FROM ADDRESS 00H THRU PREV BYTE
-        .END
+        .ORG    ROMEND
+        .CHK    LOWMEM      ; BYTE VALUE = CHECKSUM FROM ADDRESS 00H THRU PREV BYTE
+        .END                ; CONCLUSION OF ROM CODE
 
-
-
+#INCLUDE "hwdefs.asm"
+#INCLUDE "memdefs.asm"

@@ -13,7 +13,7 @@
 
         ;; BASIC CONSOLE INITIALIZATION
         ;;  SIO CHANNEL A WILL BE CONFIGURED TO 9600-E-7-1 FOR TX &
-        ;;  SIMPLEPOLLED-MODE RX.  MODE-SPECIFIC BOOT INITIALIZERS CAN
+        ;;  SIMPLE POLLED-MODE RX.  MODE-SPECIFIC BOOT INITIALIZERS CAN
         ;;  RECONFIGURE IF NEEDED.
         ;; -------------------------------------------------------------
 CONINIT:    .EQU    $
@@ -29,27 +29,22 @@ CONINIT:    .EQU    $
         ;;        BECAUSE A 4 MHZ COUNT DOESN'T DIVIDE CLEANLY ENOUGH TO HIT MOST BAUDRATES
         ;;        WITHOUT A HIGH MARGIN OF ERROR.
         ;;
-        PUSH    AF          ; SAVE REGISTERS & FLAGS
-        PUSH    BC
-        PUSH    HL
+        CALL    SAVE        ; SAVE REGISTERS & FLAGS
 
         IN      A,(SYSCFG)  ; READ CONFIG SWITCH
         BIT     3,A         ; IS BIT 3 SET?
         JR      NZ,_INCLK   ; YES - SETUP FOR INTERNAL SYSTEM CLOCK TIMING SOURCE
-        LD      A,12        ; NO -- SET TC FOR EXTERNAL CLOCK
+        LD      L,12        ; NO -- SET TC FOR EXTERNAL CLOCK
         JR      _CALSB
-_INCLK: LD      A,20        ; SET TC FOR INTERNAL CLOCK
-_CALSB: CALL    SETBDA      ; CALL SET BAUDRATE SUBROUTINE FOR SIO CHANNEL A
+_INCLK: LD      L,20        ; SET TC FOR INTERNAL CLOCK
+        LD      H,CTCCH0    ; SIO CHANNEL A DRIVEN THROUGH CTC CH0
+_CALSB: CALL    SETBDR      ; CALL SET BAUDRATE SUBROUTINE
 
         ;; SET PROTOCOL PARAMS FROM TABLE
         LD	    C,SIOAC		    ; C = SIO CHANNEL "A" CONTROL PORT
         LD	    HL,_SPTAS	    ; HL = START OF PARAMETERS TABLE
         LD	    B,_SPTAE-_SPTAS	; B = LENGTH IN BYTES OF PARAMETER TABLE
         OTIR			        ; WRITE TABLE TO SIO CHANNEL CONTROL PORT
-
-        POP     HL              ; RESTORE REGISTERS & FLAGS
-        POP     BC
-        POP     AF
 
         RET
 
@@ -142,16 +137,34 @@ _WRDON:	POP	    BC		    ; RESTORE AFFECTED REGS
 	    RET
 
 ;; -------------------------------------------------------------
-;; GENERAL SERIAL UTILITY ROUTINES
+;; REAL-TIME CLOCK, CALENDAR, AND TIME-OF-DAY UTILITY ROUTINES
 ;; -------------------------------------------------------------
 
-SETBDA: .EQU    $
-        ;; SET SIO A BAUD RATE
-        ;;  REGISTERS AFFECTED:  NONE
+        ;; TO-DO ONCE WE HAVE IMPLEMENTED OUR HARDWARE
+
+
+;; -------------------------------------------------------------
+;; DISK UTILITY ROUTINES
+;; -------------------------------------------------------------
+
+        ;; TO-DO ONCE WE HAVE IMPLEMENTED OUR HARDWARE
+
+
+;; -------------------------------------------------------------
+;; SERIAL UTILITY ROUTINES
+;; -------------------------------------------------------------
+
+SETBDR: .EQU    $
+        ;; SET SIO CHANNEL A OR B BAUD RATE CLOCK
+        ;;  PARAMETERS: H   = CTC CHANNEL CONTROL REGISTER
+        ;;              L   = TIMING CONSTANT AS PER TABLE BELOW
+        ;;
+        ;;  AFFECTED:   NONE
         ;;
         ;;  FIREFLY USES CTC CHANNEL 0 TO SCALE A USER-SELECTABLE TIMING SOURCE
-        ;;  TO DRIVE SIO CH A RX/TX CLOCKS.  TIMING SOURCE IS JUMPER SELECTABLE
-        ;;  OPTION OF SYSTEM CLOCK OR INDEPENDENT AUXILLARY OSCILLATOR.
+        ;;  TO DRIVE SIO CH A RX/TX CLOCKS.  CTC CHANNEL 1 IS USED FOR SIO CHANNEL B.
+        ;;  TIMING SOURCE IS JUMPER SELECTABLE OPTION OF SYSTEM CLOCK OR AUXILLIARY
+        ;;  OSCILLATOR. THE TABLE BELOW IS BASED ON A 3.6864 MHZ AUXILLARY OSC.
         ;;
         ;;  USEFUL FORMULAE FOR 16X CLOCK RATES USING CTC IN COUNTER MODE:
         ;;    BAUD = CLK / 2 / 16 / TC
@@ -162,31 +175,34 @@ SETBDA: .EQU    $
         ;;  RATES WITH 0% ERROR.
         ;;
         ;;  CLOCK   BAUD RATES
-        ;;    MHZ    19200     9600     4800     2400     1800     1200      600
-        ;;  ------  ------     ----     ----     ----     ----     ----     ----
-        ;;  3.6864      *6      *12      *24      *48      *64      *96     *192
-        ;;  4.0000     n/a       13       26       52       69      104      208
-        ;;  6.1440     *10      *20      *40      *80      107     *160      n/a
+        ;;    MHZ   38400     19200     9600     4800     2400     1800     1200      600
+        ;;  ------  ------   ------     ----     ----     ----     ----     ----     ----
+        ;;  3.6864      *3       *6      *12      *24      *48      *64      *96     *192
+        ;;  4.0000     n/a      n/a       13       26       52       69      104      208
+        ;;  6.1440      *5      *10      *20      *40      *80      107     *160      n/a
 
         ;; INIT CTC CHANNEL 0 OUTPUT - SERIAL CHANNEL "A" BAUD RATE CLOCK
-        PUSH    AF          ; SAVE ACCUMULATOR & FLAGS
+        CALL    SAVE                    ; SAVE ACCUMULATOR & FLAGS
+        LD      A,H                     ; GET PORT FROM PARAMETER H INTO C
+        LD      C,A
         LD	    A,CTCCTR+CTCTC+CTCCTL   ; CTR MODE, TC FOLLOWS, IS CONTROL WORD
-        OUT	    (CTCCH0),A
-        LD	    A,20		; TC OF 20 = 9600 BAUD W/ 6.144 MHZ SYSTEM CLOCK
-        OUT	    (CTCCH0),A
-        POP     AF
+        OUT	    (C),A
+        OUT	    (C),L                   ; TC VIA PARAMETER
         RET
 
 ;; -------------------------------------------------------------
 ;; BASIC MATH ROUTINES
 ;; -------------------------------------------------------------
 
+        ;; TO-DO:  8-BIT MULTIPLY
+
+        ;; TO-DO:  16-BIT DIVIDE
 
 ;; -------------------------------------------------------------
 ;; MISCELLANEOUS UTILITY
 ;; -------------------------------------------------------------
 
-        ;; "MATHEWS SAVE REGISTER ROUTINE" -- A DAMNED FINE BIT OF CLEVER CODING
+        ;; "MATHEWS SAVE REGISTER ROUTINE"
         ;;  FROM ZILOG MICROPROCESSOR APPLICATIONS REFERENCE BOOK VOLUME 1, 2-18-81
         ;;
         ;; SAVE AND AUTOMATICALLY RESTORE ALL REGISTERS AND FLAGS IN ANY SUBROUTINE

@@ -2,14 +2,14 @@
 #DEFINE memdefs_asm  1
 
 ;; -----------------------------------------------------
-;; COMMON MEMORY MAP DEFINITIONS
+;; RAM BUFFERS AND DEFINITIONS FOR THE REV 1 BOARD
 ;; -----------------------------------------------------
-        ;; STACK
-STACK:  .EQU    MEMTOP      ; AT TOP OF RAM, GROWS DOWN
-STKSIZ: .EQU    256         ; 256-BYTE STACK
-
-        ;; RING BUFFER FOR INTERRUPT MODE 2 CONSOLE INPUT
-CONBUF: .EQU    STACK-STKSIZ
+        .ORG    STACK-STKSIZ
+CONBUF: .EQU    $           ; RING BUFFER FOR INTERRUPT MODE 2 CONSOLE INPUT
 CNBSIZ: .EQU    80          ; 80-CHARACTER TYPE-AHEAD BUFFER
+
+        .ORG    MEMTOP
+STACK:  .EQU    $           ; AT TOP OF RAM, GROWS DOWN
+STKSIZ: .EQU    256         ; 256-BYTE STACK
 
 #ENDIF

@@ -1,16 +1,12 @@
 #IFNDEF rom2ram_asm         ; TASM-specific guard
 #DEFINE rom2ram_asm  1
 
-.NOLIST
-;;  USAGE:  INLINE INCLUSION
-;;  DEPS:   HWDESFS.ASM
-;;  STACK:  NOT REQUIRED, DESTROYS EXISTING
-.LIST
-
 ;; -------------------------------------------------------------
 ;; REPLACE ROM IN LOWMEM WITH A FULL COPY OF BOOTROM IMAGE
 ;;  RUNNING IN RAM (SKIP COPY/SWAP IF RAM IS ALREADY ACTIVE,
 ;;  CURRENT HIMEM CONTENTS WILL NOT BE DISRUPTED)
+;;
+;;  USAGE:  INLINE INCLUSION  (NO STACK ALLOWED YET)
 ;; -------------------------------------------------------------
 	    .MODULE ROM2RAM
 
