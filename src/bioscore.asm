@@ -41,53 +41,53 @@ _INCLK: LD      L,20        ; SET TC FOR INTERNAL CLOCK
 _CALSB: CALL    SETBDR      ; CALL SET BAUDRATE SUBROUTINE
 
         ;; SET PROTOCOL PARAMS FROM TABLE
-        LD	    C,SIOAC		    ; C = SIO CHANNEL "A" CONTROL PORT
-        LD	    HL,_SPTAS	    ; HL = START OF PARAMETERS TABLE
-        LD	    B,_SPTAE-_SPTAS	; B = LENGTH IN BYTES OF PARAMETER TABLE
-        OTIR			        ; WRITE TABLE TO SIO CHANNEL CONTROL PORT
+        LD        C,SIOAC            ; C = SIO CHANNEL "A" CONTROL PORT
+        LD        HL,_SPTAS        ; HL = START OF PARAMETERS TABLE
+        LD        B,_SPTAE-_SPTAS    ; B = LENGTH IN BYTES OF PARAMETER TABLE
+        OTIR                    ; WRITE TABLE TO SIO CHANNEL CONTROL PORT
 
         RET
 
         ;; SIO SERIAL CHANNEL A INITIALIZATION PARAMETERS TABLE
 _SPTAS:
-        .DB	    10H		    ; RESET HANDSHAKE COMMAND
-        .DB	    30H		    ; RESET ERROR FLAGS COMMAND
-        .DB	    18H		    ; RESET CHANNEL COMMAND
-        .DB	    04H		    ; SELECT REGISTER 4
-        .DB	    47H		    ; EVEN PARITY, 1 STOP BIT, 16X CLOCK
-        .DB	    05H		    ; SELECT REGISTER 5
-        .DB	    0AAH		; DTR & RTS ON, XMIT 7 DATA BITS, ON
-        .DB	    03H		    ; SELECT REGISTER 3
-        .DB	    41H		    ; RCV 7 DATA BITS, ON
-        .DB	    01H		    ; SELECT REGISTER 1
-        .DB	    00H		    ; NO INTERRUPTS
-_SPTAE:	.EQU	$
+        .DB        10H            ; RESET HANDSHAKE COMMAND
+        .DB        30H            ; RESET ERROR FLAGS COMMAND
+        .DB        18H            ; RESET CHANNEL COMMAND
+        .DB        04H            ; SELECT REGISTER 4
+        .DB        47H            ; EVEN PARITY, 1 STOP BIT, 16X CLOCK
+        .DB        05H            ; SELECT REGISTER 5
+        .DB        0AAH        ; DTR & RTS ON, XMIT 7 DATA BITS, ON
+        .DB        03H            ; SELECT REGISTER 3
+        .DB        41H            ; RCV 7 DATA BITS, ON
+        .DB        01H            ; SELECT REGISTER 1
+        .DB        00H            ; NO INTERRUPTS
+_SPTAE:    .EQU    $
 
-	    ;; CONSOLE CHARACTER INPUT
-	    ;;  WAITS FOR DATA AND RETURNS CHARACTER IN A
+        ;; CONSOLE CHARACTER INPUT
+        ;;  WAITS FOR DATA AND RETURNS CHARACTER IN A
         ;; -------------------------------------------------------------
-CONIN:  IN	    A,(SIOAC)	; READ STATUS
-	    BIT	    0,A		    ; DATA AVAILABLE
-        JR	    Z,CONIN	    ; NO DATA, WAIT
-        IN	    A,(SIOAD)	; READ DATA
-        AND	    7FH		    ; MASK BIT 7 (JUNK)
+CONIN:  IN        A,(SIOAC)    ; READ STATUS
+        BIT        0,A            ; DATA AVAILABLE
+        JR        Z,CONIN        ; NO DATA, WAIT
+        IN        A,(SIOAD)    ; READ DATA
+        AND        7FH            ; MASK BIT 7 (JUNK)
         RET
 
         ;; CONSOLE CHARACTER OUTUT
         ;; CHECKS CTS LINE AND XMITS CHARACTER IN C WHEN CTS IS ACTIVE
         ;; -------------------------------------------------------------
-CONOUT: PUSH	AF
-        LD	    A,10H		; SIO HANDSHAKE RESET DATA
-        OUT	    (SIOAC),A	; UPDATE HANDSHAKE REGISTER
-        IN	    A,(SIOAC)	; READ STATUS
-        BIT	    5,A		    ; CHECK CTS BIT
-        JR	    Z,CONOUT	; WAIT UNTIL CTS IS ACTIVE
-_COUT1:	IN	    A,(SIOAC)	; READ STATUS
-        BIT	    2,A		    ; XMIT BUFFER EMPTY?
-        JR	    Z,_COUT1	; NO, WAIT UNTIL EMPTY
-        LD	    A,C		    ; CHARACTER TO A
-        OUT	    (SIOAD),A	; OUTPUT DATA
-        POP	    AF
+CONOUT: PUSH    AF
+        LD        A,10H        ; SIO HANDSHAKE RESET DATA
+        OUT        (SIOAC),A    ; UPDATE HANDSHAKE REGISTER
+        IN        A,(SIOAC)    ; READ STATUS
+        BIT        5,A            ; CHECK CTS BIT
+        JR        Z,CONOUT    ; WAIT UNTIL CTS IS ACTIVE
+_COUT1:    IN        A,(SIOAC)    ; READ STATUS
+        BIT        2,A            ; XMIT BUFFER EMPTY?
+        JR        Z,_COUT1    ; NO, WAIT UNTIL EMPTY
+        LD        A,C            ; CHARACTER TO A
+        OUT        (SIOAD),A    ; OUTPUT DATA
+        POP        AF
         RET
 
         ;; CONSOLE RECEIVE STATUS (POLLED)
@@ -96,14 +96,14 @@ _COUT1:	IN	    A,(SIOAC)	; READ STATUS
         ;; RETURNS: A = FFH (Z = 0)  CHAR AVAILABLE
         ;;          A = 00H (Z = 1)  NO CHAR AVAILABLE
         ;; -------------------------------------------------------------
-CONRXS: IN	    A,(SIOAC)   ; READ STATUS
-	    BIT	    0,A		    ; BIT 0 = DATA AVAILABLE
-	    JR	    Z,_NOCHR	; NO DATA AVAILABLE
-	    LD	    A,0FFH		; DATA AVAILABLE, SET A = FFH
-	    AND	    A		    ; Z = 0
-	    RET
-_NOCHR:	XOR	    A		    ; A = 0, Z = 1
-	    RET
+CONRXS: IN        A,(SIOAC)   ; READ STATUS
+        BIT        0,A            ; BIT 0 = DATA AVAILABLE
+        JR        Z,_NOCHR    ; NO DATA AVAILABLE
+        LD        A,0FFH        ; DATA AVAILABLE, SET A = FFH
+        AND        A            ; Z = 0
+        RET
+_NOCHR:    XOR        A            ; A = 0, Z = 1
+        RET
 
         ;; IN-LINE PRINT ROUTINE
         ;;  PRINT NULL-TERMINATED STRING IMMEDIATELY FOLLOWING SUBROUTINE CALL.
@@ -111,10 +111,10 @@ _NOCHR:	XOR	    A		    ; A = 0, Z = 1
         ;;
         ;; REGISTERS AFFECTED:  NONE
         ;; -------------------------------------------------------------
-INLPRT: EX	    (SP),HL		; NEXT BYTE AFTER CALL NOT RETURN ADDR BUT STRING
-        CALL	WRSTRZ		; HL NOW POINTS TO STRING; PRINT AS USUAL
-        INC	    HL		    ; ADJUST HL ONE BYTE BEYOND NULL TERMINATOR
-        EX	    (SP),HL		; PUT HL BACK ON STACK AS ADJUSTED RETURN ADDRESS
+INLPRT: EX        (SP),HL        ; NEXT BYTE AFTER CALL NOT RETURN ADDR BUT STRING
+        CALL    WRSTRZ        ; HL NOW POINTS TO STRING; PRINT AS USUAL
+        INC        HL            ; ADJUST HL ONE BYTE BEYOND NULL TERMINATOR
+        EX        (SP),HL        ; PUT HL BACK ON STACK AS ADJUSTED RETURN ADDRESS
         RET
 
         ;; PRINT NULL-TERMINATED STRING POINTED TO BY HL REGISTER PAIR
@@ -123,18 +123,18 @@ INLPRT: EX	    (SP),HL		; NEXT BYTE AFTER CALL NOT RETURN ADDR BUT STRING
         ;;  REGISTERS AFFECTED:  HL IS LEFT POINTING TO NULL TERMINATOR CHARACTER
         ;;                        AS REQUIRED BY INLPRT
         ;; -------------------------------------------------------------
-WRSTRZ: PUSH	AF		    ; SAVE AFFECTED REGS
-	    PUSH	BC
-_WRGTC:	LD	    A,(HL)		; GET CHAR
-        CP	    0		    ; IS CHAR NULL END-OF-STRING DELIM ?
-        JP	    Z,_WRDON	; YES, DONE
-        LD	    C,A		    ; NO, SEND TO CHAROUT ROUTINE
-        CALL	CONOUT
-        INC	    HL		    ; GET NEXT CHARACTER
-        JP	    _WRGTC
-_WRDON:	POP	    BC		    ; RESTORE AFFECTED REGS
-	    POP	    AF
-	    RET
+WRSTRZ: PUSH    AF            ; SAVE AFFECTED REGS
+        PUSH    BC
+_WRGTC:    LD        A,(HL)        ; GET CHAR
+        CP        0            ; IS CHAR NULL END-OF-STRING DELIM ?
+        JP        Z,_WRDON    ; YES, DONE
+        LD        C,A            ; NO, SEND TO CHAROUT ROUTINE
+        CALL    CONOUT
+        INC        HL            ; GET NEXT CHARACTER
+        JP        _WRGTC
+_WRDON:    POP        BC            ; RESTORE AFFECTED REGS
+        POP        AF
+        RET
 
 ;; -------------------------------------------------------------
 ;; REAL-TIME CLOCK, CALENDAR, AND TIME-OF-DAY UTILITY ROUTINES
@@ -185,9 +185,9 @@ SETBDR: .EQU    $
         CALL    SAVE                    ; SAVE ACCUMULATOR & FLAGS
         LD      A,H                     ; GET PORT FROM PARAMETER H INTO C
         LD      C,A
-        LD	    A,CTCCTR+CTCTC+CTCCTL   ; CTR MODE, TC FOLLOWS, IS CONTROL WORD
-        OUT	    (C),A
-        OUT	    (C),L                   ; TC VIA PARAMETER
+        LD        A,CTCCTR+CTCTC+CTCCTL   ; CTR MODE, TC FOLLOWS, IS CONTROL WORD
+        OUT        (C),A
+        OUT        (C),L                   ; TC VIA PARAMETER
         RET
 
 ;; -------------------------------------------------------------
@@ -244,12 +244,12 @@ _GOI:   JP      (HL)
 ;; -------------------------------------------------------------
 ;; USEFUL CONSTANTS
 ;; -------------------------------------------------------------
-	    ;; STATIC DATA DEFINITIONS
-CR:	    .EQU	0DH		    ; ASCII CARRIAGE RETURN
-LF:	    .EQU	0AH		    ; ASCII LINE FEED
-ESC:	.EQU	1BH		    ; ASCII ESCAPE CHARACTER
-CRLFZ:	.TEXT	"\n\r\000"
-VT52CL: .DB	    ESC, 'H', ESC, 'J', 00H
+        ;; STATIC DATA DEFINITIONS
+CR:        .EQU    0DH            ; ASCII CARRIAGE RETURN
+LF:        .EQU    0AH            ; ASCII LINE FEED
+ESC:    .EQU    1BH            ; ASCII ESCAPE CHARACTER
+CRLFZ:    .TEXT    "\n\r\000"
+VT52CL: .DB        ESC, 'H', ESC, 'J', 00H
 
         ;; -------------------------------------------------------------
 #ENDIF
