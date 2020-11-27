@@ -13,6 +13,7 @@
 ;; -------------------------------------------------------------
 
 ;; DEBUG -- OUTPUT PC OF CALLING RST 08H TO DS4L/R HEX DISPLAYS
+;;           SYSCFG SW TO DS2
 ;;   USAGE:     RST 08H;
 DRST08: .EQU    $
 
@@ -22,6 +23,8 @@ DRST08: .EQU    $
         OUT     (DS4L),A
         LD      A,L         ; DISPLAY LOW BYTE OF CALLER'S ADDRESS
         OUT     (DS4R),A
+        IN      A,(SYSCFG)  ; DISPLAY CONFIG SWITCH SETTING TO DS2
+        OUT     (DS2),A
         POP     AF          ; RESTORE A
         EX      (SP),HL     ; PUT CALLER RETURN ADDRESS & HL BACK
         RET

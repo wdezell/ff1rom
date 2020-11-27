@@ -101,11 +101,13 @@ INTVEC: .ORG    $ & 0FFFF0H | 10H
 ;; -------------------------------------------------------------
 RESET:  .EQU    $
         DI                  ; NO INTERRUPTS UNTIL WE WANT THEM
+        RST     08H         ;                                                         <-- DEBUG REMOVE
         LD      SP,STACK    ; INIT STACK POINTER SO WE CAN CALL SUBS
 
 #INCLUDE "rom2ram.asm"      ; INLINED
 
         ;; INITIALIZE SIO CHANNEL A ("CONSOLE") TO 9600 BAUD E-7-1
+        RST     08H         ;                                                         <-- DEBUG REMOVE
         CALL    CONINIT
 
         ;; BOOT SPLASH
