@@ -116,6 +116,7 @@ RESET:  .EQU    $
         .TEXT   "BIOS 0.0\n\r"
         .TEXT   "William D. Ezell\n\r"
         .TEXT   "2017-2020\n\r\n\r\n\r\000"
+        RST     08H         ;                                                         <-- DEBUG REMOVE
 
         ;; THE LOWER THREE (3) BITS OF THE BYTE READABLE FROM THE
         ;;  SYSCONFIG PORT (PORT 0) ALLOW FOR THE SELECTION OF EIGHT (8)

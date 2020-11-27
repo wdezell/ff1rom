@@ -39,9 +39,9 @@ CONINIT:    .EQU    $
         LD      L,12        ; NO -- SET TC FOR EXTERNAL CLOCK
         JR      _CALSB
 _INCLK: LD      L,20        ; SET TC FOR INTERNAL CLOCK
-        LD      H,CTCCH0    ; SIO CHANNEL A DRIVEN THROUGH CTC CH0
         RST     08H         ;                                                         <-- DEBUG REMOVE
-_CALSB: CALL    SETBDR      ; CALL SET BAUDRATE SUBROUTINE
+_CALSB: LD      H,CTCCH0    ; SIO CHANNEL A DRIVEN THROUGH CTC CH0
+        CALL    SETBDR      ; CALL SET BAUDRATE SUBROUTINE
 
         ;; SET PROTOCOL PARAMS FROM TABLE
         LD      C,SIOAC     ; C = SIO CHANNEL "A" CONTROL PORT
@@ -81,17 +81,21 @@ CONIN:  IN      A,(SIOAC)   ; READ STATUS
         ;; CHECKS CTS LINE AND XMITS CHARACTER IN C WHEN CTS IS ACTIVE
         ;; -------------------------------------------------------------
 CONOUT: PUSH    AF
-        LD      A,10H       ; SIO HANDSHAKE RESET DATA
+        RST     08H         ;                                                         <-- DEBUG REMOVE
+_COUT1: LD      A,10H       ; SIO HANDSHAKE RESET DATA
         OUT     (SIOAC),A   ; UPDATE HANDSHAKE REGISTER
         IN      A,(SIOAC)   ; READ STATUS
         BIT     5,A         ; CHECK CTS BIT
-        JR      Z,CONOUT    ; WAIT UNTIL CTS IS ACTIVE
-_COUT1: IN      A,(SIOAC)   ; READ STATUS
+        RST     08H         ;                                                         <-- DEBUG REMOVE
+        JR      Z,_COUT1    ; WAIT UNTIL CTS IS ACTIVE
+        RST     08H         ;                                                         <-- DEBUG REMOVE
+_COUT2: IN      A,(SIOAC)   ; READ STATUS
         BIT     2,A         ; XMIT BUFFER EMPTY?
-        JR      Z,_COUT1    ; NO, WAIT UNTIL EMPTY
+        JR      Z,_COUT2    ; NO, WAIT UNTIL EMPTY
         LD      A,C         ; CHARACTER TO A
         OUT     (SIOAD),A   ; OUTPUT DATA
         POP     AF
+        RST     08H         ;                                                         <-- DEBUG REMOVE
         RET
 
         ;; CONSOLE RECEIVE STATUS (POLLED)
@@ -116,6 +120,7 @@ _NOCHR: XOR     A           ; A = 0, Z = 1
         ;; REGISTERS AFFECTED:  NONE
         ;; -------------------------------------------------------------
 INLPRT: EX      (SP),HL     ; NEXT BYTE AFTER CALL NOT RETURN ADDR BUT STRING
+        RST     08H         ;                                                         <-- DEBUG REMOVE
         CALL    WRSTRZ      ; HL NOW POINTS TO STRING; PRINT AS USUAL
         INC     HL          ; ADJUST HL ONE BYTE BEYOND NULL TERMINATOR
         EX      (SP),HL     ; PUT HL BACK ON STACK AS ADJUSTED RETURN ADDRESS
@@ -130,15 +135,18 @@ INLPRT: EX      (SP),HL     ; NEXT BYTE AFTER CALL NOT RETURN ADDR BUT STRING
         ;; -------------------------------------------------------------
 WRSTRZ: PUSH    AF          ; SAVE AFFECTED REGS
         PUSH    BC
+        RST     08H         ;                                                         <-- DEBUG REMOVE
 _WRGTC: LD      A,(HL)      ; GET CHAR
         CP      0           ; IS CHAR NULL END-OF-STRING DELIM ?
         JP      Z,_WRDON    ; YES, DONE
         LD      C,A         ; NO, SEND TO CHAROUT ROUTINE
+        RST     08H         ;                                                         <-- DEBUG REMOVE
         CALL    CONOUT
         INC     HL          ; GET NEXT CHARACTER
         JP      _WRGTC
 _WRDON: POP     BC          ; RESTORE AFFECTED REGS
         POP     AF
+        RST     08H         ;                                                         <-- DEBUG REMOVE
         RET
 
 ;; -------------------------------------------------------------
