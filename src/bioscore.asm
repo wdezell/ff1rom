@@ -137,6 +137,15 @@ _WRDON: POP     BC          ; RESTORE AFFECTED REGS
         POP     AF
         RET
 
+        ;; SEND VT-52 SCREEN CLEAR COMMAND SEQUENCE
+        ;;  REGISTERS AFFECTED:  HL
+        ;; -------------------------------------------------------------
+VTCLS:  .EQU    $
+        LD      HL,(_VTCL)
+        CALL    WRSTRZ
+        RET
+_VTCL:  .DB 1BH, 'H', 1BH, 'J', 00H
+
 ;; -------------------------------------------------------------
 ;; REAL-TIME CLOCK, CALENDAR, AND TIME-OF-DAY UTILITY ROUTINES
 ;; -------------------------------------------------------------
