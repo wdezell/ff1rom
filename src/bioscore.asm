@@ -71,18 +71,21 @@ CONIN:  IN      A,(SIOAC)   ; READ STATUS
         RET
 
         ;; CONSOLE CHARACTER OUTUT
-        ;; CHECKS CTS LINE AND XMITS CHARACTER IN C WHEN CTS IS ACTIVE
+        ;;  CONOTW - CHECKS CTS LINE AND XMITS CHARACTER IN C
+        ;;            WHEN CTS IS ACTIVE
+        ;;  CONOUT - NON-BLOCKING XMIT OF CHARACTER IN C
+        ;;            (IGNORES CTS)
         ;; -------------------------------------------------------------
-CONOUT: LD      A,10H       ; SIO HANDSHAKE RESET DATA
+CONOTW: LD      A,10H       ; SIO HANDSHAKE RESET DATA
         OUT     (SIOAC),A   ; UPDATE HANDSHAKE REGISTER
         IN      A,(SIOAC)   ; READ STATUS
         BIT     5,A         ; CHECK CTS BIT
         RST     08H         ;                                                         <-- DEBUG REMOVE
-        JR      Z,CONOUT    ; WAIT UNTIL CTS IS ACTIVE
+        JR      Z,CONOTW    ; WAIT UNTIL CTS IS ACTIVE
         RST     08H         ;                                                         <-- DEBUG REMOVE
-_COUT1: IN      A,(SIOAC)   ; READ STATUS
+CONOUT: IN      A,(SIOAC)   ; READ STATUS
         BIT     2,A         ; XMIT BUFFER EMPTY?
-        JR      Z,_COUT1    ; NO, WAIT UNTIL EMPTY
+        JR      Z,CONOUT    ; NO, WAIT UNTIL EMPTY
         LD      A,C         ; CHARACTER TO A
         OUT     (SIOAD),A   ; OUTPUT DATA
         RST     08H         ;                                                         <-- DEBUG REMOVE
@@ -142,7 +145,7 @@ _WRDON: POP     BC          ; RESTORE AFFECTED REGS
 
 
 ;; -------------------------------------------------------------
-;; DISK UTILITY ROUTINES
+;; MASS STORAGE UTILITY ROUTINES (DISK)
 ;; -------------------------------------------------------------
 
         ;; TO-DO ONCE WE HAVE IMPLEMENTED OUR HARDWARE
