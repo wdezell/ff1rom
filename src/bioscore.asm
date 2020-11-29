@@ -12,7 +12,7 @@
 ;; -------------------------------------------------------------
 
         ;; BASIC CONSOLE INITIALIZATION
-        ;;  SIO CHANNEL A WILL BE CONFIGURED TO 9600-E-7-1 FOR TX &
+        ;;  SIO CHANNEL A WILL BE CONFIGURED TO 9600-N-8-1 FOR TX &
         ;;  SIMPLE POLLED-MODE RX.  MODE-SPECIFIC BOOT INITIALIZERS CAN
         ;;  RECONFIGURE IF NEEDED.
         ;; -------------------------------------------------------------
@@ -51,11 +51,11 @@ _SPTAS:
         .DB     30H         ; RESET ERROR FLAGS COMMAND
         .DB     18H         ; RESET CHANNEL COMMAND
         .DB     04H         ; SELECT REGISTER 4
-        .DB     47H         ; EVEN PARITY, 1 STOP BIT, 16X CLOCK
+        .DB     46H         ; NO PARITY, 1 STOP BIT, 16X CLOCK
         .DB     05H         ; SELECT REGISTER 5
-        .DB     0AAH        ; DTR & RTS ON, XMIT 7 DATA BITS, XMIT ENABLE
+        .DB     0EAH        ; DTR & RTS ON, XMIT 8 DATA BITS, XMIT ENABLE
         .DB     03H         ; SELECT REGISTER 3
-        .DB     41H         ; RCV 7 DATA BITS, ON
+        .DB     0C1H        ; RCV 8 DATA BITS, ON
         .DB     01H         ; SELECT REGISTER 1
         .DB     00H         ; NO INTERRUPTS
 _SPTAE: .EQU    $

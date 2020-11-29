@@ -105,7 +105,7 @@ RESET:  .EQU    $
 
 #INCLUDE "rom2ram.asm"      ; INLINED
 
-        ;; INITIALIZE SIO CHANNEL A ("CONSOLE") TO 9600 BAUD E-7-1
+        ;; INITIALIZE SIO CHANNEL A ("CONSOLE") TO 9600 BAUD N-8-1
         CALL    CONINIT
 
         ;; BOOT SPLASH
