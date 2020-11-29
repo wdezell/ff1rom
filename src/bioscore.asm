@@ -76,14 +76,19 @@ CONIN:  IN      A,(SIOAC)   ; READ STATUS
         ;;  CONOUT - NON-BLOCKING XMIT OF CHARACTER IN C
         ;;            (IGNORES CTS)
         ;; -------------------------------------------------------------
-CONOTW: LD      A,10H       ; SIO HANDSHAKE RESET DATA
+CONOTW: CALL    SAVE        ; SAVE REGISTERS AND FLAGS
+        LD      A,10H       ; SIO HANDSHAKE RESET DATA
         OUT     (SIOAC),A   ; UPDATE HANDSHAKE REGISTER
         IN      A,(SIOAC)   ; READ STATUS
         BIT     5,A         ; CHECK CTS BIT
         RST     08H         ;                                                         <-- DEBUG REMOVE
         JR      Z,CONOTW    ; WAIT UNTIL CTS IS ACTIVE
         RST     08H         ;                                                         <-- DEBUG REMOVE
-CONOUT: IN      A,(SIOAC)   ; READ STATUS
+        CALL    CONOUT
+        RET
+
+CONOUT: CALL    SAVE        ; SAVE REGISTERS AND FLAGS
+        IN      A,(SIOAC)   ; READ STATUS
         BIT     2,A         ; XMIT BUFFER EMPTY?
         JR      Z,CONOUT    ; NO, WAIT UNTIL EMPTY
         LD      A,C         ; CHARACTER TO A
@@ -141,7 +146,7 @@ _WRDON: POP     BC          ; RESTORE AFFECTED REGS
         ;;  REGISTERS AFFECTED:  HL
         ;; -------------------------------------------------------------
 VTCLS:  .EQU    $
-        LD      HL,(_VTCL)
+        LD      HL,_VTCL
         CALL    WRSTRZ
         RET
 _VTCL:  .DB 1BH, 'H', 1BH, 'J', 00H
@@ -211,6 +216,44 @@ SETBDR: .EQU    $
 ;; -------------------------------------------------------------
 ;; MISCELLANEOUS UTILITY
 ;; -------------------------------------------------------------
+        ;; -------------------------------------------------------------
+        ;; TABLE DISPATCH -- ROUTE EXECUTION TO TABLE SUBROUTINE AT INDEX
+        ;;
+        ;;   USAGE: A       TABLE INDEX
+        ;;          B       NUMBER OF TABLE ENTRIES
+        ;;          HL      ADDRESS OF JUMPT TABLE
+        ;;
+        ;;   ALTERS: AF
+        ;;
+        ;; ADAPTED FROM LANCE LEVANTHAL '9H JUMP TABLE (JTAB)'
+        ;; -------------------------------------------------------------
+        ;;
+TABDSP: ;; EXIT WITH CARRY SET IF ROUTINE NUMBER IS INVALID,
+        ;; THAT IS, IF IT IS TOO LARGE FOR TABLE (> _NMSUB-1)
+        CP      B           ; COMPARE INDEX, TABLE SIZE
+        CCF                 ; COMPLIMENT CARRY FOR ERROR INDICATOR
+        RET     C           ; RETURN IF ROUTINE NUMBER TOO LARGE
+                            ;  WITH CARRY SET
+
+        ;; INDEX INTO TABLE OF WORD-LENGTH ADDRESSES
+        ;; LEAVE REGISTER PAIRS UNCHANGED SO THEY CAN BE USED FOR PASSING PARAMS
+        PUSH    HL          ; SAVE HL
+        ADD     A,A         ; DOUBLE INDEX FOR WORD-LENGTH ENTRIES
+        ADD     A,L         ; TO AVOID DISTURBING ANOTHER REGISTER PAIR
+        LD      L,A
+        LD      A,0
+        ADC     A,H
+        LD      H,A         ; ACCESS ROUTINE ADDRESS
+
+        ;; OBTAIN ROUTINE ADDRESS FROM TABLE AND TRANSFER CONTROL TO IT,
+        ;;  LEAVING ALL REGISTER PAIRS UNCHANGED
+        LD      A,(HL)      ; MOVE ROUTINE ADDRESS TO HL
+        INC     HL
+        LD      H,(HL)
+        LD      L,A
+        EX      (SP),HL     ;RESTORE OLD HL, PUSH ROUTINE ADDRESS
+
+        RET                 ; JUMP TO ROUTINE
 
         ;; "MATHEWS SAVE REGISTER ROUTINE"
         ;;  FROM ZILOG MICROPROCESSOR APPLICATIONS REFERENCE BOOK VOLUME 1, 2-18-81

@@ -111,8 +111,8 @@ RESET:  .EQU    $
 
         ;; BOOT SPLASH
         CALL    INLPRT
-        .TEXT   "Firefly Z80 Rev 1\n\r"
-        .TEXT   "BIOS 0.1\n\r"
+        .TEXT   "\n\rFirefly Z80 Rev 1\n\r"
+        .TEXT   "BIOS 0.2\n\r"
         .TEXT   "William D. Ezell\n\r"
         .TEXT   "2017-2020\n\r\n\r\n\r\000"
 
@@ -127,10 +127,12 @@ RESET:  .EQU    $
 
         ;; TRANSFER EXECUTION TO ROUTINE RESPONSIBLE FOR MANAGING
         ;;  SELECTED BOOT MODE
-        CALL    BOOTJP
+        LD      HL,BSWTAB   ; ADDRESS OF DISPATCH TABLE FOR BOOT SWITCH
+        LD      B,8         ; NUMBER OF ENTRIES IN TABLE
+        CALL    TABDSP
 
         ;; IF WE REACH THIS POINT TABLE DISPATCH RETURNED WITH AN ERROR (CARRY SET)
-        RST     08H         ;                                                         <-- DEBUG REMOVE
+        RST     08H         ; OUTPUT OUR STOP LOCATION TO DEBUG DISPLAY
         HALT                ; TO-DO:  INDICATE AN ERROR OR SOMETHING
         JR      $
 
@@ -139,7 +141,8 @@ RESET:  .EQU    $
 ;;   EACH WILL FURTHER HANDLE SETUP AND LAUNCH FOR RESPECTIVE
 ;;   FUNCTIONAL MODE
 ;; -------------------------------------------------------------
-#INCLUDE "boot0.asm"        ; DIAGNOSTICS
+#INCLUDE "bootdsp.asm"      ; SWITCH-DISPATCHED BOOT MENU
+#INCLUDE "boot0.asm"        ;  CONSOLE MENU
 #INCLUDE "boot1.asm"
 #INCLUDE "boot2.asm"
 #INCLUDE "boot3.asm"
@@ -151,7 +154,6 @@ RESET:  .EQU    $
 ;; -------------------------------------------------------------
 ;; SUPPORT ROUTINES
 ;; -------------------------------------------------------------
-#INCLUDE "bootdsp.asm"      ;; SWITCH-DISPATCHED BOOT MENU
 #INCLUDE "bioscore.asm"     ;; ROUTINES OF GENERAL PURPOSE TO MOST BOOT MODES
 #INCLUDE "dbgutils.asm"     ;; MISC DEBUG TOOLS
 
