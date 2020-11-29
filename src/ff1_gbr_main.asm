@@ -110,6 +110,7 @@ RESET:  .EQU    $
 
         ;; BOOT SPLASH
         CALL    INLPRT
+        .DB     1BH, 'H', 1BH, 'J'      ; VT52 CLEAR SCREEN
         .TEXT   "Firefly Z80 Rev 1\n\r"
         .TEXT   "BIOS 0.1\n\r"
         .TEXT   "William D. Ezell\n\r"

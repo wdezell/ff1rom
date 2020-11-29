@@ -20,6 +20,13 @@ BOOT0:  .EQU    $
         CALL    INLPRT
         .TEXT   "BOOT 0\n\r\000"
 
+        ;; SIMPLE READ & ECHO TEST
+_READC: CALL    CONIN       ; READ A CHARACTER FROM CONSOLE INTO A
+        LD      C,A         ; MOVE IT INTO C FOR OUTPUT
+        RST     08H         ; DEBUG
+        CALL    CONOUT      ; PRINT TO CONSOLE OUT
+        JR      _READC
+
         ;; PLACEHOLDER -- ADAPT AS PER FINAL ROUTINE REQUIREMENTS
         HALT
         JR      $

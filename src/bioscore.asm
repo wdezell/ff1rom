@@ -246,11 +246,10 @@ _GOI:   JP      (HL)
 ;; USEFUL CONSTANTS
 ;; -------------------------------------------------------------
         ;; STATIC DATA DEFINITIONS
-CR:     .EQU    0DH            ; ASCII CARRIAGE RETURN
-LF:     .EQU    0AH            ; ASCII LINE FEED
-ESC:    .EQU    1BH            ; ASCII ESCAPE CHARACTER
+CR:     .EQU    0DH             ; ASCII CARRIAGE RETURN
+LF:     .EQU    0AH             ; ASCII LINE FEED
+ESC:    .EQU    1BH             ; ASCII ESCAPE CHARACTER
 CRLFZ:  .TEXT   "\n\r\000"
-VT52CL: .DB     ESC, 'H', ESC, 'J', 00H
 
         ;; -------------------------------------------------------------
 #ENDIF
