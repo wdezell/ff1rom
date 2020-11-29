@@ -110,11 +110,10 @@ RESET:  .EQU    $
 
         ;; BOOT SPLASH
         CALL    INLPRT
-        ;;.TEXT   "Firefly Z80 Rev 1\n\r"
-        ;;.TEXT   "BIOS 0.0\n\r"
-        ;;.TEXT   "William D. Ezell\n\r"
-        ;;.TEXT   "2017-2020\n\r\n\r\n\r\000"
-        .TEXT   "HELLO WORLD\n\r\000"
+        .TEXT   "Firefly Z80 Rev 1\n\r"
+        .TEXT   "BIOS 0.1\n\r"
+        .TEXT   "William D. Ezell\n\r"
+        .TEXT   "2017-2020\n\r\n\r\n\r\000"
 
         ;; THE LOWER THREE (3) BITS OF THE BYTE READABLE FROM THE
         ;;  SYSCONFIG PORT (PORT 0) ALLOW FOR THE SELECTION OF EIGHT (8)
@@ -124,7 +123,6 @@ RESET:  .EQU    $
         ;;  SELECTED BY ONBOARD CONFIG SWITCH
         IN      A,(SYSCFG)
         AND     00000111B   ; MASK OFF THE BITS WE DON'T CARE ABOUT
-        RST     08H         ;                                                         <-- DEBUG REMOVE
 
         ;; TRANSFER EXECUTION TO ROUTINE RESPONSIBLE FOR MANAGING
         ;;  SELECTED BOOT MODE
