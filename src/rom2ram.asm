@@ -40,6 +40,15 @@
         ;; AND CHANGE ROM/RAM CANARY VALUE FROM ROM DEFAULT OF 0 TO RAM INDICATOR OF 1
         LD      A,1
         LD      (IS_RAM),A
+        LD      A,(ISRAM)   ; VERIFY
+        CP      0           ; ROM-DEFAULT VALUE OF 0
+        JPNZ    _DIDIT      ; DIFFERENT, SO IS REALLY RAM THERE
+
+        RST     08H         ; DEBUG -- REMOVE
+        HALT                ; ROM/RAM SWAP FAILED -- HALT
+        JR      $
+
+_DIDIT: .EQU    $
 
 #DEFINE WIPE_HIMEM
 #IFDEF  WIPE_HIMEM
