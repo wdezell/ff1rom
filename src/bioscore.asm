@@ -25,21 +25,16 @@ CONINIT:    .EQU    $
         ;;          0 - EXTERNAL AUXILLIARY CLOCK, 3.6864 MHZ  (SHORT JP7 PINS 1 & 2)
         ;;          1 - INTERNAL SYSTEM CLOCK, 6.144 MHZ       (SHORT JP7 PINS 2 & 3)
         ;;
-        ;; NOTE : FOR 4 MHZ INTERNAL SYSTEM CLOCK AN EXTERNAL AUX CLOCK *MUST* BE USED (SW 3 = 0)
+        ;; NOTE : FOR 4 MHZ INTERNAL SYSTEM CLOCK AN EXTERNAL AUX CLOCK *SHOULD* BE USED (SW 3 = 0)
         ;;        BECAUSE A 4 MHZ COUNT DOESN'T DIVIDE CLEANLY ENOUGH TO HIT MOST BAUDRATES
-        ;;        WITHOUT A HIGH MARGIN OF ERROR.
+        ;;        WITHOUT A SIGNIFICANT MARGIN OF ERROR.
         ;;
-        RST     08H         ;                                                         <-- DEBUG REMOVE
-        CALL    SAVE        ; SAVE REGISTERS & FLAGS
-
-        RST     08H         ;                                                         <-- DEBUG REMOVE
         IN      A,(SYSCFG)  ; READ CONFIG SWITCH
         BIT     3,A         ; IS BIT 3 SET?
         JR      NZ,_INCLK   ; YES - SETUP FOR INTERNAL SYSTEM CLOCK TIMING SOURCE
         LD      L,12        ; NO -- SET TC FOR EXTERNAL CLOCK
         JR      _CALSB
 _INCLK: LD      L,20        ; SET TC FOR INTERNAL CLOCK
-        RST     08H         ;                                                         <-- DEBUG REMOVE
 _CALSB: LD      H,CTCCH0    ; SIO CHANNEL A DRIVEN THROUGH CTC CH0
         CALL    SETBDR      ; CALL SET BAUDRATE SUBROUTINE
 
@@ -48,8 +43,6 @@ _CALSB: LD      H,CTCCH0    ; SIO CHANNEL A DRIVEN THROUGH CTC CH0
         LD      HL,_SPTAS   ; HL = START OF PARAMETERS TABLE
         LD      B,_SPTAE-_SPTAS ; B = LENGTH IN BYTES OF PARAMETER TABLE
         OTIR                ; WRITE TABLE TO SIO CHANNEL CONTROL PORT
-
-        RST     08H         ;                                                         <-- DEBUG REMOVE
         RET
 
         ;; SIO SERIAL CHANNEL A INITIALIZATION PARAMETERS TABLE
@@ -60,7 +53,7 @@ _SPTAS:
         .DB     04H         ; SELECT REGISTER 4
         .DB     47H         ; EVEN PARITY, 1 STOP BIT, 16X CLOCK
         .DB     05H         ; SELECT REGISTER 5
-        .DB     0AAH        ; DTR & RTS ON, XMIT 7 DATA BITS, ON
+        .DB     0AAH        ; DTR & RTS ON, XMIT 7 DATA BITS, XMIT ENABLE
         .DB     03H         ; SELECT REGISTER 3
         .DB     41H         ; RCV 7 DATA BITS, ON
         .DB     01H         ; SELECT REGISTER 1
@@ -80,21 +73,18 @@ CONIN:  IN      A,(SIOAC)   ; READ STATUS
         ;; CONSOLE CHARACTER OUTUT
         ;; CHECKS CTS LINE AND XMITS CHARACTER IN C WHEN CTS IS ACTIVE
         ;; -------------------------------------------------------------
-CONOUT: PUSH    AF
-        RST     08H         ;                                                         <-- DEBUG REMOVE
-_COUT1: LD      A,10H       ; SIO HANDSHAKE RESET DATA
+CONOUT: LD      A,10H       ; SIO HANDSHAKE RESET DATA
         OUT     (SIOAC),A   ; UPDATE HANDSHAKE REGISTER
         IN      A,(SIOAC)   ; READ STATUS
         BIT     5,A         ; CHECK CTS BIT
         RST     08H         ;                                                         <-- DEBUG REMOVE
-        JR      Z,_COUT1    ; WAIT UNTIL CTS IS ACTIVE
+        JR      Z,CONOUT    ; WAIT UNTIL CTS IS ACTIVE
         RST     08H         ;                                                         <-- DEBUG REMOVE
-_COUT2: IN      A,(SIOAC)   ; READ STATUS
+_COUT1: IN      A,(SIOAC)   ; READ STATUS
         BIT     2,A         ; XMIT BUFFER EMPTY?
-        JR      Z,_COUT2    ; NO, WAIT UNTIL EMPTY
+        JR      Z,_COUT1    ; NO, WAIT UNTIL EMPTY
         LD      A,C         ; CHARACTER TO A
         OUT     (SIOAD),A   ; OUTPUT DATA
-        POP     AF
         RST     08H         ;                                                         <-- DEBUG REMOVE
         RET
 
@@ -120,11 +110,9 @@ _NOCHR: XOR     A           ; A = 0, Z = 1
         ;; REGISTERS AFFECTED:  NONE
         ;; -------------------------------------------------------------
 INLPRT: EX      (SP),HL     ; NEXT BYTE AFTER CALL NOT RETURN ADDR BUT STRING
-        RST     08H         ;                                                         <-- DEBUG REMOVE
         CALL    WRSTRZ      ; HL NOW POINTS TO STRING; PRINT AS USUAL
         INC     HL          ; ADJUST HL ONE BYTE BEYOND NULL TERMINATOR
         EX      (SP),HL     ; PUT HL BACK ON STACK AS ADJUSTED RETURN ADDRESS
-        RST     08H         ;                                                         <-- DEBUG REMOVE
         RET
 
         ;; PRINT NULL-TERMINATED STRING POINTED TO BY HL REGISTER PAIR
@@ -135,18 +123,15 @@ INLPRT: EX      (SP),HL     ; NEXT BYTE AFTER CALL NOT RETURN ADDR BUT STRING
         ;; -------------------------------------------------------------
 WRSTRZ: PUSH    AF          ; SAVE AFFECTED REGS
         PUSH    BC
-        RST     08H         ;                                                         <-- DEBUG REMOVE
 _WRGTC: LD      A,(HL)      ; GET CHAR
         CP      0           ; IS CHAR NULL END-OF-STRING DELIM ?
         JP      Z,_WRDON    ; YES, DONE
         LD      C,A         ; NO, SEND TO CHAROUT ROUTINE
-        RST     08H         ;                                                         <-- DEBUG REMOVE
         CALL    CONOUT
         INC     HL          ; GET NEXT CHARACTER
         JP      _WRGTC
 _WRDON: POP     BC          ; RESTORE AFFECTED REGS
         POP     AF
-        RST     08H         ;                                                         <-- DEBUG REMOVE
         RET
 
 ;; -------------------------------------------------------------
@@ -195,10 +180,9 @@ SETBDR: .EQU    $
         ;;  6.1440      *5      *10      *20      *40      *80      107     *160      n/a
 
         ;; INIT CTC CHANNEL 0 OUTPUT - SERIAL CHANNEL "A" BAUD RATE CLOCK
-        CALL    SAVE                    ; SAVE ACCUMULATOR & FLAGS
         LD      A,H                     ; GET PORT FROM PARAMETER H INTO C
         LD      C,A
-        LD      A,CTCCTR+CTCTC+CTCCTL   ; CTR MODE, TC FOLLOWS, IS CONTROL WORD
+        LD      A,CTCRST+CTCCTL+CTCCTR+CTCTC ; RESET, IS CONTROL WORD, COUNTER MODE, TC FOLLOWS
         OUT     (C),A
         OUT     (C),L                   ; TC VIA PARAMETER
         RST     08H         ;                                                         <-- DEBUG REMOVE

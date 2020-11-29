@@ -101,22 +101,20 @@ INTVEC: .ORG    $ & 0FFFF0H | 10H
 ;; -------------------------------------------------------------
 RESET:  .EQU    $
         DI                  ; NO INTERRUPTS UNTIL WE WANT THEM
-        RST     08H         ;                                                         <-- DEBUG REMOVE
         LD      SP,STACK    ; INIT STACK POINTER SO WE CAN CALL SUBS
 
 #INCLUDE "rom2ram.asm"      ; INLINED
 
         ;; INITIALIZE SIO CHANNEL A ("CONSOLE") TO 9600 BAUD E-7-1
-        RST     08H         ;                                                         <-- DEBUG REMOVE
         CALL    CONINIT
 
         ;; BOOT SPLASH
         CALL    INLPRT
-        .TEXT   "Firefly Z80 Rev 1\n\r"
-        .TEXT   "BIOS 0.0\n\r"
-        .TEXT   "William D. Ezell\n\r"
-        .TEXT   "2017-2020\n\r\n\r\n\r\000"
-        RST     08H         ;                                                         <-- DEBUG REMOVE
+        ;;.TEXT   "Firefly Z80 Rev 1\n\r"
+        ;;.TEXT   "BIOS 0.0\n\r"
+        ;;.TEXT   "William D. Ezell\n\r"
+        ;;.TEXT   "2017-2020\n\r\n\r\n\r\000"
+        .TEXT   "HELLO WORLD\n\r\000"
 
         ;; THE LOWER THREE (3) BITS OF THE BYTE READABLE FROM THE
         ;;  SYSCONFIG PORT (PORT 0) ALLOW FOR THE SELECTION OF EIGHT (8)
@@ -126,12 +124,14 @@ RESET:  .EQU    $
         ;;  SELECTED BY ONBOARD CONFIG SWITCH
         IN      A,(SYSCFG)
         AND     00000111B   ; MASK OFF THE BITS WE DON'T CARE ABOUT
+        RST     08H         ;                                                         <-- DEBUG REMOVE
 
         ;; TRANSFER EXECUTION TO ROUTINE RESPONSIBLE FOR MANAGING
         ;;  SELECTED BOOT MODE
         CALL    BOOTJP
 
         ;; IF WE REACH THIS POINT TABLE DISPATCH RETURNED WITH AN ERROR (CARRY SET)
+        RST     08H         ;                                                         <-- DEBUG REMOVE
         HALT                ; TO-DO:  INDICATE AN ERROR OR SOMETHING
         JR      $
 

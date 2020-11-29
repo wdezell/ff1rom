@@ -12,28 +12,27 @@
 ;; MISC DEBUG TOOLS
 ;; -------------------------------------------------------------
 
-;; DEBUG -- OUTPUT PC OF CALLING RST 08H TO DS4L/R HEX DISPLAYS
-;;           SYSCFG SW TO DS2
-;;   USAGE:     RST 08H;
+        ;; DEBUG -- OUTPUT RETURN ADDRESS OF CALLING RST 08H TO DS4L/R HEX DISPLAYS
+        ;;           AND ACCUMULATOR TO DS2
+        ;;   USAGE:     RST 08H;
+        ;;
 DRST08: .EQU    $
 
         EX      (SP),HL     ; GET CALLER RETURN ADDRESS INTO HL
-        PUSH    AF          ; PRESERVE A
+        PUSH    AF          ; PRESERVE A & FLAGS
         LD      A,H         ; DISPLAY HIGH BYTE OF CALLER'S ADDRESS
         OUT     (DS4L),A
         LD      A,L         ; DISPLAY LOW BYTE OF CALLER'S ADDRESS
         OUT     (DS4R),A
-        IN      A,(SYSCFG)  ; DISPLAY CONFIG SWITCH SETTING TO DS2
-        OUT     (DS2),A
-        POP     AF          ; RESTORE A
+        POP     AF          ; RESTORE A & FLAGS
+        OUT     (DS2),A     ; DISPLAY CALLER'S A
         EX      (SP),HL     ; PUT CALLER RETURN ADDRESS & HL BACK
         RET
-
 
         ;; PRINT HEX-ASCII REPRESENTATION OF REGISTER PAIR HL BY STORING H & L SEPERATELY
         ;; TO SCRATCH RAM LOCATIONS THEN DOING NORMAL H2ASC CONVERSION/PRINT OF CONTENTS
         ;; HL = ADDRESS VALUE THAT IS TO BE PRINTED IN FORM FFFF
-
+        ;;
 PRTADR: PUSH    HL          ; SAVE REGS WHILE WE DO ASCII CONVERSION OF ADDRESS
         PUSH    DE
         PUSH    BC
@@ -57,7 +56,6 @@ PRTADR: PUSH    HL          ; SAVE REGS WHILE WE DO ASCII CONVERSION OF ADDRESS
         POP     DE
         POP     HL
         RET
-
 
         ;; BYTE-TO-ASCII CONVERSION
         ;;  HL = ADDRESS OF MEMORY LOCATION TO BE CONVERTED
