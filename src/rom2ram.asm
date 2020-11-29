@@ -40,9 +40,9 @@
         ;; AND CHANGE ROM/RAM CANARY VALUE FROM ROM DEFAULT OF 0 TO RAM INDICATOR OF 1
         LD      A,1
         LD      (IS_RAM),A
-        LD      A,(ISRAM)   ; VERIFY
+        LD      A,(IS_RAM)  ; VERIFY
         CP      0           ; ROM-DEFAULT VALUE OF 0
-        JPNZ    _DIDIT      ; DIFFERENT, SO IS REALLY RAM THERE
+        JR      NZ,_DIDIT   ; DIFFERENT, SO IS REALLY RAM THERE
 
         RST     08H         ; DEBUG -- REMOVE
         HALT                ; ROM/RAM SWAP FAILED -- HALT
