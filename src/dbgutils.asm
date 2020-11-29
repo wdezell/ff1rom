@@ -12,9 +12,12 @@
 ;; MISC DEBUG TOOLS
 ;; -------------------------------------------------------------
 
-        ;; DEBUG -- OUTPUT RETURN ADDRESS OF CALLING RST 08H TO DS4L/R HEX DISPLAYS
-        ;;           AND ACCUMULATOR TO DS2
-        ;;   USAGE:     RST 08H;
+        ;; OUTPUT ACCUMULATOR AND ADDRESS *FOLLOWING* CALLING RST 08H
+        ;;  DS4L/R HEX DISPLAYS = ADDRESS
+        ;;  DS2                 = ACCUMULATOR
+        ;;
+        ;; USAGE:   RST 08H
+        ;; AFFECTS: NONE
         ;;
 DRST08: .EQU    $
 
