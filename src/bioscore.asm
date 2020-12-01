@@ -69,7 +69,7 @@ CONRLS: .EQU    $           ; START OF RELOCATABLE CONSOLE I/O ROUTINES
         ;;  WAITS FOR DATA AND RETURNS CHARACTER IN A
         ;; -------------------------------------------------------------
 CONCHR: IN      A,(SIOAC)   ; READ STATUS
-        BIT     0,A         ; DATA AVAILABLE
+        BIT     0,A         ; DATA AVAILABLE?
         JR      Z,CONCHR    ; NO DATA, WAIT
         IN      A,(SIOAD)   ; READ DATA
         AND     7FH         ; MASK BIT 7 (JUNK)                                 <-- TBD
@@ -83,12 +83,43 @@ CONCHR: IN      A,(SIOAC)   ; READ STATUS
         ;;  B  = MAX CHARS <= LINE BUFFER SIZE
         ;;
         ;; RETURNS
-        ;;  A = B   STATUS ERROR (NOT INITIALLY IMPLEMENTED)
-        ;;  A = 0   FULL BUFFER RECEIVED
-        ;;  A > 0   CARRIAGE RETURN ENDED USER INPUT, A = NUMBER OF UNREAD CHARS
-;CONLIN:
-        ;; TODO: IMPLEMENT CONLIN
+        ;;  A = NUMBER OF CHARS READ
+CONLIN: .EQU    $           ;; TODO: TEST CONLIN
 
+        ;; VERIFY NON-ZERO BUFFER SIZE
+        LD      A,B
+        CP      0
+        RET     Z           ; B WAS 0 SO RETURN 0 CHARACTERS READ
+
+        ;; PRESERVE ORIGINAL REQUESTED READ COUNT
+        PUSH    BC          ; TO PRESERVE ORIGINAL C
+        LD      C,B
+
+        ;; READ 'B' COUNT OF CHARACTERS
+_CLGTC: IN      A,(SIOAC)   ; READ STATUS
+        BIT     0,A         ; DATA AVAILABLE?
+        JR      Z,_CLGTC    ; NO DATA, WAIT
+        IN      A,(SIOAD)   ; READ DATA
+        AND     7FH         ; MASK BIT 7 (JUNK)                                 <-- TBD
+        LD      (HL),A      ; SAVE CHARACTER TO BUFFER
+        CP      CR          ; IS CHARACTER A CARRIAGE RETURN?
+        JR      Z,_CLCR     ; YES
+        INC     HL          ; NO - POINT HL TO NEXT BUFFER BYTE
+        DJNZ    _CLGTC      ; DECREMENT COUNT REMAINING AND READ AGAIN
+
+        ;; READ FULL BUFFER
+        LD      A,B         ; REPORT THAT WE READ FULL BUFFER
+        POP     BC          ; RESTORE ORIGINAL BC (FOR C)
+        RST     08H         ;                                           <-- DEBUG / REMOVE
+        RET
+
+        ;; DETECTED CARRIAGE RETURN PRESS
+_CLCR:  DEC     B           ; FINAL DECREMENT TO B TO REFLECT CHAR READ
+        LD      A,C         ; GET ORIGINAL READ COUNT
+        SUB     B           ; SUBTRACT DOWNCOUNT TO REPORT HOW MANY CHARS WE ACTUALLY READ
+        POP     BC          ; RESTORE ORIGINAL BC (FOR C)
+        RST     08H         ;                                           <-- DEBUG / REMOVE
+        RET
 
         ;; CONSOLE CHARACTER OUTUT BLOCKING
         ;;  CONOTW - CHECKS CTS LINE AND XMITS CHARACTER IN C
