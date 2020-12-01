@@ -4,11 +4,11 @@
         ;; DISPATCH TABLE FOR BOOT MODE SWITCH
         ;;
 BSWTAB: .EQU    $           ; BOOT SWITCH JUMP TABLE
-        .DW     BOOT0       ; SYSTEM MENU -- DIAGNOSTICS, BOARD UTILS, MONITOR, LAUNCH OTHER MODES
-        .DW     BOOT1       ; CP/M
-        .DW     BOOT2       ; FORTH
-        .DW     BOOT3       ; BASIC
-        .DW     BOOT4       ; REMOTE LOAD/EXECUTE SLAVE
+        .DW     BOOT0       ; CONSOLE MENU -- DIAGNOSTICS, BOARD UTILS, MONITOR, LAUNCH OTHER MODES
+        .DW     BOOT1       ; MONITOR
+        .DW     BOOT2       ; CP/M
+        .DW     BOOT3       ; FORTH
+        .DW     BOOT4       ; BASIC
         .DW     BOOT5       ; RESERVED
         .DW     BOOT6       ; RESERVED
         .DW     BOOT7       ; RESERVED

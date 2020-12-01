@@ -14,14 +14,17 @@
 
 BOOT6:  .EQU    $
 
+        CALL    VTCLS
+
         ;; DEBUG / REMOVE
         RST     08H
         CALL    PRINL
-        .TEXT   "BOOT 60\n\r\000"
+        .TEXT   "BOOT 6\n\r\n\r\n\rPRESS ANY KEY\000"
+
+        CALL    CONCHR
 
         ;; PLACEHOLDER -- ADAPT AS PER FINAL ROUTINE REQUIREMENTS
-        HALT
-        JR      $
+        RST     00H         ; REBOOT
 
         ;; -------------------------------------------------------------
 #ENDIF

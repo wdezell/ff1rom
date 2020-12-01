@@ -14,14 +14,29 @@
 
 BOOT1:  .EQU    $
 
+        CALL    VTCLS
+
+        ;; TODO - IMPLEMENT
+        ;;
+        ;; EXAMINE MEMORY
+        ;; CHANGE MEMORY
+        ;; EXAMINE REGISTERS
+        ;; CHANGE REGISTERS
+        ;; EXECUTE AT LOCATION
+        ;; SERIAL LOAD INTEL OBJECT CODE STREAM
+        ;; DISPLAY HELP
+
+
+
         ;; DEBUG / REMOVE
         RST     08H
         CALL    PRINL
-        .TEXT   "BOOT 1\n\r\000"
+        .TEXT   "BOOT 1\n\r\n\r\n\rPRESS ANY KEY\000"
+
+        CALL    CONCHR
 
         ;; PLACEHOLDER -- ADAPT AS PER FINAL ROUTINE REQUIREMENTS
-        HALT
-        JR      $
+        RST     00H         ; REBOOT
 
         ;; -------------------------------------------------------------
 #ENDIF

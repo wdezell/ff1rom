@@ -48,10 +48,16 @@ _READC: CALL    CONCHR
         JR      $
 
 _MNUTB: .EQU    $           ; MENU JUMP TABLE
-        .DW     BOOT0C      ; NOT IMPL YET
-        .DW     BOOT0C      ; NOT IMPL YET
+
+        ;; NB: BOOT MODES ARE NOT REQUIRED TO CORRESPOND WITH CONSOLE MENU ENTRIES
+        .DW     BOOT1       ; HEX MONITOR
+        .DW     BDUTLS      ; NOT IMPL YET
         .DW     BOOT0C      ; NOT IMPL YET
         .DW     BOOT0C      ; NOT IMPL YET
         .DW     RESET       ; RESTART
         ;; -------------------------------------------------------------
+
+        ;; TODO: IMPLEMENT AS SEPARATE SRC
+BDUTLS: .DW     BOOT0C      ; REDIRECT STUB
+
 #ENDIF
