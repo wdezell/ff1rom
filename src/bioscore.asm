@@ -219,7 +219,7 @@ SETBDR: .EQU    $
         ;; -------------------------------------------------------------
         ;; TABLE DISPATCH -- ROUTE EXECUTION TO TABLE SUBROUTINE AT INDEX
         ;;
-        ;;   USAGE: A       TABLE INDEX
+        ;;   USAGE: A       TABLE INDEX, 0-BASED
         ;;          B       NUMBER OF TABLE ENTRIES
         ;;          HL      ADDRESS OF JUMPT TABLE
         ;;

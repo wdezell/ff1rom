@@ -15,9 +15,10 @@
 BOOT0C: .EQU    $           ; ENTRY POINT W/ SCREEN CLEAR
         CALL    VTCLS
 
+        ;; PRESENT MENU
 BOOT0:  .EQU    $           ; ENTRY POINT PRESERVING SCREEN
         CALL    INLPRT
-        .TEXT   "\n\rBOOT 0 - SYSTEM MENU\n\r\n\r"
+        .TEXT   "\n\rBOOT 0 - CONSOLE MENU\n\r\n\r"
         .TEXT   "1  HEX MONITOR\n\r"
         .TEXT   "2  BOARD UTILS\n\r"
         .TEXT   "3  DIAGNOSTICS\n\r"
@@ -25,24 +26,23 @@ BOOT0:  .EQU    $           ; ENTRY POINT PRESERVING SCREEN
         .TEXT   "5  REBOOT\n\r\n\r"
         .TEXT   "SELECT>\000"
 
+        ;; GET, VALIDATE, AND DISPATCH USER SELECTION
 _READC: CALL    CONIN
-        RST     08H         ;                                                   <-- DEBUG REMOVE
         LD      C,A         ; MOVE IT INTO C FOR ECHO
         CALL    CONOUT      ; ECHO TO CONSOLE OUT
-        RST     08H         ;                                                   <-- DEBUG REMOVE
-        SUB     30H         ; CONVERT ASCII INPUT IN A TO NUMERIC
+        SUB     30H         ; CONVERT ASCII INPUT IN A TO POSSIBLE NUMERIC
         CP      1           ; VERIFY IS 1 OR GREATER
         JP      C,BOOT0C    ; NO - DO AGAIN
-        CP      6           ; VERIFY IS 5 OR LESS
-        JP      C,BOOT0C    ; NO - DO AGAIN
-        RST     08H         ;                                                   <-- DEBUG REMOVE
+        CP      5           ; VERIFY IS 5 OR LESS
+        JP      NZ,BOOT0C   ; NO - DO AGAIN
+        SUB     1           ; YES - IN RANGE, NOW CONVERT TO ZERO-BASED
 
         ;; USER PRESSED KEY 1-5                 TO-DO: MOD TO USE A "LINE IN" AND REQUIRE ENTER TO SUBMIT
         LD      HL,_MNUTB   ; POINT TO ACTION DISPATCH TABLE
         LD      B,5         ; SET ENTRIES COUNT
         CALL    TABDSP      ; JUMP TO ENTRY INDEXED BY A
 
-        ;; SHOULD NEVER REACH HERE
+        ;; SHOULD NEVER REACH HERE AS INPUT IS RANGE VALIDATED
         RST     08H
         HALT
         JR      $
