@@ -190,8 +190,20 @@ RESET:  .EQU    $
 ;;   EACH WILL FURTHER HANDLE SETUP AND LAUNCH FOR RESPECTIVE
 ;;   FUNCTIONAL MODE
 ;; -------------------------------------------------------------
-#INCLUDE "bootdsp.asm"      ; SWITCH-DISPATCHED BOOT MENU
-#INCLUDE "boot0.asm"        ;  CONSOLE MENU
+
+        ;; DISPATCH TABLE FOR BOOT MODE SWITCH
+        ;;
+BSWTAB: .EQU    $           ; BOOT SWITCH JUMP TABLE
+        .DW     BOOT0       ; CONSOLE MENU -- DIAGNOSTICS, BOARD UTILS, MONITOR, LAUNCH OTHER MODES
+        .DW     BOOT1       ; MONITOR
+        .DW     BOOT2       ; CP/M
+        .DW     BOOT3       ; FORTH
+        .DW     BOOT4       ; BASIC
+        .DW     BOOT5       ; RESERVED
+        .DW     BOOT6       ; RESERVED
+        .DW     BOOT7       ; RESERVED
+
+#INCLUDE "boot0.asm"
 #INCLUDE "boot1.asm"
 #INCLUDE "boot2.asm"
 #INCLUDE "boot3.asm"
