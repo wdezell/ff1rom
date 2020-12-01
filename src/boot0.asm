@@ -17,7 +17,7 @@ BOOT0C: .EQU    $           ; ENTRY POINT W/ SCREEN CLEAR
 BOOT0:  .EQU    $           ; ENTRY POINT PRESERVING SCREEN
 
         ;; PRESENT MENU
-        CALL    INLPRT
+        CALL    PRINL
         .TEXT   "\n\rCONSOLE MENU\n\r\n\r"
         .TEXT   "1  HEX MONITOR\n\r"
         .TEXT   "2  BOARD UTILS\n\r"
@@ -27,7 +27,7 @@ BOOT0:  .EQU    $           ; ENTRY POINT PRESERVING SCREEN
         .TEXT   "SELECT>\000"
 
         ;; GET, VALIDATE, AND DISPATCH USER SELECTION
-_READC: CALL    CONIN
+_READC: CALL    CONCHR
         LD      C,A         ; MOVE IT INTO C FOR ECHO
         CALL    CONOUT      ; ECHO TO CONSOLE OUT
         SUB     30H         ; CONVERT ASCII INPUT IN A TO POSSIBLE NUMERIC

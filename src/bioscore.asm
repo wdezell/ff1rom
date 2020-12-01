@@ -63,18 +63,31 @@ _SPTAE: .EQU    $
         ;; CONSOLE CHARACTER INPUT
         ;;  WAITS FOR DATA AND RETURNS CHARACTER IN A
         ;; -------------------------------------------------------------
-CONIN:  IN      A,(SIOAC)   ; READ STATUS
+CONCHR: IN      A,(SIOAC)   ; READ STATUS
         BIT     0,A         ; DATA AVAILABLE
-        JR      Z,CONIN     ; NO DATA, WAIT
+        JR      Z,CONCHR    ; NO DATA, WAIT
         IN      A,(SIOAD)   ; READ DATA
         AND     7FH         ; MASK BIT 7 (JUNK)                                 <-- TBD
         RET
 
-        ;; CONSOLE CHARACTER OUTUT
+        ;; CONSOLE LINE INPUT
+        ;;  RECEIVES TTY INPUT INTO A USER-PROVIDED LINE BUFFER UP TO N CHARS OR CARRIAGE RETURN
+        ;;
+        ;; PARAMS
+        ;;  HL = ADDRESS OF LINE BUFFER START
+        ;;  B  = MAX CHARS <= LINE BUFFER SIZE
+        ;;
+        ;; RETURNS
+        ;;  A = B   STATUS ERROR (NOT INITIALLY IMPLEMENTED)
+        ;;  A = 0   FULL BUFFER RECEIVED
+        ;;  A > 0   CARRIAGE RETURN ENDED USER INPUT, A = NUMBER OF UNREAD CHARS
+;CONLIN:
+        ;; TODO: IMPLEMENT CONLIN
+
+
+        ;; CONSOLE CHARACTER OUTUT BLOCKING
         ;;  CONOTW - CHECKS CTS LINE AND XMITS CHARACTER IN C
         ;;            WHEN CTS IS ACTIVE
-        ;;  CONOUT - NON-BLOCKING XMIT OF CHARACTER IN C
-        ;;            (IGNORES CTS)
         ;; -------------------------------------------------------------
 CONOTW: CALL    SAVE        ; SAVE REGISTERS AND FLAGS
         LD      A,10H       ; SIO HANDSHAKE RESET DATA
@@ -85,6 +98,10 @@ CONOTW: CALL    SAVE        ; SAVE REGISTERS AND FLAGS
         CALL    CONOUT
         RET
 
+        ;; CONSOLE CHARACTER OUTUT NON-BLOCKING
+        ;;  CONOUT - NON-BLOCKING XMIT OF CHARACTER IN C
+        ;;            (IGNORES CTS)
+        ;; -------------------------------------------------------------
 CONOUT: CALL    SAVE        ; SAVE REGISTERS AND FLAGS
         IN      A,(SIOAC)   ; READ STATUS
         BIT     2,A         ; XMIT BUFFER EMPTY?
@@ -114,8 +131,8 @@ _NOCHR: XOR     A           ; A = 0, Z = 1
         ;;
         ;; REGISTERS AFFECTED:  NONE
         ;; -------------------------------------------------------------
-INLPRT: EX      (SP),HL     ; NEXT BYTE AFTER CALL NOT RETURN ADDR BUT STRING
-        CALL    WRSTRZ      ; HL NOW POINTS TO STRING; PRINT AS USUAL
+PRINL:  EX      (SP),HL     ; NEXT BYTE AFTER CALL NOT RETURN ADDR BUT STRING
+        CALL    PRSTRZ      ; HL NOW POINTS TO STRING; PRINT AS USUAL
         INC     HL          ; ADJUST HL ONE BYTE BEYOND NULL TERMINATOR
         EX      (SP),HL     ; PUT HL BACK ON STACK AS ADJUSTED RETURN ADDRESS
         RET
@@ -126,16 +143,16 @@ INLPRT: EX      (SP),HL     ; NEXT BYTE AFTER CALL NOT RETURN ADDR BUT STRING
         ;;  REGISTERS AFFECTED:  HL IS LEFT POINTING TO NULL TERMINATOR CHARACTER
         ;;                        AS REQUIRED BY INLPRT
         ;; -------------------------------------------------------------
-WRSTRZ: PUSH    AF          ; SAVE AFFECTED REGS
+PRSTRZ: PUSH    AF          ; SAVE AFFECTED REGS
         PUSH    BC
-_WRGTC: LD      A,(HL)      ; GET CHAR
+_PRGTC: LD      A,(HL)      ; GET CHAR
         CP      0           ; IS CHAR NULL END-OF-STRING DELIM ?
-        JP      Z,_WRDON    ; YES, DONE
+        JP      Z,_PRDON    ; YES, DONE
         LD      C,A         ; NO, SEND TO CHAROUT ROUTINE
         CALL    CONOUT
         INC     HL          ; GET NEXT CHARACTER
-        JP      _WRGTC
-_WRDON: POP     BC          ; RESTORE AFFECTED REGS
+        JP      _PRGTC
+_PRDON: POP     BC          ; RESTORE AFFECTED REGS
         POP     AF
         RET
 
@@ -144,7 +161,7 @@ _WRDON: POP     BC          ; RESTORE AFFECTED REGS
         ;; -------------------------------------------------------------
 VTCLS:  .EQU    $
         LD      HL,_VTCL
-        CALL    WRSTRZ
+        CALL    PRSTRZ
         RET
 _VTCL:  .DB 1BH, '[', '2', 'J', 00H
 
@@ -205,9 +222,9 @@ SETBDR: .EQU    $
 ;; BASIC MATH ROUTINES
 ;; -------------------------------------------------------------
 
-        ;; TO-DO:  8-BIT MULTIPLY
+        ;; TODO:  8-BIT MULTIPLY
 
-        ;; TO-DO:  16-BIT DIVIDE
+        ;; TODO:  16-BIT DIVIDE
 
 ;; -------------------------------------------------------------
 ;; MISCELLANEOUS UTILITY

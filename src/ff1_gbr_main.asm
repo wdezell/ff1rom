@@ -110,7 +110,7 @@ RESET:  .EQU    $
         CALL    VTCLS       ; CLEAR SCREEN IF VT-52 COMPATIBLE TERM
 
         ;; BOOT SPLASH
-        CALL    INLPRT
+        CALL    PRINL
         .TEXT   "\n\rFirefly Z80 Rev 1\n\r"
         .TEXT   "BIOS 0.2\n\r"
         .TEXT   "William D. Ezell\n\r"
