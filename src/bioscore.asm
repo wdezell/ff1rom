@@ -60,6 +60,11 @@ _SPTAS:
         .DB     00H         ; NO INTERRUPTS
 _SPTAE: .EQU    $
 
+CONRLS: .EQU    $           ; START OF RELOCATABLE CONSOLE I/O ROUTINES
+                            ;  NB - ONCE RELOCATED ACCESS WILL HAVE TO BE VIA BASE+OFFSET INDEX
+                            ;       OR SOME OTHER MEANS OF INDIRECTION AS THESE ABSOLUTE LABELS
+                            ;       WILL STILL REFER TO ORIGINAL ADDRESSES
+
         ;; CONSOLE CHARACTER INPUT
         ;;  WAITS FOR DATA AND RETURNS CHARACTER IN A
         ;; -------------------------------------------------------------
@@ -89,25 +94,25 @@ CONCHR: IN      A,(SIOAC)   ; READ STATUS
         ;;  CONOTW - CHECKS CTS LINE AND XMITS CHARACTER IN C
         ;;            WHEN CTS IS ACTIVE
         ;; -------------------------------------------------------------
-CONOTW: CALL    SAVE        ; SAVE REGISTERS AND FLAGS
+CONOTW: PUSH    AF          ; SAVE ACCUMULATOR AND FLAGS
         LD      A,10H       ; SIO HANDSHAKE RESET DATA
         OUT     (SIOAC),A   ; UPDATE HANDSHAKE REGISTER
         IN      A,(SIOAC)   ; READ STATUS
         BIT     5,A         ; CHECK CTS BIT
         JR      Z,CONOTW    ; WAIT UNTIL CTS IS ACTIVE
-        CALL    CONOUT
-        RET
+        JR      _CNOT1      ; FALL-THRU TO CONOUT BUT DON'T PUSH AF AGAIN
 
         ;; CONSOLE CHARACTER OUTUT NON-BLOCKING
         ;;  CONOUT - NON-BLOCKING XMIT OF CHARACTER IN C
         ;;            (IGNORES CTS)
         ;; -------------------------------------------------------------
-CONOUT: CALL    SAVE        ; SAVE REGISTERS AND FLAGS
-        IN      A,(SIOAC)   ; READ STATUS
+CONOUT: PUSH    AF          ; SAVE ACCUMULATOR AND FLAGS
+_CNOT1: IN      A,(SIOAC)   ; READ STATUS
         BIT     2,A         ; XMIT BUFFER EMPTY?
         JR      Z,CONOUT    ; NO, WAIT UNTIL EMPTY
         LD      A,C         ; CHARACTER TO A
-        OUT     (SIOAD),A   ; OUTPUT DATA
+        OUT     (SIOAD),A   ; OUTPUT DATAL
+        POP     AF          ; RESTORE ACCUMULATOR AND FLAGS
         RET
 
         ;; CONSOLE RECEIVE STATUS (POLLED)
@@ -124,6 +129,8 @@ CONRXS: IN      A,(SIOAC)   ; READ STATUS
         RET
 _NOCHR: XOR     A           ; A = 0, Z = 1
         RET
+
+CONRLE: .EQU    $           ; END OF RELOCATABLE CONSOLE I/O ROUTINES
 
         ;; IN-LINE PRINT ROUTINE
         ;;  PRINT NULL-TERMINATED STRING IMMEDIATELY FOLLOWING SUBROUTINE CALL.
