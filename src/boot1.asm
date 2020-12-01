@@ -18,6 +18,8 @@ BOOT1:  .EQU    $
 
         ;; TODO - IMPLEMENT
         ;;
+        ;; RELOCATER to move all of this stuff from our ROM-origined basket to HIMEM and wire it up
+        ;;
         ;; EXAMINE MEMORY
         ;; CHANGE MEMORY
         ;; EXAMINE REGISTERS
