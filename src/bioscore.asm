@@ -81,9 +81,7 @@ CONOTW: CALL    SAVE        ; SAVE REGISTERS AND FLAGS
         OUT     (SIOAC),A   ; UPDATE HANDSHAKE REGISTER
         IN      A,(SIOAC)   ; READ STATUS
         BIT     5,A         ; CHECK CTS BIT
-        RST     08H         ;                                                         <-- DEBUG REMOVE
         JR      Z,CONOTW    ; WAIT UNTIL CTS IS ACTIVE
-        RST     08H         ;                                                         <-- DEBUG REMOVE
         CALL    CONOUT
         RET
 
@@ -93,7 +91,6 @@ CONOUT: CALL    SAVE        ; SAVE REGISTERS AND FLAGS
         JR      Z,CONOUT    ; NO, WAIT UNTIL EMPTY
         LD      A,C         ; CHARACTER TO A
         OUT     (SIOAD),A   ; OUTPUT DATA
-        RST     08H         ;                                                         <-- DEBUG REMOVE
         RET
 
         ;; CONSOLE RECEIVE STATUS (POLLED)
