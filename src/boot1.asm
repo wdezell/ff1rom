@@ -26,7 +26,18 @@ BOOT1:  .EQU    $
         ;; SERIAL LOAD INTEL OBJECT CODE STREAM
         ;; DISPLAY HELP
 
-
+        ;; And oh, BTW, this all must be written as relocatable code that will be copied to TBD location in HIMEM.
+        ;; That means we have to duplicate and take with us any core routines we use since LOWMEM where they reside
+        ;; is expected to be cleared as one giant proto-CP/M work area.  So they, too, must be converted to be
+        ;; relocatable.
+        ;;
+        ;;   CONCHR
+        ;;   CONLIN
+        ;;   CONOUT
+        ;;   CONOUTW (?)
+        ;;     (serial init stuff not needed as boot code will already have handled)
+        ;;
+        ;;   Support utils like HEX2ASC, etc, need to come along as well
 
         ;; DEBUG / REMOVE
         RST     08H
