@@ -3,7 +3,6 @@
 
 .NOLIST
 ;;  USAGE:  INVOKED BY BOOT DISPATCH MODULE
-;;  DEPS:   BOOTDSP.ASM
 ;;  STACK:  REQUIRED
 .LIST
         .MODULE BOOT0
@@ -15,10 +14,11 @@
 BOOT0C: .EQU    $           ; ENTRY POINT W/ SCREEN CLEAR
         CALL    VTCLS
 
-        ;; PRESENT MENU
 BOOT0:  .EQU    $           ; ENTRY POINT PRESERVING SCREEN
+
+        ;; PRESENT MENU
         CALL    INLPRT
-        .TEXT   "\n\rBOOT 0 - CONSOLE MENU\n\r\n\r"
+        .TEXT   "\n\rCONSOLE MENU\n\r\n\r"
         .TEXT   "1  HEX MONITOR\n\r"
         .TEXT   "2  BOARD UTILS\n\r"
         .TEXT   "3  DIAGNOSTICS\n\r"

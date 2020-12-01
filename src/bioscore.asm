@@ -142,14 +142,14 @@ _WRDON: POP     BC          ; RESTORE AFFECTED REGS
         POP     AF
         RET
 
-        ;; SEND VT-52 SCREEN CLEAR COMMAND SEQUENCE
+        ;; SEND VT-COMPATIBLE SCREEN CLEAR COMMAND SEQUENCE
         ;;  REGISTERS AFFECTED:  HL
         ;; -------------------------------------------------------------
 VTCLS:  .EQU    $
         LD      HL,_VTCL
         CALL    WRSTRZ
         RET
-_VTCL:  .DB 1BH, 'H', 1BH, 'J', 00H
+_VTCL:  .DB 1BH, '[', '2', 'J', 00H
 
 ;; -------------------------------------------------------------
 ;; REAL-TIME CLOCK, CALENDAR, AND TIME-OF-DAY UTILITY ROUTINES
@@ -190,11 +190,11 @@ SETBDR: .EQU    $
         ;;  RATES WITH 0% ERROR.
         ;;
         ;;  CLOCK   BAUD RATES
-        ;;    MHZ   38400     19200     9600     4800     2400     1800     1200      600
-        ;;  ------  ------   ------     ----     ----     ----     ----     ----     ----
-        ;;  3.6864      *3       *6      *12      *24      *48      *64      *96     *192
-        ;;  4.0000     n/a      n/a       13       26       52       69      104      208
-        ;;  6.1440      *5      *10      *20      *40      *80      107     *160      n/a
+        ;;    MHZ   57600   38400   19200   9600   4800   2400   1800   1200    600
+        ;;  ------  -----  ------   -----   ----   ----   ----   ----   ----   ----
+        ;;  3.6864     *2      *3      *6    *12    *24    *48    *64    *96   *192
+        ;;  4.0000    n/a     n/a     n/a     13     26     52     69    104    208
+        ;;  6.1440    n/a      *5     *10    *20    *40    *80    107   *160    n/a
 
         ;; INIT CTC CHANNEL 0 OUTPUT - SERIAL CHANNEL "A" BAUD RATE CLOCK
         LD      A,H                     ; GET PORT FROM PARAMETER H INTO C
@@ -202,7 +202,6 @@ SETBDR: .EQU    $
         LD      A,CTCRST+CTCCTL+CTCCTR+CTCTC ; RESET, IS CONTROL WORD, COUNTER MODE, TC FOLLOWS
         OUT     (C),A
         OUT     (C),L                   ; TC VIA PARAMETER
-        RST     08H         ;                                                         <-- DEBUG REMOVE
         RET
 
 ;; -------------------------------------------------------------
