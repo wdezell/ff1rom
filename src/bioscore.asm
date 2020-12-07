@@ -72,7 +72,7 @@ CONCHR: IN      A,(SIOAC)   ; READ STATUS
         BIT     0,A         ; DATA AVAILABLE?
         JR      Z,CONCHR    ; NO DATA, WAIT
         IN      A,(SIOAD)   ; READ DATA
-        AND     7FH         ; MASK BIT 7 (JUNK)                                 <-- TBD
+        AND     7FH         ; MASK BIT 7    TODO:  EVAL IMPLICATIONS FOR X-MODEM, ETC..
         RET
 
         ;; CONSOLE LINE INPUT
@@ -100,8 +100,8 @@ _CLGTC: IN      A,(SIOAC)   ; READ STATUS
         BIT     0,A         ; DATA AVAILABLE?
         JR      Z,_CLGTC    ; NO DATA, WAIT
         IN      A,(SIOAD)   ; READ DATA
-        AND     7FH         ; MASK BIT 7 (JUNK)                                 <-- TBD
-        LD      (HL),A      ; SAVE CHARACTER TO BUFFER
+        AND     7FH         ; MASK BIT 7
+        LD      (HL),A      ; SAVE CHARACTER TO BUFFER              TODO: DECIDE IF WE SHOULD DISCARD CR OR KEEP
         CP      CR          ; IS CHARACTER A CARRIAGE RETURN?
         JR      Z,_CLCR     ; YES
         INC     HL          ; NO - POINT HL TO NEXT BUFFER BYTE
