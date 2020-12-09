@@ -1,12 +1,3 @@
-#IFNDEF bioscore_asm        ; TASM-specific guard
-#DEFINE bioscore_asm  1
-
-.NOLIST
-;;  USAGE:  INLINE INCLUSION
-;;  DEPS:   HWDEFS.ASM
-;;  STACK:  REQUIRED
-.LIST
-        .MODULE BIOS_CORE
 ;; -------------------------------------------------------------
 ;; CONSOLE UTILITY ROUTINES
 ;; -------------------------------------------------------------
@@ -355,4 +346,3 @@ ESC:    .EQU    1BH             ; ASCII ESCAPE CHARACTER
 CRLFZ:  .TEXT   "\n\r\000"
 
         ;; -------------------------------------------------------------
-#ENDIF

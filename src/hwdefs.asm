@@ -1,6 +1,3 @@
-#IFNDEF hwdefs_asm          ; TASM-specific guard
-#DEFINE hwdefs_asm  1
-
 ;; -----------------------------------------------------
 ;; I/O MAP AND HARDWARE CONSTANTS FOR THE REV 1 BOARD
 ;; -----------------------------------------------------
@@ -71,4 +68,4 @@ PMODE3: .EQU    11001111B   ; PIO MODE 3 - CONTROL
 
         ;; TO-DO
 
-#ENDIF
+        

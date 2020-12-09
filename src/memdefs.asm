@@ -1,6 +1,3 @@
-#IFNDEF memdefs_asm         ; TASM-specific guard
-#DEFINE memdefs_asm  1
-
 ;; -----------------------------------------------------
 ;; RAM BUFFERS AND DEFINITIONS FOR THE REV 1 BOARD
 ;; -----------------------------------------------------
@@ -12,4 +9,3 @@ CNBSIZ: .EQU    80          ; 80-CHARACTER TYPE-AHEAD BUFFER
 STACK:  .EQU    $           ; AT TOP OF RAM, GROWS DOWN
 STKSIZ: .EQU    256         ; 256-BYTE STACK
 
-#ENDIF

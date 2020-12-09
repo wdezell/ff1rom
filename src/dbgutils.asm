@@ -1,13 +1,3 @@
-#IFNDEF dbgutils_asm        ; TASM-specific guard
-#DEFINE dbgutils_asm  1
-
-.NOLIST
-;;  USAGE:  INLINE INCLUSION
-;;  DEPS:   HWDEFS.ASM
-;;  STACK:  REQUIRED
-.LIST
-        .MODULE DEBUG_UTILS
-
 ;; -------------------------------------------------------------
 ;; MISC DEBUG TOOLS
 ;; -------------------------------------------------------------
@@ -93,4 +83,4 @@ _ASCZ2: ADD     A,'0'       ; ADD OFFSET FOR ASCII
         RET
 
         ;; -------------------------------------------------------------
-#ENDIF
+        

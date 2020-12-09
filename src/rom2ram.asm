@@ -1,5 +1,3 @@
-#IFNDEF rom2ram_asm         ; TASM-specific guard
-#DEFINE rom2ram_asm  1
 
         ;; -------------------------------------------------------------
         ;; REPLACE ROM IN LOWMEM WITH A FULL COPY OF BOOTROM IMAGE
@@ -8,7 +6,6 @@
         ;;
         ;;  USAGE:  INLINE INCLUSION  (NO STACK ALLOWED YET)
         ;; -------------------------------------------------------------
-        .MODULE ROM2RAM
 
         ;; SEE IF FLAG SAYS WE'VE ALREADY GOT RAM IN LOWMEM
         LD      A,(IS_RAM)
@@ -50,8 +47,6 @@
 
 _DIDIT: .EQU    $
 
-#DEFINE WIPE_HIMEM
-#IFDEF  WIPE_HIMEM
         ;; WIPE UPPER MEMORY TO CLEAR TEMP COPY OF ROM, LEAVE NEAT AND TIDY
         JP      _WIPE       ; JUMP TO THE LOWMEM VERSION MEM WIPE
 
@@ -61,12 +56,8 @@ _WIPE:  LD      A,0         ; PUT A ZERO IN THE FIRST BYTE OF UPPER MEMORY
         LD      DE,HIMEM+1
         LD      BC,HIMSIZ-1
         LDIR
-#ELSE
-        ;; RESUME EXECUTION AT LOWMEM-VERSION OF "NEXT" LINE VIA EXPLICIT JUMP
-        JP      _NXTLN
-#ENDIF
 
 _NXTLN: .EQU $              ; WHEN ASSEMBLED THIS LABEL MARKED THE NEXT ADDRESS IN LOWMEM
 
         ;; -------------------------------------------------------------
-#ENDIF
+        

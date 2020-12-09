@@ -1,4 +1,4 @@
-    .NOCODES
+
     ;;***********************************************************************
     ;;
     ;;  PROGRAM:  FF1GBR_MAIN -- GENERAL BOOT ROM FOR THE WDE8016 'FIREFLY' 
@@ -7,22 +7,8 @@
     ;;  AUTHOR:   WILLIAM D. EZELL      
     ;;  DATE:
     ;;
-    ;;  ASSEMBLED USING THE TELEMARK ASSEMBLER (TASM) VERSION 3.1 
-    ;;  BY THOMAS N. ANDERSON, SQUAK VALLEY SOFTWARE
-    ;;
-    ;;  USING THE FOLLOWING TASM SETTINGS:
-    ;;    EXPORT TASMOPTS='-80 -A -B -E -F00 -H -LAL -S -Y'
-    ;;
-    ;;    -80   Z80 INSTRUCTION SET
-    ;;    -A    ENABLE ALL ASSEMBLY CONTROL CHECKS (WARNINGS)
-    ;;    -B    RAW BINARY OBJECT FILE OUTPUT FORMAT (SUITABLE FOR PROMS)
-    ;;          (-C 'CONTIGUOUS BLOCK' IS IMPLIED)
-    ;;    -E    EXPAND SOURCE MACROS/INCLUDES
-    ;;    -F    FILL UNUSED MEMORY WITH VALUE
-    ;;    -H    INCLUDE HEX TABLE OF OBJECT FILE AT END OF LISTING
-    ;;    -LAL  SHOW ALL LABELS IN LONG FORM
-    ;;    -S    SYMBOL FILE GENERATION
-    ;;    -Y    ENABLE ASSEMBLY TIMING
+    ;;  ASSEMBLED USING 'ZMAC'
+    ;;      zmac -P --oo lst,hex,cim ff1_gbr_main.asm
     ;;
     ;;  SOURCE FORMATTING NOTE:
     ;;    USING SOFT TABS @ 4 SPACES FOR COLUMNAR ALIGNMENT
@@ -83,11 +69,12 @@
     ;;         SOME KLUDGY SUB-OPTIMAL TRICKERY IS EMPLOYED. BUT IT WORKS.
     ;;
     ;; ***********************************************************************
-        .CODES
         .TITLE "FF-ROM -- SYSTEM ROM FOR THE WDE8016 'FIREFLY' REV 1 BOARD"
-        .LIST
-        .NOPAGE
-                
+        .Z80            ; USE Z80 MNEMONICS
+;        .JPERROR 1      ; ADVISE IF CAN SHORTEN CODE
+
+IMPORT "hwdefs.asm"
+IMPORT "memdefs.asm"
 
         ;; *** BOOTSTRAP ***
         .ORG    ROMBEG
@@ -152,7 +139,7 @@ RESET:  .EQU    $
         DI                  ; NO INTERRUPTS UNTIL WE WANT THEM
         LD      SP,STACK    ; INIT STACK POINTER SO WE CAN CALL SUBS
 
-#INCLUDE "rom2ram.asm"      ; INLINED
+IMPORT "rom2ram.asm"      ; INLINED
 
         ;; INITIALIZE SIO CHANNEL A ("CONSOLE") TO 9600 BAUD N-8-1
         CALL    CONINIT
@@ -203,20 +190,20 @@ BSWTAB: .EQU    $           ; BOOT SWITCH JUMP TABLE
         .DW     BOOT6       ; RESERVED
         .DW     BOOT7       ; RESERVED
 
-#INCLUDE "boot0.asm"
-#INCLUDE "boot1.asm"
-#INCLUDE "boot2.asm"
-#INCLUDE "boot3.asm"
-#INCLUDE "boot4.asm"
-#INCLUDE "boot5.asm"
-#INCLUDE "boot6.asm"
-#INCLUDE "boot7.asm"
+IMPORT "boot0.asm"
+IMPORT "boot1.asm"
+IMPORT "boot2.asm"
+IMPORT "boot3.asm"
+IMPORT "boot4.asm"
+IMPORT "boot5.asm"
+IMPORT "boot6.asm"
+IMPORT "boot7.asm"
 
 ;; -------------------------------------------------------------
 ;; SUPPORT ROUTINES
 ;; -------------------------------------------------------------
-#INCLUDE "bioscore.asm"     ;; ROUTINES OF GENERAL PURPOSE TO MOST BOOT MODES
-#INCLUDE "dbgutils.asm"     ;; MISC DEBUG TOOLS
+IMPORT "bioscore.asm"     ;; ROUTINES OF GENERAL PURPOSE TO MOST BOOT MODES
+IMPORT "dbgutils.asm"     ;; MISC DEBUG TOOLS
 
 ;; -------------------------------------------------------------
 ;; END OF THE LINE MINUTIA
@@ -226,20 +213,18 @@ BSWTAB: .EQU    $           ; BOOT SWITCH JUMP TABLE
         ;;
         ;; WARN AT 31K (EVENTUALLY SET TO 32K)
         ;;
-        #IF ( $ >= (ROMEND - 1024 ))
-                !!! CODE SIZE LIMIT EXCEEDED
-        #ENDIF
+        ;; #IF ( $ >= (ROMEND - 1024 ))
+        ;;         !!! CODE SIZE LIMIT EXCEEDED                 <---- TODO: FIX THIS TO WORK UNDER ZMAC
+        ;; ENDIF
 
         .ORG     ROMEND-21
         .DB     "WDEZELL FIREFLY REV 1"
 
-        ;; FORCE TASM TO TOUCH A SINGLE BYTE AT THE END OF ROM IN ORDER
-        ;; TO GENERATE IMAGE SIZED EXACTLY FOR THE ROM, ELSE CODE GENERATION
-        ;; WILL STOP AFTER THE LAST INSTRUCTION OR DATA BLOCK DEFINITION.
+        ;; TOUCH A SINGLE BYTE AT THE END OF ROM IN ORDER TO GENERATE IMAGE
+        ;; SIZED EXACTLY FOR THE ROM, ELSE CODE GENERATION WILL STOP AFTER
+        ;; THE LAST INSTRUCTION OR DATA BLOCK DEFINITION.
         ;; -------------------------------------------------------------
         .ORG    ROMEND
-        .CHK    LOWMEM      ; BYTE VALUE = CHECKSUM FROM ADDRESS 00H THRU PREV BYTE
+        .DB     0
         .END                ; CONCLUSION OF ROM CODE
 
-#INCLUDE "hwdefs.asm"
-#INCLUDE "memdefs.asm"

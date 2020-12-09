@@ -1,12 +1,3 @@
-#IFNDEF boot0_asm           ; TASM-specific guard
-#DEFINE boot0_asm  1
-
-.NOLIST
-;;  USAGE:  INVOKED BY BOOT DISPATCH MODULE
-;;  STACK:  REQUIRED
-.LIST
-        .MODULE BOOT0
-
 ;; -------------------------------------------------------------
 ;; BOOT MODE 0 - CONSOLE MENU
 ;;  DIAGNOSTICS, BOARD UTILS, MONITOR, LAUNCH OTHER MODES
@@ -60,4 +51,3 @@ _MNUTB: .EQU    $           ; MENU JUMP TABLE
         ;; TODO: IMPLEMENT AS SEPARATE SRC
 BDUTLS: .DW     BOOT0C      ; REDIRECT STUB
 
-#ENDIF
