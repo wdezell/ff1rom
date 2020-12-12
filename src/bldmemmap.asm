@@ -1,4 +1,14 @@
+;;----------------------------------------------------------------------
+;; BUILD MEMORY MAP -- INLINED CODE PERFORMING THE FOLLOWING TASKS:
+;;  1) REPLACE LOWER 32K MEMORY WITH AN EXACT IMAGE OF ROM BUT IN RAM
+;;  2) INSTALL COMPONENTS CARRIED IN ROM TO EXECUTION LOCATIONS
+;;     IN RAM (TYPICALLY UPPER 32K REGION)
+;;
+;;  NOTE: THIS CREATES ONLY THE INITIAL FIREFLY MEMORY MAP.BOOT MODE-
+;;        SPECIFIC INITIALIZERS WILL CHANGE AS REQ'D TO SUPPORT MODE.
+;;----------------------------------------------------------------------
 
+ROM2RAM:    .EQU    $
         ;; -------------------------------------------------------------
         ;; REPLACE ROM IN LOWMEM WITH A FULL COPY OF BOOTROM IMAGE
         ;;  RUNNING IN RAM (SKIP COPY/SWAP IF RAM IS ALREADY ACTIVE,
@@ -59,5 +69,7 @@ _WIPE:  LD      A,0         ; PUT A ZERO IN THE FIRST BYTE OF UPPER MEMORY
 
 _NXTLN: .EQU $              ; WHEN ASSEMBLED THIS LABEL MARKED THE NEXT ADDRESS IN LOWMEM
 
-        ;; -------------------------------------------------------------
-        
+        ;; --------------------- END ROM2RAM ---------------------------
+
+
+        ;; TODO -- Install BIOS & util code to High Memory before we invoke (mover should zero out src locs when done)

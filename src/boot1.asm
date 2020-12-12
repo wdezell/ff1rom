@@ -8,28 +8,29 @@ BOOT1:  .EQU    $
 
         ;; TODO - IMPLEMENT
         ;;
-        ;; RELOCATER to move all of this stuff from our ROM-origined basket to HIMEM and wire it up
+        ;; Monitor losely based on Big Board PFM-80 command set with extensions
         ;;
-        ;; EXAMINE MEMORY
-        ;; CHANGE MEMORY
-        ;; EXAMINE REGISTERS
-        ;; CHANGE REGISTERS
-        ;; EXECUTE AT LOCATION
-        ;; SERIAL LOAD INTEL OBJECT CODE STREAM
-        ;; DISPLAY HELP
+        ;; Command                  Format
+        ;; --------------------     ----------------------------------------------
+        ;; E(xamine) memory         E   STARTADDR ENDADDR
+        ;; M(odify) memory          M   ADDRESS
+        ;; G(o) execute memory      G   ADDRESS
+        ;; C(opy) memory            C   STARTADDR ENDADDR DESTADDR
+        ;; F(ill) memory            F   STARTADDR ENDADDR CONST
+        ;; T(est) memory            T   STARTADDR ENDADDR
+        ;; H(ex Load) memory        H   SERPORT BAUD PARITY WORD STOP AUTOEXECUTE
+        ;;
+        ;; R(ead) mass storage      R   UNIT TRACK SECTOR
+        ;; W(rite) mass storage     W   UNIT TRACK SECTOR STARTADDR ENDADDR
+        ;; B(oot) mass storage      B
+        ;;
+        ;; I(nput) port             I   PORTNUM
+        ;; O(utput) port            O   PORTNUM CONST
+        ;;
+        ;; ? (Help)                 ?
+        ;; X (Exit)                 X
+        ;;
 
-        ;; And oh, BTW, this all must be written as relocatable code that will be copied to TBD location in HIMEM.
-        ;; That means we have to duplicate and take with us any core routines we use since LOWMEM where they reside
-        ;; is expected to be cleared as one giant proto-CP/M work area.  So they, too, must be converted to be
-        ;; relocatable.
-        ;;
-        ;;   CONCHR
-        ;;   CONLIN
-        ;;   CONOUT
-        ;;   CONOUTW (?)
-        ;;     (serial init stuff not needed as boot code will already have handled)
-        ;;
-        ;;   Support utils like HEX2ASC, etc, need to come along as well
 
         ;; DEBUG / REMOVE
         RST     08H

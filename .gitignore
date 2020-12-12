@@ -1,5 +1,7 @@
 *.lst
 *.obj
 *.sym
+*.cim
+*.hex
 
 *.idea

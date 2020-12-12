@@ -73,9 +73,6 @@
         .Z80            ; USE Z80 MNEMONICS
 ;        .JPERROR 1      ; ADVISE IF CAN SHORTEN CODE
 
-IMPORT "hwdefs.asm"
-IMPORT "memdefs.asm"
-
         ;; *** BOOTSTRAP ***
         .ORG    ROMBEG
         JP      RESET
@@ -139,7 +136,7 @@ RESET:  .EQU    $
         DI                  ; NO INTERRUPTS UNTIL WE WANT THEM
         LD      SP,STACK    ; INIT STACK POINTER SO WE CAN CALL SUBS
 
-IMPORT "rom2ram.asm"      ; INLINED
+IMPORT "bldmemmap.asm"      ; INLINED
 
         ;; INITIALIZE SIO CHANNEL A ("CONSOLE") TO 9600 BAUD N-8-1
         CALL    CONINIT
@@ -202,8 +199,9 @@ IMPORT "boot7.asm"
 ;; -------------------------------------------------------------
 ;; SUPPORT ROUTINES
 ;; -------------------------------------------------------------
-IMPORT "bioscore.asm"     ;; ROUTINES OF GENERAL PURPOSE TO MOST BOOT MODES
-IMPORT "dbgutils.asm"     ;; MISC DEBUG TOOLS
+IMPORT "bioscore.asm"       ;; CORE I/O
+IMPORT "genutils.asm"       ;; GENERAL PURPOSE UTILTY ROUTINES
+IMPORT "dbgutils.asm"       ;; MISC DEBUG TOOLS
 
 ;; -------------------------------------------------------------
 ;; END OF THE LINE MINUTIA
@@ -213,18 +211,21 @@ IMPORT "dbgutils.asm"     ;; MISC DEBUG TOOLS
         ;;
         ;; WARN AT 31K (EVENTUALLY SET TO 32K)
         ;;
-        ;; #IF ( $ >= (ROMEND - 1024 ))
-        ;;         !!! CODE SIZE LIMIT EXCEEDED                 <---- TODO: FIX THIS TO WORK UNDER ZMAC
-        ;; ENDIF
+        ASSERT ( $ < (ROMEND - 1024 ))  ;; *** ASSEMBLED CODE EXCEEDS WATERLINE ***
 
         .ORG     ROMEND-21
         .DB     "WDEZELL FIREFLY REV 1"
 
         ;; TOUCH A SINGLE BYTE AT THE END OF ROM IN ORDER TO GENERATE IMAGE
-        ;; SIZED EXACTLY FOR THE ROM, ELSE CODE GENERATION WILL STOP AFTER
+        ;; SIZED EXACTLY FOR THE ROM, ELSE CODE GENERATION WILL TOP AFTER
         ;; THE LAST INSTRUCTION OR DATA BLOCK DEFINITION.
         ;; -------------------------------------------------------------
         .ORG    ROMEND
         .DB     0
+
+;; EQUATES
+IMPORT "hwdefs.asm"
+IMPORT "memdefs.asm"
+
         .END                ; CONCLUSION OF ROM CODE
 
