@@ -71,5 +71,48 @@ _NXTLN: .EQU $              ; WHEN ASSEMBLED THIS LABEL MARKED THE NEXT ADDRESS 
 
         ;; --------------------- END ROM2RAM ---------------------------
 
+;UNPACK ;; COPY ROM COMPONENTS TO EXECUTION LOCATIONS
+        LD      HL,BBIOSS   ; ROM COPY OF BOARD BIOS CODE
+        LD      DE,BBIOS    ; GOES HERE IN RAM
+        LD      BC,BBSIZ    ; THIS MANY BYTES
+        LDIR                ; COPY IT THERE
 
-        ;; TODO -- Install BIOS & util code to High Memory before we invoke (mover should zero out src locs when done)
+        LD      HL,GUTLSS   ; GENERAL UTILITIES
+        LD      DE,GUTLS
+        LD      BC,GUSIZ
+        LDIR
+
+        LD      HL,DBGUTS   ; DEBUG UTILITIES
+        LD      DE,DBGUTL
+        LD      BC,DBSIZ
+        LDIR
+
+;CLUNPKD .EQU    1
+IFDEF CLUNPKD
+        ;; AND CLEAR THE LOWMEM LOCATIONS THAT HELD THE CODE
+        ;;  IT CAN'T BE EXECUTED AS IT'S ASSEMBLED FOR A DIFFERENT
+        ;;  ADDRESS RANGE SO WIPE IT
+        ;;
+        LD      A,0         ; PUT A ZERO IN THE FIRST BYTE OF SRC BLOCK
+        LD      (BBIOSS),A
+        LD      HL,BBIOSS   ; COPY SOURCE ADDRESS
+        LD      DE,BBIOSS   ; COPY DEST ADDRESS (OK TO BE SAME)
+        LD      BC,BBSIZ    ; THIS MANY COPIES
+        LDIR                ; DUPLICATE
+
+        LD      A,0         ; PUT A ZERO IN THE FIRST BYTE OF SRC BLOCK
+        LD      (GUTLSS),A
+        LD      HL,GUTLSS   ; COPY SOURCE ADDRESS
+        LD      DE,GUTLSS   ; COPY DEST ADDRESS (OK TO BE SAME)
+        LD      BC,GUSIZ    ; THIS MANY COPIES
+        LDIR                ; DUPLICATE
+
+        LD      A,0         ; PUT A ZERO IN THE FIRST BYTE OF SRC BLOCK
+        LD      (DBGUTS),A
+        LD      HL,DBGUTS   ; COPY SOURCE ADDRESS
+        LD      DE,DBGUTS   ; COPY DEST ADDRESS (OK TO BE SAME)
+        LD      BC,DBSIZ    ; THIS MANY COPIES
+        LDIR                ; DUPLICATE
+ENDIF
+
+        ;; --------------------- END UNPACK ----------------------------

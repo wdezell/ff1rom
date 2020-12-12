@@ -1,3 +1,6 @@
+        .PHASE BBIOS        ; ASSEMBLE RELATIVE TO EXECUTION LOCATION
+BBIOSS: .EQU    $           ; BOARD BIOS START. TAG FOR RELOC & SIZE CALCS
+
 ;; -------------------------------------------------------------
 ;; CONSOLE UTILITY ROUTINES
 ;; -------------------------------------------------------------
@@ -111,5 +114,7 @@ _NOCHR: XOR     A           ; A = 0, Z = 1
 
         ;; TO-DO ONCE WE HAVE IMPLEMENTED OUR HARDWARE
 
-
-        ;; -------------------------------------------------------------
+;; -------------------------------------------------------------
+BBIOSE: .EQU    $               ; BOARD BIOS END. TAG FOR RELOC & SIZE CALCS
+BBSIZ:  .EQU    BBIOSE-BBIOSS   ; SIZE OF BOARD BIOS CODE
+        .DEPHASE
