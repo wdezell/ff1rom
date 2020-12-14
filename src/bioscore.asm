@@ -8,22 +8,27 @@ BBIOSS: .EQU    $           ; BOARD BIOS START. TAG FOR RELOC & SIZE CALCS
         ;; CONSOLE CHARACTER INPUT
         ;;  WAITS FOR DATA AND RETURNS CHARACTER IN A
         ;; -------------------------------------------------------------
-CONCHR: IN      A,(SIOAC)   ; READ STATUS
+CONCIN: IN      A,(SIOAC)   ; READ STATUS
         BIT     0,A         ; DATA AVAILABLE?
-        JR      Z,CONCHR    ; NO DATA, WAIT
+        JR      Z,CONCIN    ; NO DATA, WAIT
         IN      A,(SIOAD)   ; READ DATA
         AND     7FH         ; MASK BIT 7    TODO:  EVAL IMPLICATIONS FOR X-MODEM, ETC..
         RET
 
         ;; CONSOLE LINE INPUT
-        ;;  RECEIVES TTY INPUT INTO A USER-PROVIDED LINE BUFFER UP TO N CHARS OR CARRIAGE RETURN
+        ;;  RETURNS TTY INPUT TO A USER-PROVED BUFFER AFTER N CHARS OR CARRIAGE RETURN
         ;;
         ;; PARAMS
-        ;;  HL = ADDRESS OF LINE BUFFER START
-        ;;  B  = MAX CHARS <= LINE BUFFER SIZE
+        ;;  HL = ADDRESS OF USER RETURN BUFFER START
+        ;;  B  = SIZE OF USER RETURN BUFFER OR MAX CHARS TO READ, MUST BE LESS THAN < 256
         ;;
         ;; RETURNS
         ;;  A = NUMBER OF CHARS READ
+        ;;
+        ;; NOTE: INPUT IS READ TO AN INTERMEDIATE BUFFER (CONBUF) AND THEN COPIED TO THE
+        ;;       USER-PROVIDED BUFFER UPON INPUT COMPLETION.  THIS MINOR INEFFICIENCY IS TO
+        ;;       SIMPLIFY LATER CONVERSION FROM POLLED TO INTERRUPT-DRIVEN (IM2) SERIAL I/O
+        ;; ---------------------------------------------------------------------------------
 CONLIN: .EQU    $           ;; TODO: TEST CONLIN
 
         ;; VERIFY NON-ZERO BUFFER SIZE
@@ -31,34 +36,36 @@ CONLIN: .EQU    $           ;; TODO: TEST CONLIN
         CP      0
         RET     Z           ; B WAS 0 SO RETURN 0 CHARACTERS READ
 
-        ;; PRESERVE ORIGINAL REQUESTED READ COUNT
-        PUSH    BC          ; TO PRESERVE ORIGINAL C
-        LD      C,B
+        ;; SAVE REGS
+        PUSH    BC          ; B IS A PARAM BUT PRESERVE C
+        PUSH    DE          ; NEED TO USE AS RETURN COPY DEST ADDRESS
 
-        ;; READ 'B' COUNT OF CHARACTERS
-_CLGTC: IN      A,(SIOAC)   ; READ STATUS
-        BIT     0,A         ; DATA AVAILABLE?
-        JR      Z,_CLGTC    ; NO DATA, WAIT
-        IN      A,(SIOAD)   ; READ DATA
-        AND     7FH         ; MASK BIT 7
-        LD      (HL),A      ; SAVE CHARACTER TO BUFFER              TODO: DECIDE IF WE SHOULD DISCARD CR OR KEEP
+        ;; SETUP
+        EX      DE,HL       ; STORE RETURN BUFFER ADDRESS IN DE
+        LD      C,B         ; PRESERVE ORIGINAL READ COUNT
+        LD      HL,CONBUF   ; POINT TO INTERMEDIATE BUFFER
+
+_CLGTC: CALL    CONCIN      ; READ A CHARACTER INTO A
+        LD      (HL),A      ; SAVE IT TO BUFFER
         CP      CR          ; IS CHARACTER A CARRIAGE RETURN?
         JR      Z,_CLCR     ; YES
         INC     HL          ; NO - POINT HL TO NEXT BUFFER BYTE
         DJNZ    _CLGTC      ; DECREMENT COUNT REMAINING AND READ AGAIN
 
-        ;; READ FULL BUFFER
-        LD      A,B         ; REPORT THAT WE READ FULL BUFFER
-        POP     BC          ; RESTORE ORIGINAL BC (FOR C)
-        RST     08H         ;                                           <-- DEBUG / REMOVE
-        RET
+        LD      A,C         ; REPORT THAT WE READ A FULL BUFFER
+        JR      _CLCPY
 
-        ;; DETECTED CARRIAGE RETURN PRESS
-_CLCR:  DEC     B           ; FINAL DECREMENT TO B TO REFLECT CHAR READ
-        LD      A,C         ; GET ORIGINAL READ COUNT
-        SUB     B           ; SUBTRACT DOWNCOUNT TO REPORT HOW MANY CHARS WE ACTUALLY READ
-        POP     BC          ; RESTORE ORIGINAL BC (FOR C)
-        RST     08H         ;                                           <-- DEBUG / REMOVE
+_CLCR:  LD      A,B         ; REPORT CHARS READ BEFORE CR PRESSED
+
+        ;; COPY COLLECTED INPUT TO USER BUFFER
+_CLCPY: LD      HL,CONBUF   ; SRC = INTERMEDIATE BUFFER, DEST = ADDR SAVED INTO DE ABOVE
+        LD      C,0         ; NO HIGH BYTE SINCE < 256 MAX
+        LD      B,A         ; COUNT OF BYTES READ
+        LDIR                ; COPY IT
+
+        ;; RESTORE WORK REGS AND RETURN
+        POP     DE
+        POP     BC
         RET
 
         ;; CONSOLE CHARACTER OUTUT BLOCKING
@@ -113,6 +120,49 @@ _NOCHR: XOR     A           ; A = 0, Z = 1
 ;; -------------------------------------------------------------
 
         ;; TO-DO ONCE WE HAVE IMPLEMENTED OUR HARDWARE
+
+;; -------------------------------------------------------------
+;; MISCELLANEOUS UTILITY
+;; -------------------------------------------------------------
+
+        ;; "MATHEWS SAVE REGISTER ROUTINE"
+        ;;  FROM ZILOG MICROPROCESSOR APPLICATIONS REFERENCE BOOK VOLUME 1, 2-18-81
+        ;;
+        ;; SAVE AND AUTOMATICALLY RESTORE ALL REGISTERS AND FLAGS IN ANY SUBROUTINE
+        ;;  WITH JUST A SINGLE 'CALL SAVE' AT ROUTINE START
+SAVE:   EX      (SP),HL     ; SP = HL
+        PUSH    DE          ;      DE
+        PUSH    BC          ;      BC
+        PUSH    AF          ;      AF
+        PUSH    IX          ;      IX
+        PUSH    IY          ;      IY
+        CALL    _GO         ;      PC
+        POP     IY
+        POP     IX
+        POP     AF
+        POP     BC
+        POP     DE
+        POP     HL
+        RET
+_GO:    JP      (HL)
+
+        ;; VARIATION FOR USE IN INTERRUPT SERVICE ROUTINES
+SAVEI:  EX      (SP),HL     ; SP = HL
+        PUSH    DE          ;      DE
+        PUSH    BC          ;      BC
+        PUSH    AF          ;      AF
+        PUSH    IX          ;      IX
+        PUSH    IY          ;      IY
+        CALL    _GOI        ;      PC
+        POP     IY
+        POP     IX
+        POP     AF
+        POP     BC
+        POP     DE
+        POP     HL
+        EI
+        RETI
+_GOI:   JP      (HL)
 
 ;; -------------------------------------------------------------
 BBIOSE: .EQU    $               ; BOARD BIOS END. TAG FOR RELOC & SIZE CALCS

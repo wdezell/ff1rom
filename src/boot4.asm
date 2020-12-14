@@ -11,7 +11,7 @@ BOOT4:  .EQU    $
         CALL    PRINL
         .TEXT   "BOOT 4\n\r\n\r\n\rPRESS ANY KEY\000"
 
-        CALL    CONCHR
+        CALL    CONCIN
 
         ;; PLACEHOLDER -- ADAPT AS PER FINAL ROUTINE REQUIREMENTS
         RST     00H         ; REBOOT
