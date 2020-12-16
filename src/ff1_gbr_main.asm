@@ -179,7 +179,7 @@ IMPORT "bldmemmap.asm"      ; INLINED
         ;;
 BSWTAB: .EQU    $           ; BOOT SWITCH JUMP TABLE
         .DW     BOOT0       ; CONSOLE MENU -- DIAGNOSTICS, BOARD UTILS, MONITOR, LAUNCH OTHER MODES
-        .DW     BOOT1       ; MONITOR
+        .DW     SYSMNI      ; SYSTEM MONITOR VIA BOOT MODE 1 INSTALLER
         .DW     BOOT2       ; CP/M
         .DW     BOOT3       ; FORTH
         .DW     BOOT4       ; BASIC

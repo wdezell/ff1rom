@@ -1,46 +1,28 @@
 ;; -------------------------------------------------------------
-;; BOOT MODE 1 - MONITOR
+;; BOOT MODE 1 - SYSTEM MONITOR INSTALLER
+;;
+;; TODO- VERIFY FF REV 1 COLD RESET CIRCUIT FUNCTION
+;;       WE WILL NEED ROM BACK IN MEMORY FOR REBOOT
 ;; -------------------------------------------------------------
 
-BOOT1:  .EQU    $
+SYSMNI:  .EQU    $          ; "SYSMON VIA BOOT MODE 1 INSTALLER"
 
-        CALL    VTCLS
+        ;; INSTALL MONITOR FROM ROM-ASSEMBLY STORAGE TO EXECUTION LOCATION
+        LD      HL,SYSMNS
+        LD      DE,HISTOP-SMSIZ
+        LD      BC,SMSIZ
+        LDIR
 
-        ;; TODO - IMPLEMENT
-        ;;
-        ;; Monitor losely based on Big Board PFM-80 command set with extensions
-        ;;
-        ;; Command                  Format
-        ;; --------------------     ----------------------------------------------
-        ;; E(xamine) memory         E   STARTADDR ENDADDR
-        ;; M(odify) memory          M   ADDRESS
-        ;; G(o) execute memory      G   ADDRESS
-        ;; C(opy) memory            C   STARTADDR ENDADDR DESTADDR
-        ;; F(ill) memory            F   STARTADDR ENDADDR CONST
-        ;; T(est) memory            T   STARTADDR ENDADDR
-        ;; H(ex Load) memory        H   SERPORT BAUD PARITY WORD STOP AUTOEXECUTE
-        ;;
-        ;; R(ead) mass storage      R   UNIT TRACK SECTOR
-        ;; W(rite) mass storage     W   UNIT TRACK SECTOR STARTADDR ENDADDR
-        ;; B(oot) mass storage      B
-        ;;
-        ;; I(nput) port             I   PORTNUM
-        ;; O(utput) port            O   PORTNUM CONST
-        ;;
-        ;; ? (Help)                 ?
-        ;; X (Exit)                 X
-        ;;
+        ;; CLEAR LOW MEMORY FROM PAGE 1 UP TO LAST BYTE BELOW MONITOR
+        LD      A,0
+        LD      (RESET),A
+        LD      HL,RESET
+        LD      DE,RESET
+        LD      BC,HISTOP-SMSIZ-RESET-1
+        LDIR
 
+        ;; START MONITOR
+        JP      SYSMON      ; ONE-WAY TRIP
 
-        ;; DEBUG / REMOVE
-        RST     08H
-        CALL    PRINL
-        .TEXT   "BOOT 1\n\r\n\r\n\rPRESS ANY KEY\000"
-
-        CALL    CONCIN
-
-        ;; PLACEHOLDER -- ADAPT AS PER FINAL ROUTINE REQUIREMENTS
-        RST     00H         ; REBOOT
-
-        ;; -------------------------------------------------------------
-        
+        ;; INC MONITOR SOURCE FOR ASSEMBLY
+IMPORT "sysmon.asm"

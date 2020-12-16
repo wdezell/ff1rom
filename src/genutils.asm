@@ -98,10 +98,22 @@ _PRDON: POP     BC          ; RESTORE AFFECTED REGS
         POP     AF
         RET
 
-        ;; SEND VT-COMPATIBLE SCREEN CLEAR COMMAND SEQUENCE
-        ;;  REGISTERS AFFECTED:  HL
+        ;; SEND ADM3A COMPATIBLE SCREEN CLEAR COMMAND
+        ;;  REGISTERS AFFECTED:  NONE
+        ;;
+        ;; NOTE: LS ADM3A SCREEN CLEAR FUNCTION MAY BE DISABLED
+        ;;       BY INTERNAL SWITCH #3 ON SWITCH BLOCK A6
         ;; -------------------------------------------------------------
-VTCLS:  .EQU    $
+A3CLS:  CALL    SAVE
+        LD      A,01AH      ; SINGLE CTRL-Z (SUB) CHAR IS ENTIRE COMMAND
+        LD      C,A
+        CALL    CONOUT
+        RET
+
+        ;; SEND VT-100 COMPATIBLE SCREEN CLEAR COMMAND SEQUENCE
+        ;;  REGISTERS AFFECTED:  NONE
+        ;; -------------------------------------------------------------
+VTCLS:  CALL    SAVE
         LD      HL,_VTCL
         CALL    PRSTRZ
         RET
@@ -252,9 +264,11 @@ SETBDR: .EQU    $
 ;; USEFUL CONSTANTS
 ;; -------------------------------------------------------------
         ;; STATIC DATA DEFINITIONS
+HT:     .EQU    09H             ; ASCII HORIZONTAL TAB
 CR:     .EQU    0DH             ; ASCII CARRIAGE RETURN
 LF:     .EQU    0AH             ; ASCII LINE FEED
 ESC:    .EQU    1BH             ; ASCII ESCAPE CHARACTER
+CRLF:   .TEXT   CR,LF
 CRLFZ:  .TEXT   "\n\r\000"
 
 ;; -------------------------------------------------------------

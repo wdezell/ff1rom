@@ -10,7 +10,7 @@ BOOT0:  .EQU    $           ; ENTRY POINT PRESERVING SCREEN
         ;; PRESENT MENU
         CALL    PRINL
         .TEXT   "\n\rCONSOLE MENU\n\r\n\r"
-        .TEXT   "1  HEX MONITOR\n\r"
+        .TEXT   "1  SYSTEM MONITOR\n\r"
         .TEXT   "2  BOARD UTILS\n\r"
         .TEXT   "3  DIAGNOSTICS\n\r"
         .TEXT   "4  RESERVED\n\r"
@@ -41,7 +41,7 @@ _READC: CALL    CONCIN
 _MNUTB: .EQU    $           ; MENU JUMP TABLE
 
         ;; NB: BOOT MODES ARE NOT REQUIRED TO CORRESPOND WITH CONSOLE MENU ENTRIES
-        .DW     BOOT1       ; HEX MONITOR
+        .DW     SYSMNI      ; SYSTEM MONITOR VIA BOOT MODE 1 INSTALLER
         .DW     BDUTLS      ; NOT IMPL YET
         .DW     BOOT0C      ; NOT IMPL YET
         .DW     BOOT0C      ; NOT IMPL YET

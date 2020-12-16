@@ -1,6 +1,14 @@
 ;; -----------------------------------------------------
 ;; INITIAL MEMORY MAP UNTIL BOOT MODE LOADERS CHANGE IT
+;;
+;; NOTE:  BECAUSE OF THE WAY THIS FILE IS USED IT MUST
+;;        CONTAIN DEFINITIONS ONLY -- NO CODE GENERATION
+;;        OR SPACE-ALLOCATION PSEUDO-OPS ARE ALLOWED
+;;        (.ORG, .DS, .DB, .DW, .TEXT, ETC...)
 ;; -----------------------------------------------------
+
+        ;; HIGH MEMORY FREE-SPACE END (ASSIGNED USE BEYOND HERE)
+HISTOP: .EQU    DBGUTL-1
 
         ;; DEBUG UTILITIES
 DBGUTL: .EQU    GUTLS-DBSIZ
@@ -16,6 +24,6 @@ CONBUF: .EQU    STKBOT-CNBSIZ
 CNBSIZ: .EQU    256                 ; MAX 256
 
         ;; STACK AT TOP OF MEMORY
-STACK:  .EQU    MEMTOP              ; STACK GROWS DOWN
-STKSIZ: .EQU    256
-STKBOT: .EQU    STACK-STKSIZ
+STACK:  .EQU    MEMTOP              ; STACK GROWS DOWNWARD
+STKSIZ: .EQU    256                 ; STACK SPACE
+STKBOT: .EQU    STACK-STKSIZ        ; END (BOTTOM) OF STACK
