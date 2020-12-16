@@ -77,15 +77,21 @@ _NXTLN: .EQU $              ; WHEN ASSEMBLED THIS LABEL MARKED THE NEXT ADDRESS 
         LD      BC,BBSIZ    ; THIS MANY BYTES
         LDIR                ; COPY IT THERE
 
+        RST     08H         ; DEBUG
+
         LD      HL,GUTLSS   ; GENERAL UTILITIES
         LD      DE,GUTLS
         LD      BC,GUSIZ
         LDIR
 
+        RST     08H         ; DEBUG
+
         LD      HL,DBGUTS   ; DEBUG UTILITIES
         LD      DE,DBGUTL
         LD      BC,DBSIZ
         LDIR
+
+        RST     08H         ; DEBUG
 
 ;CLUNPKD .EQU    1
 IFDEF CLUNPKD

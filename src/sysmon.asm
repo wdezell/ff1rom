@@ -21,10 +21,10 @@ SMWARM: .EQU    $           ; SYSMON WARM START
         CALL    SMMENU
 
         ;; DISPLAY USER PROMPT AND PARSE INPUT
-        CALL SMPRAP
+        CALL    SMPRAP
 
-        ;; COMMAND DISPATCH AND VALIDATE PARAMETERS
-        ;CALL SMDAVP
+        ;; COMMAND VALIDATE AND DISPATCH IF NO PARSING ERROR
+        CALL    NC,SMVAD
 
         JR      SMWARM
 
@@ -66,12 +66,27 @@ _SMINBP:LD      A,(HL)      ; INSPECT CHARACTER
         DJNZ    _SMINBP
         RET
 
-_SMNAS: LD      (DE),A      ; WRITE DATA TO LOCATION ADDRESSED BY DE
+_SMNAS: CALL    SMCKBS      ; CHECK THAT INPUT NOT EXCEEDING BUFFER SIZE
+        JP      C,_SMFSE    ; FIELD WIDTH EXCEEDS DESTINATION BUFFER -- ERROR BAIL
+        LD      (DE),A      ; WRITE DATA TO LOCATION ADDRESSED BY DE
         INC     HL          ; POINT HL TO NEXT SOURCE BYTE
         INC     DE          ; POINT DE TO NEXT DESTINATION BYTE
         DJNZ    _SMINBP
         RET
 
+_SMFSE: LD      HL,SMERR02  ; 'PARAM WIDTH' ERROR
+        CALL    SMPRSE      ;
+
+        ;; CHECK THAT INPUT IS NOT EXCEEDING DESTINATION BUFFER SIZE
+        ;;  CARRY SET ON EXIT TO INDICATE BOUNDS EXCEEDED
+SMCKBS:.EQU     $
+        PUSH    HL
+        LD      HL,SMCBCC   ; GET CURRENT BUFFER CHARACTER COUNTER
+        INC     (HL)        ; INCREMENT COUNT
+        LD      A,SMPMSZ    ; LOAD SIZE LIMIT INTO A
+        CP      (HL)        ; IF COUNT > A THEN CARRY = SET
+        POP     HL
+        RET
 
         ;; SET NEXT TOKEN DESTINATION BUFFER
         ;;  GET POINTER TO NEXT BUFFER START INTO REG PAIR DE
@@ -80,6 +95,8 @@ SMNXTB: PUSH    HL
         INC     (HL)        ; INCREMENT SELECTOR TO POINT TO ADDRESS OF NEXT BUFFER IN TABLE
         INC     (HL)        ;  (EACH TABLE ENTRY IS 2 BYTES SO INCREMENT TWICE)
         LD      DE,(SMTKSL) ; AND MOVE BUFFER START ADDRESS INTO DE
+        LD      HL, SMCBCC  ; RESET CURRENT BUFFER CHARACTER COUNT TO ZERO
+        LD      (HL),0
         POP     HL
         RET
 
@@ -88,14 +105,30 @@ SMRSTB: PUSH    HL
         LD      HL,SMP0ADR      ; POINT HL TO *POINTER* TO FIRST BUFFER
         LD      (SMTKSL),HL     ; STORE POINTER INTO SELECTOR
         LD      DE,(SMTKSL)     ; AND DE AS WELL
+        LD      HL, SMCBCC      ; RESET CURRENT BUFFER CHARACTER COUNT TO ZERO
+        LD      (HL),0
         POP     HL
         RET
 
         ;; VALIDATION ERROR HANDLER
+        ;;  RETURNS WITH CARRY SET SO UPSTREAM CAN ADAPT FLOW AS REQD
         ;; -------------------------------------------------------------
 SMPRSE: .EQU    $
 
-        JP      SMWARM      ; TODO -- DISPLAY AN ERROR MESSAGE BEFORE LOOPING BACK
+        PUSH    HL          ; PRESERVE ERROR MESSAGE PASSED IN HL
+        CALL    PRINL       ; DISPLAY ERROR MESSAGE AND WAIT FOR KEYPRESS
+        .TEXT   "**ERROR**: ",0
+
+        POP     HL          ; RETRIEVE FOR PRINTING
+        CALL    PRSTRZ
+
+        CALL    PRINL
+        .TEXT   HT,"PRESS ANY KEY TO CONTINUE",0
+
+        CALL    CONCIN      ; READ A KEY
+
+        SCF                 ; SET CARRY FLAG TO INDICATE ERROR
+        RET
 
 
         ;; DISPLAY MAIN MENU
@@ -129,6 +162,7 @@ SMMENU: .EQU    $
 
         RET
 
+
         ;; SYSMON INIT
         ;;  INITIALIZE WORK BUFFERS, COUNTERS
         ;; -------------------------------------------------------------
@@ -138,6 +172,7 @@ SMINIT: .EQU    $
         ;CALL    SMRSTB      ; RESET TOKEN PARSE BUFFER SELECTOR  REDUNDANT
 
         RET
+
 
         ;;CLEAR BUFFERS AND WORK VARS (THAT CAN RESET TO ZERO)
         ;; -------------------------------------------------------------
@@ -149,6 +184,107 @@ _SMCB:  LD      (HL),0      ; WRITE A ZERO TO BYTE
         DJNZ    _SMCB       ; REPEAT UNTIL ALL BYTES ZEROED
         RET
 
+        ;; COMMAND VALIDATE AND DISPATCH
+        ;; -------------------------------------------------------------
+SMVAD:  .EQU    $
+
+        ;; TODO -- YOU ARE HERE
+
+        ;; -- BEGIN DEBUG
+        ;; SIMPLE DISPLAY OF WHAT THE BUFFERS HAVE IN THEM
+        CALL    VTCLS
+        CALL    PRINL
+        .TEXT   "DEBUG - INPUT AND PARSE BUFFERS:",CRLF,0
+
+        CALL    PRINL
+        .TEXT   CRLF,"SMINBF: ",0
+        LD      HL,SMINBF
+        LD      DE,DBGSCRT
+        LD      BC,SMINBS
+        LDIR
+        EX      DE,HL
+        LD      (HL),0
+        CALL    PRSTRZ
+
+        CALL    PRINL
+        .TEXT   CRLF,"SMP0: ",0
+        LD      HL,SMP0
+        LD      DE,DBGSCRT
+        LD      BC,SMPMSZ
+        LDIR
+        EX      DE,HL
+        LD      (HL),0
+        CALL    PRSTRZ
+
+        CALL    PRINL
+        .TEXT   CRLF,"SMP1: ",0
+        LD      HL,SMP1
+        LD      DE,DBGSCRT
+        LD      BC,SMPMSZ
+        LDIR
+        EX      DE,HL
+        LD      (HL),0
+        CALL    PRSTRZ
+
+        CALL    PRINL
+        .TEXT   CRLF,"SMP2: ",0
+        LD      HL,SMP2
+        LD      DE,DBGSCRT
+        LD      BC,SMPMSZ
+        LDIR
+        EX      DE,HL
+        LD      (HL),0
+        CALL    PRSTRZ
+
+        CALL    PRINL
+        .TEXT   CRLF,"SMP3: ",0
+        LD      HL,SMP3
+        LD      DE,DBGSCRT
+        LD      BC,SMPMSZ
+        LDIR
+        EX      DE,HL
+        LD      (HL),0
+        CALL    PRSTRZ
+
+        CALL    PRINL
+        .TEXT   CRLF,"SMP4: ",0
+        LD      HL,SMP4
+        LD      DE,DBGSCRT
+        LD      BC,SMPMSZ
+        LDIR
+        EX      DE,HL
+        LD      (HL),0
+        CALL    PRSTRZ
+
+        CALL    PRINL
+        .TEXT   CRLF,"SMP5: ",0
+        LD      HL,SMP5
+        LD      DE,DBGSCRT
+        LD      BC,SMPMSZ
+        LDIR
+        EX      DE,HL
+        LD      (HL),0
+        CALL    PRSTRZ
+
+        CALL    PRINL
+        .TEXT   CRLF,"SMP6: ",0
+        LD      HL,SMP6
+        LD      DE,DBGSCRT
+        LD      BC,SMPMSZ
+        LDIR
+        EX      DE,HL
+        LD      (HL),0
+        CALL    PRSTRZ
+
+        ;; -- END DEBUG
+        CALL    PRINL
+        .TEXT   "\nPRESS ANY KEY",0
+
+        CALL    CONCIN
+        RET
+
+DBGSCRT:.DS     100         ; DEBUG SCRATCH REMOVE
+
         ;; INPUT & TOKENIZATION BUFFERS
         ;; -------------------------------------------------------------
 SMINBS: .EQU    80          ; USER INPUT BUFFER SIZE
@@ -156,6 +292,7 @@ SMPMSZ: .EQU    10          ; TOKEN BUFFER SIZE (SIZED TO FIT LARGEST FOR SIMPLI
 
 SMCLRS: .EQU    $           ; BUFFER/SCRATCH AREA START
 SMINBF: .DS     SMINBS      ; USER INPUT BUFFER         NB - KEEP THESE CONTIGUOUS FOR SMCLRB
+SMCBCC: .DB     1           ; CURRENT BUFFER ACCUMULATED CHARACTER COUNT (NTE SMPMSZ)
 SMP0:   .DS     SMPMSZ      ; TOKEN 0 (COMMAND)
 SMP1:   .DS     SMPMSZ      ; TOKENS 1 - 6 (POSSIBLE PARAMETERS)
 SMP2:   .DS     SMPMSZ      ;
@@ -167,7 +304,7 @@ SMCLRE: .EQU    $           ; BUFFER/SCRATCH AREA END
         ASSERT  ((SMCLRE-SMCLRS) < 256 )    ; SMCLRB RANGE LIMIT
 
         ;; -- TABLE START --
-SMTKSL: .DW     1           ; BUFFER SELECTOR (ADDRESS OF DESTINATION BUFFER WE'RE PARSING INTO)
+SMTKSL: .DW     0           ; BUFFER SELECTOR (ADDRESS OF DESTINATION BUFFER WE'RE PARSING INTO)
 SMP0ADR:.DW     SMP0        ; POINTER - ADDRESS OF TOKEN PARSING BUFFER 0
 SMP1ADR:.DW     SMP1        ; POINTER - ADDRESS OF TOKEN PARSING BUFFER 1
 SMP2ADR:.DW     SMP2        ; POINTER - ADDRESS OF TOKEN PARSING BUFFER 2
@@ -176,7 +313,6 @@ SMP4ADR:.DW     SMP4        ; POINTER - ADDRESS OF TOKEN PARSING BUFFER 4
 SMP5ADR:.DW     SMP5        ; POINTER - ADDRESS OF TOKEN PARSING BUFFER 5
 SMP6ADR:.DW     SMP6        ; POINTER - ADDRESS OF TOKEN PARSING BUFFER 6
         ;; -- TABLE END --
-
 
         ;; MISC EQUATES
         ;; -------------------------------------------------------------

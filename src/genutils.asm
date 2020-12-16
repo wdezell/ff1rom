@@ -113,9 +113,13 @@ A3CLS:  CALL    SAVE
         ;; SEND VT-100 COMPATIBLE SCREEN CLEAR COMMAND SEQUENCE
         ;;  REGISTERS AFFECTED:  NONE
         ;; -------------------------------------------------------------
-VTCLS:  CALL    SAVE
+VTCLS:  RST     08H         ; DEBUG
+
+        CALL    SAVE
         LD      HL,_VTCL
         CALL    PRSTRZ
+
+        RST     08H         ; DEBUG
         RET
 _VTCL:  .DB 1BH, '[', '2', 'J', 00H
 

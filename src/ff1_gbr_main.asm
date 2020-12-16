@@ -136,16 +136,19 @@ RESET:  .EQU    $
         DI                  ; NO INTERRUPTS UNTIL WE WANT THEM
         LD      SP,STACK    ; INIT STACK POINTER SO WE CAN CALL SUBS
 
-IMPORT "bldmemmap.asm"      ; INLINED
+IMPORT "bldmemmap.asm"      ;
+        RST     08H         ; DEBUG
 
         ;; INITIALIZE SIO CHANNEL A ("CONSOLE") TO 9600 BAUD N-8-1
         CALL    CONINIT
         CALL    VTCLS       ; CLEAR SCREEN IF VT-52 COMPATIBLE TERM
 
+        RST     08H         ; DEBUG
+
         ;; BOOT SPLASH
         CALL    PRINL
         .TEXT   "\n\rFirefly Z80 Rev 1\n\r"
-        .TEXT   "BIOS 0.2\n\r"
+        .TEXT   "BIOS 0.3 beta\n\r"
         .TEXT   "William D. Ezell\n\r"
         .TEXT   "2017-2020\n\r\n\r\n\r\000"
 
