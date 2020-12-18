@@ -140,10 +140,10 @@ IMPORT "inicdcfg.asm"      ;
 
         ;; BOOT SPLASH
         CALL    PRINL
-        .TEXT   "\n\rFirefly Z80 Rev 1\n\r"
-        .TEXT   "BIOS 0.3 beta\n\r"
-        .TEXT   "William D. Ezell\n\r"
-        .TEXT   "2017-2020\n\r\n\r\n\r\000"
+        .TEXT   CR,LF,"Firefly Z80 Rev 1",CR,LF
+        .TEXT   "BIOS 0.3 beta",CR,LF
+        .TEXT   "William D. Ezell",CR,LF
+        .TEXT   "2017-2020",CR,LF,CR,LF,0
 
         ;; THE LOWER THREE (3) BITS OF THE BYTE READABLE FROM THE
         ;;  SYSCONFIG PORT (PORT 0) ALLOW FOR THE SELECTION OF EIGHT (8)

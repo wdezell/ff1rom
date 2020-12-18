@@ -18,9 +18,13 @@ BOOT0:  .EQU    $           ; ENTRY POINT PRESERVING SCREEN
         .TEXT   "SELECT>\000"
 
         ;; GET, VALIDATE, AND DISPATCH USER SELECTION
-_READC: CALL    CONCIN
-        LD      C,A         ; MOVE IT INTO C FOR ECHO
-        CALL    CONOUT      ; ECHO TO CONSOLE OUT
+_READC: .EQU    $
+        LD      HL,_B0SCB   ; SET INPUT BUFFER
+        LD      B,_B0SCBS    ; SIZE IS 4 BYTES
+        CALL    CONLIN      ; READ USER CONSOLE INPUT
+        CP      0           ; DID USER JUST PRESS ENTER?
+        JR      Z,_READC    ; YES - READ AGAIN
+        LD      A,(_B0SCB)  ; NO - GET FIRST CHARACTER IN BUFFER INTO A FOR EVAL
         SUB     30H         ; CONVERT ASCII INPUT IN A TO POSSIBLE NUMERIC
         CP      1           ; VERIFY IS 1 OR GREATER
         JP      C,BOOT0C    ; NO - DO AGAIN
@@ -37,6 +41,9 @@ _READC: CALL    CONCIN
         RST     08H
         HALT
         JR      $
+
+_B0SCBS:.EQU    2           ; INPUT BUFFER SIZE
+_B0SCB: .DS     _B0SCBS     ; INPUT BUFFER FOR USER PROMPT
 
 _MNUTB: .EQU    $           ; MENU JUMP TABLE
 

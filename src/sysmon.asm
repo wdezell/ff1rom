@@ -140,27 +140,27 @@ SMMENU: .EQU    $
         CALL    A3CLS
 
         CALL    PRINL
-        .TEXT   "SHALL WE PLAY A GAME?",CRLF,CRLF
-        .TEXT   HT, " Command                  Format",CRLF
-        .TEXT   HT, " --------------------     ----------------------------------------------",CRLF
+        .TEXT   "SHALL WE PLAY A GAME?",CR,LF,CR,LF
+        .TEXT   HT, " Command                  Format",CR,LF
+        .TEXT   HT, " --------------------     ----------------------------------------------",CR,LF
         ;; TODO       D(isassmble) memory      D   STARTADDR ENDADDR
-        .TEXT   HT, " E(xamine) memory         E   STARTADDR ENDADDR",CRLF
-        .TEXT   HT, " M(odify) memory          M   ADDRESS",CRLF
-        .TEXT   HT, " G(o) execute memory      G   ADDRESS",CRLF
-        .TEXT   HT, " C(opy) memory            C   STARTADDR ENDADDR DESTADDR",CRLF
-        .TEXT   HT, " F(ill) memory            F   STARTADDR ENDADDR CONST",CRLF
-        .TEXT   HT, " T(est) memory            T   STARTADDR ENDADDR",CRLF
-        .TEXT   HT, " H(ex Load) memory        H   SERCHAN BAUD PARITY WORD STOP AUTOEXECUTE",CRLF
-        .TEXT   CRLF
-        .TEXT   HT, " R(ead) mass storage      R   UNIT TRACK SECTOR DESTADDR COUNT",CRLF
-        .TEXT   HT, " W(rite) mass storage     W   UNIT TRACK SECTOR STARTADDR ENDADDR",CRLF
-        .TEXT   HT, " B(oot) mass storage      B",CRLF
-        .TEXT   CRLF
-        .TEXT   HT, " I(nput) port             I   PORTNUM",CRLF
-        .TEXT   HT, " O(utput) port            O   PORTNUM CONST",CRLF
-        .TEXT   CRLF
-        .TEXT   HT, " ? (Help)                 ?",CRLF
-        .TEXT   HT, " X (Exit)                 X",CRLF,CRLFZ
+        .TEXT   HT, " E(xamine) memory         E   STARTADDR ENDADDR",CR,LF
+        .TEXT   HT, " M(odify) memory          M   ADDRESS",CR,LF
+        .TEXT   HT, " G(o) execute memory      G   ADDRESS",CR,LF
+        .TEXT   HT, " C(opy) memory            C   STARTADDR ENDADDR DESTADDR",CR,LF
+        .TEXT   HT, " F(ill) memory            F   STARTADDR ENDADDR CONST",CR,LF
+        .TEXT   HT, " T(est) memory            T   STARTADDR ENDADDR",CR,LF
+        .TEXT   HT, " H(ex Load) memory        H   SERCHAN BAUD PARITY WORD STOP AUTOEXECUTE",CR,LF
+        .TEXT   CR,LF
+        .TEXT   HT, " R(ead) mass storage      R   UNIT TRACK SECTOR DESTADDR COUNT",CR,LF
+        .TEXT   HT, " W(rite) mass storage     W   UNIT TRACK SECTOR STARTADDR ENDADDR",CR,LF
+        .TEXT   HT, " B(oot) mass storage      B",CR,LF
+        .TEXT   CR,LF
+        .TEXT   HT, " I(nput) port             I   PORTNUM",CR,LF
+        .TEXT   HT, " O(utput) port            O   PORTNUM CONST",CR,LF
+        .TEXT   CR,LF
+        .TEXT   HT, " ? (Help)                 ?",CR,LF
+        .TEXT   HT, " X (Exit)                 X",CR,LF,CR,LF,0
 
         RET
 
@@ -196,10 +196,10 @@ SMVAD:  .EQU    $
         ;; SIMPLE DISPLAY OF WHAT THE BUFFERS HAVE IN THEM
         CALL    VTCLS
         CALL    PRINL
-        .TEXT   "DEBUG - INPUT AND PARSE BUFFERS:",CRLF,0
+        .TEXT   "DEBUG - INPUT AND PARSE BUFFERS:",CR,LF,0
 
         CALL    PRINL
-        .TEXT   CRLF,"SMINBF: ",0
+        .TEXT   CR,LF,"SMINBF: ",0
         LD      HL,SMINBF
         LD      DE,DBGSCRT
         LD      BC,SMINBS
@@ -209,7 +209,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CRLF,"SMP0: ",0
+        .TEXT   CR,LF,"SMP0: ",0
         LD      HL,SMP0
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
@@ -219,7 +219,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CRLF,"SMP1: ",0
+        .TEXT   CR,LF,"SMP1: ",0
         LD      HL,SMP1
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
@@ -229,7 +229,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CRLF,"SMP2: ",0
+        .TEXT   CR,LF,"SMP2: ",0
         LD      HL,SMP2
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
@@ -239,7 +239,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CRLF,"SMP3: ",0
+        .TEXT   CR,LF,"SMP3: ",0
         LD      HL,SMP3
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
@@ -249,7 +249,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CRLF,"SMP4: ",0
+        .TEXT   CR,LF,"SMP4: ",0
         LD      HL,SMP4
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
@@ -259,7 +259,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CRLF,"SMP5: ",0
+        .TEXT   CR,LF,"SMP5: ",0
         LD      HL,SMP5
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
@@ -269,7 +269,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CRLF,"SMP6: ",0
+        .TEXT   CR,LF,"SMP6: ",0
         LD      HL,SMP6
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
