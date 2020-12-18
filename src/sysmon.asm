@@ -1,5 +1,6 @@
-        .PHASE HISTOP-SMSIZ ; ASSEMBLE RELATIVE TO EXECUTION LOCATION
 SYSMNS: .EQU    $           ; SYSTEM MONITOR START. TAG FOR RELOC & SIZE CALCS
+        .PHASE HISTOP-SMSIZ ; ASSEMBLE RELATIVE TO EXECUTION LOCATION
+
 ;; -------------------------------------------------------------
 ;; SYSTEM MONITOR
 ;;  MONITOR LOSELY BASED ON BIG BOARD PFM-80 COMMAND SET
@@ -142,6 +143,7 @@ SMMENU: .EQU    $
         .TEXT   "SHALL WE PLAY A GAME?",CRLF,CRLF
         .TEXT   HT, " Command                  Format",CRLF
         .TEXT   HT, " --------------------     ----------------------------------------------",CRLF
+        ;; TODO       D(isassmble) memory      D   STARTADDR ENDADDR
         .TEXT   HT, " E(xamine) memory         E   STARTADDR ENDADDR",CRLF
         .TEXT   HT, " M(odify) memory          M   ADDRESS",CRLF
         .TEXT   HT, " G(o) execute memory      G   ADDRESS",CRLF
@@ -323,7 +325,7 @@ SMERR00:.TEXT   "00 SYNTAX ERROR",0     ; ERROR MESSAGES
 SMERR01:.TEXT   "01 INVALID COMMAND",0  ;
 SMERR02:.TEXT   "02 PARAM WIDTH",0      ;
 
-        ;; -------------------------------------------------------------
+        .DEPHASE
 SYSMNE: .EQU    $               ; SYSTEM MONITOR END. TAG FOR RELOC & SIZE CALCS
 SMSIZ:  .EQU    SYSMNE-SYSMNS   ; SIZE OF UTILITIES CODE
-        .DEPHASE
+        ;; -------------------------------------------------------------

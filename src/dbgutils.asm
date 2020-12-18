@@ -1,5 +1,5 @@
-        .PHASE DBGUTL           ; ASSEMBLE RELATIVE TO EXECUTION LOCATION
 DBGUTS: .EQU    $               ; GENERAL UTILITIES END. TAG FOR RELOC & SIZE CALCS
+        .PHASE DBGUTL           ; ASSEMBLE RELATIVE TO EXECUTION LOCATION
 
 ;; -------------------------------------------------------------
 ;; MISC DEBUG TOOLS
@@ -26,6 +26,6 @@ DRST08: .EQU    $
         RET
 
 ;; -------------------------------------------------------------
+        .DEPHASE
 DBGUTE: .EQU    $               ; GENERAL UTILITIES END. TAG FOR RELOC & SIZE CALCS
 DBSIZ:  .EQU    DBGUTE-DBGUTS   ; SIZE OF UTILITIES CODE
-        .DEPHASE

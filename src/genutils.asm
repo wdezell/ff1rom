@@ -1,5 +1,5 @@
-        .PHASE GUTLS            ; ASSEMBLE RELATIVE TO EXECUTION LOCATION
 GUTLSS: .EQU    $               ; GENERAL UTILITIES END. TAG FOR RELOC & SIZE CALCS
+        .PHASE GUTLS            ; ASSEMBLE RELATIVE TO EXECUTION LOCATION
 
 ;; -------------------------------------------------------------
 ;; CHARACTER AND STRING HANDLING
@@ -119,7 +119,7 @@ VTCLS:  RST     08H         ; DEBUG
         LD      HL,_VTCL
         CALL    PRSTRZ
 
-        RST     08H         ; DEBUG
+        RST     08H         ; DEBUG CHECKPOINT
         RET
 _VTCL:  .DB 1BH, '[', '2', 'J', 00H
 
@@ -130,6 +130,7 @@ _VTCL:  .DB 1BH, '[', '2', 'J', 00H
         ;; TODO:  8-BIT MULTIPLY
 
         ;; TODO:  16-BIT DIVIDE
+
 
 ;; -------------------------------------------------------------
 ;; MISCELLANEOUS UTILITY
@@ -275,7 +276,7 @@ ESC:    .EQU    1BH             ; ASCII ESCAPE CHARACTER
 CRLF:   .TEXT   CR,LF
 CRLFZ:  .TEXT   "\n\r\000"
 
-;; -------------------------------------------------------------
+        .DEPHASE
 GUTLSE: .EQU    $               ; GENERAL UTILITIES END. TAG FOR RELOC & SIZE CALCS
 GUSIZ:  .EQU    GUTLSE-GUTLSS   ; SIZE OF UTILITIES CODE
-        .DEPHASE
+;; -------------------------------------------------------------
