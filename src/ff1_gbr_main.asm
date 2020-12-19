@@ -129,8 +129,7 @@ RESET:  .EQU    $
         DI                  ; NO INTERRUPTS UNTIL WE WANT THEM
         LD      SP,STACK    ; INIT STACK POINTER SO WE CAN CALL SUBS
 
-IMPORT "inicdcfg.asm"      ;
-        RST     08H         ; DEBUG CHECKPOINT
+IMPORT "inicdcfg.asm"
 
         ;; INITIALIZE SIO CHANNEL A ("CONSOLE") TO 9600 BAUD N-8-1
         CALL    CONINIT

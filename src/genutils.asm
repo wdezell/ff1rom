@@ -113,15 +113,11 @@ A3CLS:  CALL    SAVE
         ;; SEND VT-100 COMPATIBLE SCREEN CLEAR COMMAND SEQUENCE
         ;;  REGISTERS AFFECTED:  NONE
         ;; -------------------------------------------------------------
-VTCLS:  RST     08H         ; DEBUG
-
-        CALL    SAVE
+VTCLS:  CALL    SAVE
         LD      HL,_VTCL
         CALL    PRSTRZ
-
-        RST     08H         ; DEBUG CHECKPOINT
         RET
-_VTCL:  .DB 1BH, '[', '2', 'J', 00H
+_VTCL:  .DB 1BH, '[', '2', 'J', 0
 
 ;; -------------------------------------------------------------
 ;; MATH ROUTINES

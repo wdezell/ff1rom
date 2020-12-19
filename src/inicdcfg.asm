@@ -48,17 +48,12 @@ ROM2RAM:    .EQU    $
         LD      (IS_RAM),A
         LD      A,(IS_RAM)  ; VERIFY
         CP      0           ; ROM-DEFAULT VALUE OF 0
-        JR      NZ,_DIDIT   ; DIFFERENT, SO IS REALLY RAM THERE
+        JP      NZ,_WIPE    ; IS RAM - LONG JUMP TO THE LOWMEM VERSION MEM WIPE
 
-        RST     08H         ; DEBUG -- REMOVE
         HALT                ; ROM/RAM SWAP FAILED -- HALT
         JR      $
 
-_DIDIT: .EQU    $
-
         ;; WIPE UPPER MEMORY TO CLEAR TEMP COPY OF ROM, LEAVE NEAT AND TIDY
-        JP      _WIPE       ; JUMP TO THE LOWMEM VERSION MEM WIPE
-
 _WIPE:  LD      A,0         ; PUT A ZERO IN THE FIRST BYTE OF UPPER MEMORY
         LD      (HIMEM),A
         LD      HL,HIMEM    ; AND DUPLICATE IT INTO THE REST
@@ -76,21 +71,15 @@ _NXTLN: .EQU $              ; WHEN ASSEMBLED THIS LABEL MARKED THE NEXT ADDRESS 
         LD      BC,BBSIZ    ; THIS MANY BYTES
         LDIR                ; COPY IT THERE
 
-        RST     08H         ; DEBUG
-
         LD      HL,GUTLSS   ; GENERAL UTILITIES
         LD      DE,GUTLS
         LD      BC,GUSIZ
         LDIR
 
-        RST     08H         ; DEBUG
-
         LD      HL,DBGUTS   ; DEBUG UTILITIES
         LD      DE,DBGUTL
         LD      BC,DBSIZ
         LDIR
-
-        RST     08H         ; DEBUG CHECKPOINT
 
 ;CLUNPKD .EQU    1
 IFDEF CLUNPKD

@@ -9,22 +9,18 @@ BOOT0:  .EQU    $           ; ENTRY POINT PRESERVING SCREEN
 
         ;; PRESENT MENU
         CALL    PRINL
-        .TEXT   "\n\rCONSOLE MENU\n\r\n\r"
-        .TEXT   "1  SYSTEM MONITOR\n\r"
-        .TEXT   "2  BOARD UTILS\n\r"
-        .TEXT   "3  DIAGNOSTICS\n\r"
-        .TEXT   "4  RESERVED\n\r"
-        .TEXT   "5  REBOOT\n\r\n\r"
-        .TEXT   "SELECT>\000"
+        .TEXT   CR,LF,"CONSOLE MENU",CR,LF,CR,LF
+        .TEXT   "1  SYSTEM MONITOR",CR,LF
+        .TEXT   "2  BOARD UTILS",CR,LF
+        .TEXT   "3  DIAGNOSTICS",CR,LF
+        .TEXT   "4  RESERVED",CR,LF
+        .TEXT   "5  REBOOT",CR,LF,CR,LF
+        .TEXT   "SELECT>",0
 
         ;; GET, VALIDATE, AND DISPATCH USER SELECTION
-_READC: .EQU    $
-        LD      HL,_B0SCB   ; SET INPUT BUFFER
-        LD      B,_B0SCBS    ; SIZE IS 4 BYTES
-        CALL    CONLIN      ; READ USER CONSOLE INPUT
-        CP      0           ; DID USER JUST PRESS ENTER?
-        JR      Z,_READC    ; YES - READ AGAIN
-        LD      A,(_B0SCB)  ; NO - GET FIRST CHARACTER IN BUFFER INTO A FOR EVAL
+_READC: CALL    CONCIN
+        LD      C,A         ; MOVE IT INTO C FOR ECHO
+        CALL    CONOUT      ; ECHO TO CONSOLE OUT
         SUB     30H         ; CONVERT ASCII INPUT IN A TO POSSIBLE NUMERIC
         CP      1           ; VERIFY IS 1 OR GREATER
         JP      C,BOOT0C    ; NO - DO AGAIN
@@ -41,9 +37,6 @@ _READC: .EQU    $
         RST     08H
         HALT
         JR      $
-
-_B0SCBS:.EQU    2           ; INPUT BUFFER SIZE
-_B0SCB: .DS     _B0SCBS     ; INPUT BUFFER FOR USER PROMPT
 
 _MNUTB: .EQU    $           ; MENU JUMP TABLE
 
