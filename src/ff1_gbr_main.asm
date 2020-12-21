@@ -135,14 +135,13 @@ IMPORT "inicdcfg.asm"
         CALL    CONINIT
         CALL    VTCLS       ; CLEAR SCREEN IF VT-52 COMPATIBLE TERM
 
-        RST     08H         ; DEBUG CHECKPOINT
-
         ;; BOOT SPLASH
         CALL    PRINL
         .TEXT   CR,LF,"Firefly Z80 Rev 1",CR,LF
         .TEXT   "BIOS 0.3 beta",CR,LF
         .TEXT   "William D. Ezell",CR,LF
         .TEXT   "2017-2020",CR,LF,CR,LF,0
+
 
         ;; THE LOWER THREE (3) BITS OF THE BYTE READABLE FROM THE
         ;;  SYSCONFIG PORT (PORT 0) ALLOW FOR THE SELECTION OF EIGHT (8)

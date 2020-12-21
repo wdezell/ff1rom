@@ -104,20 +104,21 @@ _PRDON: POP     BC          ; RESTORE AFFECTED REGS
         ;; NOTE: LS ADM3A SCREEN CLEAR FUNCTION MAY BE DISABLED
         ;;       BY INTERNAL SWITCH #3 ON SWITCH BLOCK A6
         ;; -------------------------------------------------------------
-A3CLS:  CALL    SAVE
+A3CLS:  PUSH    AF
+        PUSH    BC
         LD      A,01AH      ; SINGLE CTRL-Z (SUB) CHAR IS ENTIRE COMMAND
         LD      C,A
         CALL    CONOUT
+        POP     BC
+        POP     AF
         RET
 
         ;; SEND VT-100 COMPATIBLE SCREEN CLEAR COMMAND SEQUENCE
         ;;  REGISTERS AFFECTED:  NONE
         ;; -------------------------------------------------------------
-VTCLS:  CALL    SAVE
-        LD      HL,_VTCL
-        CALL    PRSTRZ
+VTCLS:  CALL    PRINL
+        .DB 1BH, '[', '2', 'J', 0
         RET
-_VTCL:  .DB 1BH, '[', '2', 'J', 0
 
 ;; -------------------------------------------------------------
 ;; MATH ROUTINES
@@ -269,6 +270,7 @@ HT:     .EQU    09H             ; ASCII HORIZONTAL TAB
 CR:     .EQU    0DH             ; ASCII CARRIAGE RETURN
 LF:     .EQU    0AH             ; ASCII LINE FEED
 ESC:    .EQU    1BH             ; ASCII ESCAPE CHARACTER
+
         .DEPHASE
 GUTLSE: .EQU    $               ; GENERAL UTILITIES END. TAG FOR RELOC & SIZE CALCS
 GUSIZ:  .EQU    GUTLSE-GUTLSS   ; SIZE OF UTILITIES CODE

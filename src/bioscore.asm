@@ -80,11 +80,11 @@ _CLCPY: LD      HL,CONBUF   ; SRC = INTERMEDIATE BUFFER, DEST = ADDR SAVED INTO 
         ;;            WHEN CTS IS ACTIVE
         ;; -------------------------------------------------------------
 CONOTW: PUSH    AF          ; SAVE ACCUMULATOR AND FLAGS
-        LD      A,10H       ; SIO HANDSHAKE RESET DATA
+_CNOW1: LD      A,10H       ; SIO HANDSHAKE RESET DATA
         OUT     (SIOAC),A   ; UPDATE HANDSHAKE REGISTER
         IN      A,(SIOAC)   ; READ STATUS
         BIT     5,A         ; CHECK CTS BIT
-        JR      Z,CONOTW    ; WAIT UNTIL CTS IS ACTIVE
+        JR      Z,_CNOW1    ; WAIT UNTIL CTS IS ACTIVE
         JR      _CNOT1      ; FALL-THRU TO CONOUT BUT DON'T PUSH AF AGAIN
 
         ;; CONSOLE CHARACTER OUTUT NON-BLOCKING
@@ -94,9 +94,9 @@ CONOTW: PUSH    AF          ; SAVE ACCUMULATOR AND FLAGS
 CONOUT: PUSH    AF          ; SAVE ACCUMULATOR AND FLAGS
 _CNOT1: IN      A,(SIOAC)   ; READ STATUS
         BIT     2,A         ; XMIT BUFFER EMPTY?
-        JR      Z,CONOUT    ; NO, WAIT UNTIL EMPTY
+        JR      Z,_CNOT1    ; NO, WAIT UNTIL EMPTY
         LD      A,C         ; CHARACTER TO A
-        OUT     (SIOAD),A   ; OUTPUT DATAL
+        OUT     (SIOAD),A   ; OUTPUT CHARACTER
         POP     AF          ; RESTORE ACCUMULATOR AND FLAGS
         RET
 
