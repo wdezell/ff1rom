@@ -65,8 +65,8 @@ _NXTLN: .EQU $              ; WHEN ASSEMBLED THIS LABEL MARKED THE NEXT ADDRESS 
 
         ;; --------------------- END ROM2RAM ---------------------------
 
-IF 1
-;UNPACK ;; COPY ROM COMPONENTS TO EXECUTION LOCATIONS
+        ;; --------------------- UNPACK --------------------------------
+        ; INSTALL ROM COMPONENTS TO EXECUTION LOCATIONS
         LD      HL,BBIOSS   ; ROM COPY OF BOARD BIOS CODE
         LD      DE,BBIOS    ; GOES HERE IN RAM
         LD      BC,BBSIZ    ; THIS MANY BYTES
@@ -82,33 +82,26 @@ IF 1
         LD      BC,DBSIZ
         LDIR
 
-ENDIF
-
-IF 0
-        ;; AND CLEAR THE LOWMEM LOCATIONS THAT HELD THE CODE
-        ;;  IT CAN'T BE EXECUTED AS IT'S ASSEMBLED FOR A DIFFERENT
-        ;;  ADDRESS RANGE SO WIPE IT
-        ;;
+        ; AND CLEAR THE LOWMEM LOCATIONS THAT HELD THE UNINSTALLED CODE
         LD      A,0         ; PUT A ZERO IN THE FIRST BYTE OF SRC BLOCK
-        LD      (BBIOSS),A
-        LD      HL,BBIOSS   ; COPY SOURCE ADDRESS
-        LD      DE,BBIOSS   ; COPY DEST ADDRESS (OK TO BE SAME)
-        LD      BC,BBSIZ    ; THIS MANY COPIES
-        LDIR                ; DUPLICATE
+        LD      (BBIOSS),A  ;
+        LD      HL,BBIOSS   ; SET SOURCE ADDRESS
+        LD      DE,BBIOSS   ; SET DEST ADDRESS (OK TO BE SAME)
+        LD      BC,BBSIZ    ; SET SIZE OF BLOCK
+        LDIR                ; ZERO FILL
 
-        LD      A,0         ; PUT A ZERO IN THE FIRST BYTE OF SRC BLOCK
-        LD      (GUTLSS),A
-        LD      HL,GUTLSS   ; COPY SOURCE ADDRESS
-        LD      DE,GUTLSS   ; COPY DEST ADDRESS (OK TO BE SAME)
-        LD      BC,GUSIZ    ; THIS MANY COPIES
-        LDIR                ; DUPLICATE
+        LD      A,0         ;
+        LD      (GUTLSS),A  ;
+        LD      HL,GUTLSS   ;
+        LD      DE,GUTLSS   ;
+        LD      BC,GUSIZ    ;
+        LDIR                ;
 
-        LD      A,0         ; PUT A ZERO IN THE FIRST BYTE OF SRC BLOCK
-        LD      (DBGUTS),A
-        LD      HL,DBGUTS   ; COPY SOURCE ADDRESS
-        LD      DE,DBGUTS   ; COPY DEST ADDRESS (OK TO BE SAME)
-        LD      BC,DBSIZ    ; THIS MANY COPIES
-        LDIR                ; DUPLICATE
-ENDIF
+        LD      A,0         ;
+        LD      (DBGUTS),A  ;
+        LD      HL,DBGUTS   ;
+        LD      DE,DBGUTS   ;
+        LD      BC,DBSIZ    ;
+        LDIR                ;
 
         ;; --------------------- END UNPACK ----------------------------
