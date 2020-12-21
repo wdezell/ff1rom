@@ -267,6 +267,7 @@ SETBDR: .EQU    $
 ;; -------------------------------------------------------------
         ;; STATIC DATA DEFINITIONS
 BS:     .EQU    08H             ; ASCII BACKSPACE
+DEL:    .EQU    7FH             ; ASCII DELETE
 HT:     .EQU    09H             ; ASCII HORIZONTAL TAB
 CR:     .EQU    0DH             ; ASCII CARRIAGE RETURN
 LF:     .EQU    0AH             ; ASCII LINE FEED

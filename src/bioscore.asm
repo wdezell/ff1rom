@@ -61,6 +61,9 @@ _CLGTC: CALL    CONCIN      ; READ A CHARACTER INTO A
         CP      BS          ; IS IT A BACKSPACE?
         JR      Z,_CLBS     ; YES
 
+        CP      DEL         ; IS IT A DELETE?
+        JR      Z,_CLBS     ; YES - HANDLE SAME AS BACKSPACE FOR NOW
+
         LD      C,A         ; NO - COPY TO C FOR ECHO
         CALL    CONOUT      ; ECHO
         LD      (HL),A      ; SAVE IT TO BUFFER
@@ -72,7 +75,7 @@ _CLGTC: CALL    CONCIN      ; READ A CHARACTER INTO A
 
         ;; BACKSPACE PRESSED - DISCARD BS AND REMOVE LAST BUFFER ENTRY
 _CLBS:  LD      A,C         ; EDGE CASE - GET ORIG READ COUNT
-        CP      B           ; WAS BS THE FIRST CHAR READ?
+        CP      B           ; IS THIS THE FIRST CHAR READ? E.G., NOTHING TO BACKSPACE OVER?
         JR      Z,_CLGTC    ; YES - GO BACK TO READ LOOP
         DEC     HL          ; NO - MOVE BUFFER POINTER BACK BY ONE (DISCARD LAST CHAR)
         INC     B           ; ADJUST READ COUNTDOWN TO COMPENSATE
