@@ -140,7 +140,9 @@ CLSVT:  CALL    PRINL
         ;; ADAPTED FROM LANCE LEVANTHAL '9H JUMP TABLE (JTAB)'
         ;; -------------------------------------------------------------
         ;;
-TABDSP: ;; EXIT WITH CARRY SET IF ROUTINE NUMBER IS INVALID,
+TABDSP: .EQU    $
+
+        ;; EXIT WITH CARRY SET IF ROUTINE NUMBER IS INVALID,
         ;; THAT IS, IF IT IS TOO LARGE FOR TABLE (> _NMSUB-1)
         CP      B           ; COMPARE INDEX, TABLE SIZE
         CCF                 ; COMPLIMENT CARRY FOR ERROR INDICATOR
@@ -166,6 +168,27 @@ TABDSP: ;; EXIT WITH CARRY SET IF ROUTINE NUMBER IS INVALID,
         EX      (SP),HL     ;RESTORE OLD HL, PUSH ROUTINE ADDRESS
 
         RET                 ; JUMP TO ROUTINE
+
+
+        ;; CONVERT ASCII CHAR IN A IN RANGE 30-39H TO DIGIT
+        ;;
+        ;;  RETURNS:
+        ;;   A = NUMERICAL VALUE OF CHAR IF VALID, ELSE UNCHANGED
+        ;;   CARRY SET FOR VALID CONVERSION
+        ;; -------------------------------------------------------------
+TODIGIT:.EQU    $
+
+        CP      '0'         ; IS A >= '0'?
+        JR      NC,_TDGE0   ; YES - NOW CHECK RANGE TOP
+        CCF                 ; RANGE FAIL, A < '0', CLEAR CARRY FOR ERR IND
+        RET
+_TDGE0: CP      '9'         ; IS A <= '9'
+        JR      C,_TDLE9
+        JR      Z,_TDLE9
+        RET                 ; RANGE FAIL, A > '9', LEAVE CARRY CLEAR FOR ERR IND
+_TDLE9: SUB     30H         ; CONVERT ASCII DIGIT TO NUMERICAL VALUE
+        SCF                 ; ENSURE CARRY IS SET TO INDICATE SUCCESS
+        RET
 
 ;; -------------------------------------------------------------
 ;; SERIAL UTILITY ROUTINES
