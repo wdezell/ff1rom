@@ -55,6 +55,9 @@ CONLIN: .EQU    $           ;; TODO: TEST CONLIN
         LD      HL,CONBUF   ; POINT TO INTERMEDIATE BUFFER
 
 _CLGTC: CALL    CONCIN      ; READ A CHARACTER INTO A
+        LD      C,A         ; COPY TO C FOR ECHO
+        CALL    CONOUT      ; ECHO              TODO - FIGURE OUTHOW TO GET DESTRUCTIVE RUB FOR BS/DEL
+
         CP      CR          ; IS CHARACTER A CARRIAGE RETURN?
         JR      Z,_CLCR     ; YES
 
@@ -64,8 +67,6 @@ _CLGTC: CALL    CONCIN      ; READ A CHARACTER INTO A
         CP      DEL         ; IS IT A DELETE?
         JR      Z,_CLBS     ; YES - HANDLE SAME AS BACKSPACE FOR NOW
 
-        LD      C,A         ; NO - COPY TO C FOR ECHO
-        CALL    CONOUT      ; ECHO
         LD      (HL),A      ; SAVE IT TO BUFFER
         INC     HL          ; POINT HL TO NEXT BUFFER BYTE
         DJNZ    _CLGTC      ; DECREMENT COUNT REMAINING AND READ AGAIN
