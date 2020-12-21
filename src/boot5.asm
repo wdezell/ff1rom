@@ -4,7 +4,7 @@
 
 BOOT5:  .EQU    $
 
-        CALL    VTCLS
+        CALL    CLSVT
 
         ;; DEBUG / REMOVE
         RST     08H

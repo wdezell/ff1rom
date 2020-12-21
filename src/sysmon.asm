@@ -139,8 +139,8 @@ SMPRSE: .EQU    $
         ;; -------------------------------------------------------------
 SMMENU: .EQU    $
 
-        CALL    VTCLS       ; CLEAR SCREEN (SEE IF CAN DO BOTH VT-100 AND LEAR-SIEGLER ADM3A)
-        CALL    A3CLS
+        CALL    CLSVT       ; CLEAR SCREEN (SEE IF CAN DO BOTH VT-100 AND LEAR-SIEGLER ADM3A)
+        CALL    CLSA3
 
         CALL    PRINL
         .TEXT   "SHALL WE PLAY A GAME?",CR,LF,CR,LF
@@ -197,7 +197,7 @@ SMVAD:  .EQU    $
 
         ;; -- BEGIN DEBUG
         ;; SIMPLE DISPLAY OF WHAT THE BUFFERS HAVE IN THEM
-        CALL    VTCLS
+        CALL    CLSVT
         CALL    PRINL
         .TEXT   "DEBUG - INPUT AND PARSE BUFFERS:",CR,LF,NUL
 

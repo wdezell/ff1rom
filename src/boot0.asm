@@ -3,7 +3,7 @@
 ;;  DIAGNOSTICS, BOARD UTILS, MONITOR, LAUNCH OTHER MODES
 ;; -------------------------------------------------------------
 BOOT0C: .EQU    $           ; ENTRY POINT W/ SCREEN CLEAR
-        CALL    VTCLS
+        CALL    CLSVT
 
 BOOT0:  .EQU    $           ; ENTRY POINT PRESERVING SCREEN
 

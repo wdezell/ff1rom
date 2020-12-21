@@ -104,20 +104,15 @@ _PRDON: POP     BC          ; RESTORE AFFECTED REGS
         ;; NOTE: LS ADM3A SCREEN CLEAR FUNCTION MAY BE DISABLED
         ;;       BY INTERNAL SWITCH #3 ON SWITCH BLOCK A6
         ;; -------------------------------------------------------------
-A3CLS:  PUSH    AF
-        PUSH    BC
-        LD      A,01AH      ; SINGLE CTRL-Z (SUB) CHAR IS ENTIRE COMMAND
-        LD      C,A
-        CALL    CONOUT
-        POP     BC
-        POP     AF
+CLSA3:  CALL    PRINL
+        .DB     01AH, NULL  ; SINGLE CTRL-Z CHAR
         RET
 
         ;; SEND VT-100 COMPATIBLE SCREEN CLEAR COMMAND SEQUENCE
         ;;  REGISTERS AFFECTED:  NONE
         ;; -------------------------------------------------------------
-VTCLS:  CALL    PRINL
-        .DB 1BH, '[', '2', 'J', NULL
+CLSVT:  CALL    PRINL
+        .DB     1BH, '[', '2', 'J', NULL
         RET
 
 ;; -------------------------------------------------------------
