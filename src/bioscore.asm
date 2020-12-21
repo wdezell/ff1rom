@@ -32,13 +32,13 @@ ENDIF
         ;;  B  = SIZE OF USER RETURN BUFFER OR MAX CHARS TO READ, MUST BE LESS THAN < 256
         ;;
         ;; RETURNS
-        ;;  A = NUMBER OF CHARS READ
+        ;;  A = NUMBER OF CHARS PLACED INTO PROVIDED USER BUFFER
         ;;
         ;; NOTE: INPUT IS READ TO AN INTERMEDIATE BUFFER (CONBUF) AND THEN COPIED TO THE
         ;;       USER-PROVIDED BUFFER UPON INPUT COMPLETION.  THIS MINOR INEFFICIENCY IS TO
         ;;       SIMPLIFY LATER CONVERSION FROM POLLED TO INTERRUPT-DRIVEN (IM2) SERIAL I/O
         ;; ---------------------------------------------------------------------------------
-CONLIN: .EQU    $           ;; TODO: TEST CONLIN
+CONLIN: .EQU    $
 
         ;; VERIFY NON-ZERO BUFFER SIZE
         LD      A,B
@@ -52,7 +52,7 @@ CONLIN: .EQU    $           ;; TODO: TEST CONLIN
         ;; SETUP
         EX      DE,HL       ; STORE RETURN BUFFER ADDRESS IN DE
         LD      C,B         ; PRESERVE ORIGINAL READ COUNT
-        LD      HL,CONBUF   ; POINT TO INTERMEDIATE BUFFER
+        LD      HL,CONBUF   ; POINT TO INTERMEDIATE SYSTEM BUFFER
 
 _CLGTC: CALL    CONCIN      ; READ A CHARACTER INTO A
         LD      C,A         ; COPY TO C FOR ECHO
@@ -63,9 +63,6 @@ _CLGTC: CALL    CONCIN      ; READ A CHARACTER INTO A
 
         CP      BS          ; IS IT A BACKSPACE?
         JR      Z,_CLBS     ; YES
-
-        CP      DEL         ; IS IT A DELETE?
-        JR      Z,_CLBS     ; YES - HANDLE SAME AS BACKSPACE FOR NOW
 
         LD      (HL),A      ; SAVE IT TO BUFFER
         INC     HL          ; POINT HL TO NEXT BUFFER BYTE
