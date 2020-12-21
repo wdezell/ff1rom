@@ -15,12 +15,15 @@ BOOT0:  .EQU    $           ; ENTRY POINT PRESERVING SCREEN
         .TEXT   "3  DIAGNOSTICS",CR,LF
         .TEXT   "4  RESERVED",CR,LF
         .TEXT   "5  REBOOT",CR,LF,CR,LF
-        .TEXT   "SELECT>",0
+        .TEXT   "SELECT>",NULL
 
         ;; GET, VALIDATE, AND DISPATCH USER SELECTION
-_READC: CALL    CONCIN
-        LD      C,A         ; MOVE IT INTO C FOR ECHO
-        CALL    CONOUT      ; ECHO TO CONSOLE OUT
+_READL: LD      HL,_B0INB   ; SET HL TO ADDRESS OF INPUT BUFFER
+        LD      B,4         ; SET SIZE OF BUFFER
+        CALL    CONLIN      ; CALL CONSOLE LINE READ
+        CP      0           ; A = CHARS READ. ZERO?
+        JR      Z,_READL    ; READ AGAIN (USER PROBABLY JUST PRESSED ENTER)
+        LD      A,(_B0INB)  ; GET CHAR INTO A FOR INSPECTION (ONLY SINGLE DIGIT VALID HERE)
         SUB     30H         ; CONVERT ASCII INPUT IN A TO POSSIBLE NUMERIC
         CP      1           ; VERIFY IS 1 OR GREATER
         JP      C,BOOT0C    ; NO - DO AGAIN
@@ -28,15 +31,18 @@ _READC: CALL    CONCIN
         JP      NZ,BOOT0C   ; NO - DO AGAIN
         SUB     1           ; YES - IN RANGE, NOW CONVERT TO ZERO-BASED
 
-        ;; USER PRESSED KEY 1-5                 TO-DO: MOD TO USE A "LINE IN" AND REQUIRE ENTER TO SUBMIT
+        ;; USER PRESSED KEY 1-5
         LD      HL,_MNUTB   ; POINT TO ACTION DISPATCH TABLE
         LD      B,5         ; SET ENTRIES COUNT
+        RST     08H         ; DEBUG DISPLAY
         CALL    TABDSP      ; JUMP TO ENTRY INDEXED BY A
 
         ;; SHOULD NEVER REACH HERE AS INPUT IS RANGE VALIDATED
         RST     08H
         HALT
         JR      $
+
+_B0INB: .DS     4           ; USER INPUT BUFFER
 
 _MNUTB: .EQU    $           ; MENU JUMP TABLE
 

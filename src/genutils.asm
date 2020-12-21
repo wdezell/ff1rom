@@ -117,7 +117,7 @@ A3CLS:  PUSH    AF
         ;;  REGISTERS AFFECTED:  NONE
         ;; -------------------------------------------------------------
 VTCLS:  CALL    PRINL
-        .DB 1BH, '[', '2', 'J', 0
+        .DB 1BH, '[', '2', 'J', NULL
         RET
 
 ;; -------------------------------------------------------------
@@ -266,6 +266,7 @@ SETBDR: .EQU    $
 ;; USEFUL CONSTANTS
 ;; -------------------------------------------------------------
         ;; STATIC DATA DEFINITIONS
+NULL:   .EQU    00H             ; ASCII NULL
 BS:     .EQU    08H             ; ASCII BACKSPACE
 DEL:    .EQU    7FH             ; ASCII DELETE
 HT:     .EQU    09H             ; ASCII HORIZONTAL TAB

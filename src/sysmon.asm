@@ -11,7 +11,10 @@ SYSMNS: .EQU    $           ; SYSTEM MONITOR START. TAG FOR RELOC & SIZE CALCS
 ;;  FOR USER WORK
 ;; -------------------------------------------------------------
 
-SYSMON:  .EQU    $
+SYSMON:  .EQU   $
+
+        RST     08H
+        HALT
 
 SMCOLD: .EQU    $           ; SYSMON COLD START
         CALL   SMINIT       ; INTIALIZE WORK BUFFERS, COUNTERS
@@ -160,7 +163,7 @@ SMMENU: .EQU    $
         .TEXT   HT, " O(utput) port            O   PORTNUM CONST",CR,LF
         .TEXT   CR,LF
         .TEXT   HT, " ? (Help)                 ?",CR,LF
-        .TEXT   HT, " X (Exit)                 X",CR,LF,CR,LF,0
+        .TEXT   HT, " X (Exit)                 X",CR,LF,CR,LF,NULL
 
         RET
 
@@ -196,10 +199,10 @@ SMVAD:  .EQU    $
         ;; SIMPLE DISPLAY OF WHAT THE BUFFERS HAVE IN THEM
         CALL    VTCLS
         CALL    PRINL
-        .TEXT   "DEBUG - INPUT AND PARSE BUFFERS:",CR,LF,0
+        .TEXT   "DEBUG - INPUT AND PARSE BUFFERS:",CR,LF,NUL
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMINBF: ",0
+        .TEXT   CR,LF,"SMINBF: ",NULL
         LD      HL,SMINBF
         LD      DE,DBGSCRT
         LD      BC,SMINBS
@@ -209,7 +212,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP0: ",0
+        .TEXT   CR,LF,"SMP0: ",NULL
         LD      HL,SMP0
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
@@ -219,7 +222,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP1: ",0
+        .TEXT   CR,LF,"SMP1: ",NULL
         LD      HL,SMP1
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
@@ -229,7 +232,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP2: ",0
+        .TEXT   CR,LF,"SMP2: ",NULL
         LD      HL,SMP2
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
@@ -239,7 +242,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP3: ",0
+        .TEXT   CR,LF,"SMP3: ",NULL
         LD      HL,SMP3
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
@@ -249,7 +252,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP4: ",0
+        .TEXT   CR,LF,"SMP4: ",NULL
         LD      HL,SMP4
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
@@ -259,7 +262,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP5: ",0
+        .TEXT   CR,LF,"SMP5: ",NULL
         LD      HL,SMP5
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
@@ -269,7 +272,7 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP6: ",0
+        .TEXT   CR,LF,"SMP6: ",NULL
         LD      HL,SMP6
         LD      DE,DBGSCRT
         LD      BC,SMPMSZ
@@ -280,7 +283,7 @@ SMVAD:  .EQU    $
 
         ;; -- END DEBUG
         CALL    PRINL
-        .TEXT   "\nPRESS ANY KEY",0
+        .TEXT   "\nPRESS ANY KEY",NULL
 
         CALL    CONCIN
         RET
@@ -318,12 +321,12 @@ SMP6ADR:.DW     SMP6        ; POINTER - ADDRESS OF TOKEN PARSING BUFFER 6
 
         ;; MISC EQUATES
         ;; -------------------------------------------------------------
-SMPROMT:.TEXT   HT,"MON>",0             ; USER PROMPT
+SMPROMT:.TEXT   HT,"MON>",NULL          ; USER PROMPT
 SMVALCM:.TEXT   "EMGCFTHRWBIO?X"        ; VALID MAIN MENU COMMANDS
 SMVALCT:.EQU    $-SMVALCM               ; COUNT OF COMMANDS
-SMERR00:.TEXT   "00 SYNTAX ERROR",0     ; ERROR MESSAGES
-SMERR01:.TEXT   "01 INVALID COMMAND",0  ;
-SMERR02:.TEXT   "02 PARAM WIDTH",0      ;
+SMERR00:.TEXT   "00 SYNTAX ERROR",NULL  ; ERROR MESSAGES
+SMERR01:.TEXT   "01 INVALID COMMAND",NULL;
+SMERR02:.TEXT   "02 PARAM WIDTH",NULL   ;
 
         .DEPHASE
 SYSMNE: .EQU    $               ; SYSTEM MONITOR END. TAG FOR RELOC & SIZE CALCS

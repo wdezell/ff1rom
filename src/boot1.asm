@@ -13,6 +13,7 @@ SYSMNI:  .EQU    $          ; "SYSMON VIA BOOT MODE 1 INSTALLER"
         LD      BC,SMSIZ
         LDIR
 
+IF 1
         ;; CLEAR LOW MEMORY FROM PAGE 1 UP TO LAST BYTE BELOW MONITOR
         LD      A,0
         LD      (RESET),A
@@ -20,6 +21,7 @@ SYSMNI:  .EQU    $          ; "SYSMON VIA BOOT MODE 1 INSTALLER"
         LD      DE,RESET
         LD      BC,HISTOP-SMSIZ-RESET-1
         LDIR
+ENDIF
 
         ;; START MONITOR
         JP      SYSMON      ; ONE-WAY TRIP

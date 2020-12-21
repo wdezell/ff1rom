@@ -140,7 +140,7 @@ IMPORT "inicdcfg.asm"
         .TEXT   CR,LF,"Firefly Z80 Rev 1",CR,LF
         .TEXT   "BIOS 0.3 beta",CR,LF
         .TEXT   "William D. Ezell",CR,LF
-        .TEXT   "2017-2020",CR,LF,CR,LF,0
+        .TEXT   "2017-2020",CR,LF,CR,LF,NULL
 
 
         ;; THE LOWER THREE (3) BITS OF THE BYTE READABLE FROM THE
