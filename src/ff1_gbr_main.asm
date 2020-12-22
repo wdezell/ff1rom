@@ -73,10 +73,10 @@
         .ORG    03H
 
 IS_RAM: .DB     0       ; USED BY ROM/RAM SWAP TO DETERMINE IF RAM ALREADY ACTIVE (0 = ROM)
-SCRAT1: .DB     0       ; GENERAL USE SCRATCH BYTE
-SCRAT2: .DB     0       ; GENERAL USE SCRATCH BYTE
-SCRAT3: .DB     0       ; GENERAL USE SCRATCH BYTE
-SCRAT4: .DB     0       ; GENERAL USE SCRATCH BYTE
+RESRV1: .DB     0       ; USED BY BIOS DEBUG AIDS
+RESRV2: .DB     0       ;
+RESRV3: .DB     0       ;
+RESRV4: .DB     0       ;
 
 ;; -------------------------------------------------------------
 ;; ZERO PAGE JUMP VECTORS & INTERRUPT HANDLERS
@@ -86,10 +86,10 @@ SCRAT4: .DB     0       ; GENERAL USE SCRATCH BYTE
         ;;  SUBROUTINE CALLS, SO WE'LL USE RET RATHER THAN RETI
         
         .ORG    08H     ; RST 08H
-        JP      DRST08  ; DEBUG -- OUTPUT ADDRESS,ACCUMULATOR TO DS4L/R AND DS2
+        JP      DEBG08  ; DEBUG -- OUTPUT ADDRESS,ACCUMULATOR TO DS4L/R AND DS2
     
         .ORG    10H     ; RST 10H
-        RET             ; UNUSED
+        JP      DEBG10  ; DEBUG -- MORE COMPLETE DEBUG OUTPUT TO CONSOLE
     
         .ORG    18H     ; RST 18H
         RET             ; UNUSED
