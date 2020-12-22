@@ -136,7 +136,7 @@ DEBG10: .EQU    $
 
         ; AF - FLAGS
         CALL    PRINL
-        .TEXT   "S-",NULL
+        .TEXT   "  S-",NULL
         LD      HL,RESRV1
         BIT     7,(HL)
         CALL    Z,_D10P0
