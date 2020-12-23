@@ -26,10 +26,10 @@ DEBG08: .EQU    $
         RET
 
 
-        ;; OUTPUT REGISTERS AND FLAGS TO TO CONSOLE
+        ;; OUTPUT REGISTERS AND FLAGS TO TO CONSOLE AND WAIT FOR A KEYPRESS
         ;;
         ;; USAGE:   RST 10H
-        ;; AFFECTS: USES SCRATCH LOCATIONS SCRAT1-SCRAT4
+        ;; AFFECTS: USES SCRATCH LOCATIONS RESERV1-RESERV4
         ;;          REGISTERS AND FLAGS ARE PRESERVED
         ;; ---------------------------------------------------------
 DEBG10: .EQU    $
@@ -139,40 +139,44 @@ DEBG10: .EQU    $
         .TEXT   "  S-",NULL
         LD      HL,RESRV1
         BIT     7,(HL)
-        CALL    Z,_D10P0
-        CALL    NZ,_D10P1
+        CALL    NZ,_D10P0
+        CALL    Z,_D10P1
         CALL    PRINL
         .TEXT   "  Z-",NULL
         BIT     6,(HL)
-        CALL    Z,_D10P0
-        CALL    NZ,_D10P1
+        CALL    NZ,_D10P0
+        CALL    Z,_D10P1
         CALL    PRINL
         .TEXT   "  H-",NULL
         BIT     4,(HL)
-        CALL    Z,_D10P0
-        CALL    NZ,_D10P1
+        CALL    NZ,_D10P0
+        CALL    Z,_D10P1
         CALL    PRINL
         .TEXT   "  P/V-",NULL
         BIT     2,(HL)
-        CALL    Z,_D10P0
-        CALL    NZ,_D10P1
+        CALL    NZ,_D10P0
+        CALL    Z,_D10P1
         CALL    PRINL
         .TEXT   "  N-",NULL
         BIT     1,(HL)
-        CALL    Z,_D10P0
-        CALL    NZ,_D10P1
+        CALL    NZ,_D10P0
+        CALL    Z,_D10P1
         CALL    PRINL
         .TEXT   "  C-",NULL
         BIT     0,(HL)
-        CALL    Z,_D10P0
-        CALL    NZ,_D10P1
+        CALL    NZ,_D10P0
+        CALL    Z,_D10P1
         CALL    PRINL
         .TEXT   CR,LF,NULL
+
+        ; WAIT FOR A KEYPRESS
+        CALL    PRINL
+        .TEXT   "DEBUG: PRESS ANY KEY...",NULL
+        CALL    CONCIN
 
         ; RESTORE NORMAL REGISTERS AND FLAGS
         EX      AF,AF'
         EXX
-
         RET
 
         ;DEBG10 BIT HELPER
