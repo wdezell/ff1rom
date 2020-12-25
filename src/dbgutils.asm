@@ -1,11 +1,12 @@
-DBGUTS: .EQU    $               ; GENERAL UTILITIES END. TAG FOR RELOC & SIZE CALCS
+DBGUTS: .EQU    $               ; DEBUG UTILITIES START. TAG FOR RELOC & SIZE CALCS
         .PHASE DBGUTL           ; ASSEMBLE RELATIVE TO EXECUTION LOCATION
 
 ;; -------------------------------------------------------------
 ;; MISC DEBUG TOOLS
 ;; -------------------------------------------------------------
 
-        ;; OUTPUT ACCUMULATOR AND ADDRESS *FOLLOWING* CALLING RST 08H
+        ;; OUTPUT ACCUMULATOR AND RETURN ADDRESS
+         ;; ( ADDRESS *FOLLOWING* RST 08H CALL)
         ;;  DS4L/R HEX DISPLAYS = ADDRESS
         ;;  DS2                 = ACCUMULATOR
         ;;
@@ -193,5 +194,5 @@ _D10P1:.EQU $
 
 ;; -------------------------------------------------------------
         .DEPHASE
-DBGUTE: .EQU    $               ; GENERAL UTILITIES END. TAG FOR RELOC & SIZE CALCS
-DBSIZ:  .EQU    DBGUTE-DBGUTS   ; SIZE OF UTILITIES CODE
+DBGUTE: .EQU    $               ; DEBUG UTILITIES END. TAG FOR RELOC & SIZE CALCS
+DBSIZ:  .EQU    DBGUTE-DBGUTS   ; SIZE OF DEBUG UTILITIES CODE
