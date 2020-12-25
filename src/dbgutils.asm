@@ -26,11 +26,13 @@ DEBG08: .EQU    $
         RET
 
 
-        ;; OUTPUT REGISTERS AND FLAGS TO TO CONSOLE AND WAIT FOR A KEYPRESS
+        ;; OUTPUTS CONTENTS OF ALL PRIMARY PROCESSOR REGISTERS AND
+        ;;  STATE OF PRIMARY FLAG SET AT TIME OF CALL TO CONSOLE
+        ;;  AND THEN WAITS FOR A SINGLE KEY PRESS BEFORE RETURN
         ;;
         ;; USAGE:   RST 10H
         ;; AFFECTS: USES SCRATCH LOCATIONS RESERV1-RESERV4
-        ;;          REGISTERS AND FLAGS ARE PRESERVED
+        ;;          PRIMARY REGISTERS AND FLAGS ARE PRESERVED
         ;; ---------------------------------------------------------
 DEBG10: .EQU    $
 
@@ -39,7 +41,7 @@ DEBG10: .EQU    $
         EX      (SP),HL
 
         ; PUSH COPIES OF EVERYTHING TO STACK FOR INSPECTION
-        PUSH    AF          ; ORDER HERE MUST CORRESPOND TO DISPLAY POPS
+        PUSH    AF          ; ORDER HERE INVERSE OF DISPLAY POPS
         PUSH    IY
         PUSH    IX
         PUSH    HL
@@ -54,7 +56,7 @@ DEBG10: .EQU    $
         .TEXT   CR,LF,NULL
 
         ;; LINE 1
-        ; BC
+        ; DISPLAY BC
         CALL    PRINL
         .TEXT   "BC [",NULL
         POP     HL          ; COPY OF ORIGINAL REG PAIR BC
@@ -66,7 +68,7 @@ DEBG10: .EQU    $
         CALL    PRINL
         .TEXT   "]  ",NULL
 
-        ; DE
+        ; DISPLAY DE
         CALL    PRINL
         .TEXT   "DE [",NULL
         POP     HL
@@ -78,7 +80,7 @@ DEBG10: .EQU    $
         CALL    PRINL
         .TEXT   "]  ",NULL
 
-        ; HL
+        ; DISPLAY HL
         CALL    PRINL
         .TEXT   "HL [",NULL
         POP     HL
@@ -90,7 +92,7 @@ DEBG10: .EQU    $
         CALL    PRINL
         .TEXT   "]  ",NULL
 
-        ; IX
+        ; DISPLAY IX
         CALL    PRINL
         .TEXT   "IX [",NULL
         POP     HL
@@ -102,7 +104,7 @@ DEBG10: .EQU    $
         CALL    PRINL
         .TEXT   "]  ",NULL
 
-        ; IY
+        ; DISPLAY IY
         CALL    PRINL
         .TEXT   "IY [",NULL
         POP     HL
@@ -115,7 +117,7 @@ DEBG10: .EQU    $
         .TEXT   "]",CR,LF,NULL
 
         ;; LINE 2
-        ; PROGRAM COUNTER (RETURN ADDRESS)
+        ; DISPLAY PROGRAM COUNTER (RETURN ADDRESS)
         CALL    PRINL
         .TEXT   "PC [",NULL
         LD      HL,RESRV4
@@ -125,16 +127,16 @@ DEBG10: .EQU    $
         CALL    PRINL
         .TEXT   "]  ",NULL
 
-        ; AF - A
+        ; DISPLAY AF - A
         CALL    PRINL
         .TEXT   " A [",NULL
-        POP     HL          ; COPY OF ORIGINAL ACCUMULATOR AND FLAGS
+        POP     HL          ; GET COPY OF ORIGINAL ACCUMULATOR AND FLAGS
         LD      (RESRV2),HL
         CALL    PRTMEM
         CALL    PRINL
         .TEXT   "]  ",NULL
 
-        ; AF - FLAGS
+        ; DISPLAY AF - FLAGS
         CALL    PRINL
         .TEXT   "  S-",NULL
         LD      HL,RESRV1
@@ -170,8 +172,6 @@ DEBG10: .EQU    $
         .TEXT   CR,LF,NULL
 
         ; WAIT FOR A KEYPRESS
-        CALL    PRINL
-        .TEXT   "DEBUG: PRESS ANY KEY...",NULL
         CALL    CONCIN
 
         ; RESTORE NORMAL REGISTERS AND FLAGS
