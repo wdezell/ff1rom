@@ -149,6 +149,32 @@ CLSVT:  CALL    PRINL
 ;; MISCELLANEOUS UTILITY
 ;; -------------------------------------------------------------
 
+        ;; DELAY .25 SEC TIMES X
+        ;;  PROVIVIDES A DELAY OF APPROXIMATELY 250,000 US
+        ;;  FOR EVERY COUNT SPECIFIED BY B
+        ;;
+        ;;  TIMING IS BASED ON EXECUTION TIMES ON A 6.144 MHZ SYSTEM
+        ;;  CLOCK.  DOES NOT ACCOUNT FOR CALL & RETURN TIMES NOR
+        ;;  ~4 USEC OVERALL SETUP AND TEARDOWN TIMES.
+        ;;
+        ;; REGISTERS AFFECTED:
+        ;;  B
+        ;; -------------------------------------------------------------
+        ;;
+DLY25X:	EX	    AF,AF'          ; 0.65
+	    LD	    DE,34176D		; 1.63  US @ 6.144 MHZ
+_INNR1:	DEC	    DE			    ; 0.975  ---
+	    LD	    A,D			    ; 0.65   ^
+	    OR	    E 			    ; 0.65   5.205 US
+	    JP	    NZ,_INNR1		; 1.63
+	    NOP				        ; 0.65   v
+	    NOP 				    ; 0.65   ---
+	    DJNZ	DLY25X		    ; 2.11 B != 0, 1.3 US B = 0
+	    EX	    AF,AF'          ; 0.65
+
+	    RET
+
+
         ;; -------------------------------------------------------------
         ;; TABLE DISPATCH -- ROUTE EXECUTION TO TABLE SUBROUTINE AT INDEX
         ;;
