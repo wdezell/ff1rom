@@ -10,21 +10,14 @@ IMPORT "sysmon.asm"
 
 BOOT0: .EQU    $
 
-        CALL    CLSVT
         CALL    PRINL
-        .TEXT   "SYSTEM MONITOR LOADER",CR,LF,NULL
-
-        ; BRIEF DELAY FOR MESSAGE VISBILITY
-        LD      B,4         ; 1 SECOND
-        CALL    DLY25B
+        .TEXT   "LOADING SYSTEM MONITOR...",CR,LF,NULL
 
         ;; INSTALL MONITOR FROM ROM-ASSEMBLY STORAGE TO EXECUTION LOCATION
         LD      HL,SYSMNS
         LD      DE,HISTOP-SMSIZ
         LD      BC,SMSIZ
         LDIR
-
-        RST     10H         ; DEBUG CHECKPOINT -- REMOVE
 
         ;; START MONITOR
         JP      SYSMON      ; ONE-WAY TRIP
