@@ -192,6 +192,15 @@ _D10P1:.EQU $
         CALL CONOUT
         RET
 
+        ;; GENERALIZED ADVISORY AND HALT FOR PLACES WE SHOULD
+        ;;  NEVER REACH.  IF THIS DISPLAYS THE FAT LADY HAS SUNG.
+        ;; ---------------------------------------------------------
+ABEND:  RST     10H
+        CALL    PRINL
+        .TEXT   "ABEND",NULL
+        HALT
+        JR      $
+
 ;; -------------------------------------------------------------
         .DEPHASE
 DBGUTE: .EQU    $               ; DEBUG UTILITIES END. TAG FOR RELOC & SIZE CALCS
