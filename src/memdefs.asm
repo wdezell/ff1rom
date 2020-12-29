@@ -8,7 +8,7 @@
 ;; -----------------------------------------------------
 
         ;; HIGH MEMORY FREE-SPACE END (ASSIGNED USE BEYOND HERE)
-HISTOP: .EQU    DBGUTL-1
+HISTOP: .EQU    DBGUTL-1            ; TODO -- VERIFY COMPONENT SIZES & START/ENDS FOR FIT, NO WASTED BYTES
 
         ;; DEBUG UTILITIES
 DBGUTL: .EQU    GUTLS-DBSIZ-1

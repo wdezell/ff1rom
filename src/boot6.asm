@@ -1,20 +1,16 @@
 ;; -------------------------------------------------------------
-;; BOOT MODE 6
+;; BOOT MODE 6 - UNASSIGNED
 ;; -------------------------------------------------------------
 
 BOOT6:  .EQU    $
 
         CALL    CLSVT
+        RST     10H
 
-        ;; DEBUG / REMOVE
-        RST     08H
         CALL    PRINL
-        .TEXT   "BOOT 6",CR,LF,CR,LF,"PRESS ANY KEY",NULL
+        .TEXT   "BOOT 6 UNASSIGNED",NULL
 
-        CALL    CONCIN
-
-        ;; PLACEHOLDER -- ADAPT AS PER FINAL ROUTINE REQUIREMENTS
-        JP      RESET         ; REBOOT
+        HALT
+        JR      $
 
         ;; -------------------------------------------------------------
-        

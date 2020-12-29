@@ -1,26 +1,16 @@
 ;; -------------------------------------------------------------
-;; BOOT MODE 1 - SYSTEM MONITOR LOADER
-;;
-;; TODO- VERIFY FF REV 1 COLD RESET CIRCUIT FUNCTION
-;;       WE WILL NEED ROM BACK IN MEMORY FOR REBOOT
+;; BOOT MODE 1 - UNASSIGNED
 ;; -------------------------------------------------------------
 
-        ;; INC MONITOR SOURCE FOR ASSEMBLY
-IMPORT "sysmon.asm"
-
-SYSMLD: .EQU    $
+BOOT1:  .EQU    $
 
         CALL    CLSVT
+        RST     10H
+
         CALL    PRINL
-        .TEXT   "SYSTEM MONITOR LOADER",CR,LF,NULL
+        .TEXT   "BOOT 1 UNASSIGNED",NULL
 
-        ;; INSTALL MONITOR FROM ROM-ASSEMBLY STORAGE TO EXECUTION LOCATION
-        LD      HL,SYSMNS
-        LD      DE,HISTOP-SMSIZ
-        LD      BC,SMSIZ
-        LDIR
+        HALT
+        JR      $
 
-        RST     10H         ; DEBUG CHECKPOINT -- REMOVE
-
-        ;; START MONITOR
-        JP      SYSMON      ; ONE-WAY TRIP
+        ;; -------------------------------------------------------------

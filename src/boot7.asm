@@ -1,20 +1,16 @@
 ;; -------------------------------------------------------------
-;; BOOT MODE 7
+;; BOOT MODE 7 - UNASSIGNED
 ;; -------------------------------------------------------------
 
 BOOT7:  .EQU    $
 
         CALL    CLSVT
+        RST     10H
 
-        ;; DEBUG / REMOVE
-        RST     08H
         CALL    PRINL
-        .TEXT   "BOOT 7",CR,LF,CR,LF,"PRESS ANY KEY",NULL
+        .TEXT   "BOOT 7 UNASSIGNED",NULL
 
-        CALL    CONCIN
-
-        ;; PLACEHOLDER -- ADAPT AS PER FINAL ROUTINE REQUIREMENTS
-        RST     00H         ; REBOOT
+        HALT
+        JR      $
 
         ;; -------------------------------------------------------------
-        

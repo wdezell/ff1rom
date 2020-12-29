@@ -1,20 +1,16 @@
 ;; -------------------------------------------------------------
-;; BOOT MODE 4 - BASIC
+;; BOOT MODE 4 - UNASSIGNED
 ;; -------------------------------------------------------------
 
 BOOT4:  .EQU    $
 
         CALL    CLSVT
+        RST     10H
 
-        ;; DEBUG / REMOVE
-        RST     08H
         CALL    PRINL
-        .TEXT   "BOOT 4",CR,LF,CR,LF,"PRESS ANY KEY",NULL
+        .TEXT   "BOOT 4 UNASSIGNED",NULL
 
-        CALL    CONCIN
-
-        ;; PLACEHOLDER -- ADAPT AS PER FINAL ROUTINE REQUIREMENTS
-        JP      RESET         ; REBOOT
+        HALT
+        JR      $
 
         ;; -------------------------------------------------------------
-        

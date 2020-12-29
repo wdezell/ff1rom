@@ -1,20 +1,16 @@
 ;; -------------------------------------------------------------
-;; BOOT MODE 5
+;; BOOT MODE 5 - UNASSIGNED
 ;; -------------------------------------------------------------
 
 BOOT5:  .EQU    $
 
         CALL    CLSVT
+        RST     10H
 
-        ;; DEBUG / REMOVE
-        RST     08H
         CALL    PRINL
-        .TEXT   "BOOT 5",CR,LF,CR,LF,"PRESS ANY KEY",NULL
+        .TEXT   "BOOT 5 UNASSIGNED",NULL
 
-        CALL    CONCIN
-
-        ;; PLACEHOLDER -- ADAPT AS PER FINAL ROUTINE REQUIREMENTS
-        JP      RESET         ; REBOOT
+        HALT
+        JR      $
 
         ;; -------------------------------------------------------------
-        

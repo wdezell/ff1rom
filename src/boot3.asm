@@ -1,20 +1,16 @@
 ;; -------------------------------------------------------------
-;; BOOT MODE 3 - FORTH
+;; BOOT MODE 3 - UNASSIGNED
 ;; -------------------------------------------------------------
 
 BOOT3:  .EQU    $
 
         CALL    CLSVT
+        RST     10H
 
-        ;; DEBUG / REMOVE
-        RST     08H
         CALL    PRINL
-        .TEXT   "BOOT 3",CR,LF,CR,LF,"PRESS ANY KEY",NULL
+        .TEXT   "BOOT 3 UNASSIGNED",NULL
 
-        CALL    CONCIN
-
-        ;; PLACEHOLDER -- ADAPT AS PER FINAL ROUTINE REQUIREMENTS
-        JP      RESET         ; REBOOT
+        HALT
+        JR      $
 
         ;; -------------------------------------------------------------
-        
