@@ -159,17 +159,18 @@ CLSVT:  CALL    PRINL
         ;;
         ;; REGISTERS AFFECTED:
         ;;  B
+        ;;  AF'
         ;; -------------------------------------------------------------
         ;;
-DLY25B:	EX	    AF,AF'          ; 0.65
-	    LD	    DE,34176D		; 1.63  US @ 6.144 MHZ
-_INNR1:	DEC	    DE			    ; 0.975  ---
+DLY25B:	EX	    AF,AF'          ; 0.65  US @ 6.144 MHZ
+	    LD	    DE,34176D		; 1.63
+_DLY25:	DEC	    DE			    ; 0.975  ---
 	    LD	    A,D			    ; 0.65   ^
 	    OR	    E 			    ; 0.65   5.205 US
-	    JP	    NZ,_INNR1		; 1.63
+	    JP	    NZ,_DLY25		; 1.63
 	    NOP				        ; 0.65   v
 	    NOP 				    ; 0.65   ---
-	    DJNZ	DLY25X		    ; 2.11 B != 0, 1.3 US B = 0
+	    DJNZ	DLY25B		    ; 2.11 B != 0, 1.3 US B = 0
 	    EX	    AF,AF'          ; 0.65
 
 	    RET
