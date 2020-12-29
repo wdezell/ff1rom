@@ -159,9 +159,7 @@ IMPORT "initmmgr.asm"
         CALL    TABDSP
 
         ;; IF WE REACH THIS POINT TABLE DISPATCH RETURNED WITH AN ERROR (CARRY SET)
-        RST     10H         ; DEBUG CHECKPOINT
-        HALT                ; TO-DO:  INDICATE AN ERROR OR SOMETHING
-        JR      $
+        JP      ABEND
 
 ;; -------------------------------------------------------------
 ;; BOOT MODE INITIALIZERS
@@ -173,13 +171,13 @@ IMPORT "initmmgr.asm"
         ;;
 BSWTAB: .EQU    $           ; BOOT SWITCH JUMP TABLE
         .DW     BOOT0       ; SYSTEM MONITOR
-        .DW     BOOT1       ; TBD
-        .DW     BOOT2       ; TBD
-        .DW     BOOT3       ; TBD
-        .DW     BOOT4       ; TBD
-        .DW     BOOT5       ; TBD
-        .DW     BOOT6       ; TBD
-        .DW     BOOT7       ; TBD
+        .DW     BOOT1       ; TBD - REPORT AS UNASSIGNED
+        .DW     BOOT2       ; TBD - REPORT AS UNASSIGNED
+        .DW     BOOT3       ; TBD - REPORT AS UNASSIGNED
+        .DW     BOOT4       ; TBD - REPORT AS UNASSIGNED
+        .DW     BOOT5       ; TBD - REPORT AS UNASSIGNED
+        .DW     BOOT6       ; TBD - REPORT AS UNASSIGNED
+        .DW     BOOT7       ; TBD - REPORT AS UNASSIGNED
 
 IMPORT "boot0.asm"
 IMPORT "boot1.asm"

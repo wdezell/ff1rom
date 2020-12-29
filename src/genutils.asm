@@ -149,7 +149,7 @@ CLSVT:  CALL    PRINL
 ;; MISCELLANEOUS UTILITY
 ;; -------------------------------------------------------------
 
-        ;; DELAY .25 SEC TIMES X
+        ;; DELAY .25 SEC TIMES B
         ;;  PROVIVIDES A DELAY OF APPROXIMATELY 250,000 US
         ;;  FOR EVERY COUNT SPECIFIED BY B
         ;;
@@ -161,7 +161,7 @@ CLSVT:  CALL    PRINL
         ;;  B
         ;; -------------------------------------------------------------
         ;;
-DLY25X:	EX	    AF,AF'          ; 0.65
+DLY25B:	EX	    AF,AF'          ; 0.65
 	    LD	    DE,34176D		; 1.63  US @ 6.144 MHZ
 _INNR1:	DEC	    DE			    ; 0.975  ---
 	    LD	    A,D			    ; 0.65   ^
