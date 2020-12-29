@@ -195,9 +195,21 @@ _D10P1:.EQU $
         ;; GENERALIZED ADVISORY AND HALT FOR PLACES WE SHOULD
         ;;  NEVER REACH.  IF THIS DISPLAYS THE FAT LADY HAS SUNG.
         ;; ---------------------------------------------------------
-ABEND:  RST     10H
+ABEND:  .EQU    $
+
+        ; IN CASE WE'RE RUNNING HEADLESS "DEAD/86" TO THE LEDS IF THEY'RE ATTACHED
+        LD      A,0DEH
+        OUT     (DS4L)
+        LD      A,0ADH
+        OUT     (DS4R)
+        LD      A,86H
+        OUT     (DS2)
+
+        ; IN CASE WE'VE GOT CONSOLE
+        RST     10H
         CALL    PRINL
-        .TEXT   "ABEND",NULL
+        .TEXT   CR,LF,"ABEND",NULL
+
         HALT
         JR      $
 
