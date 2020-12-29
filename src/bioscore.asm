@@ -14,12 +14,6 @@ CONCIN: IN      A,(SIOAC)   ; READ STATUS
         IN      A,(SIOAD)   ; READ DATA
         AND     7FH         ; MASK BIT 7    TODO:  EVAL IMPLICATIONS FOR X-MODEM, ETC..
 
-IF 0    ; echo caharcter read (not sure this is right place to do this)
-        PUSH    BC          ; PRESEVE C
-        LD      C,A
-        CALL    CONOUT
-        POP     BC
-ENDIF
         RET
 
         ;; CONSOLE LINE INPUT
