@@ -109,6 +109,7 @@ MSKISR: .ORG    38H
         EI
         RETI            ; UNUSED
 
+    ;; 45 FREE BYTES HERE W/ CURRENT 38HNULL HANDLER
         
     ;; NON-MASKABLE INTERRUPT HANDLER
 NMIISR: .ORG    66H        
@@ -160,7 +161,7 @@ IMPORT "inicdcfg.asm"
         CALL    TABDSP
 
         ;; IF WE REACH THIS POINT TABLE DISPATCH RETURNED WITH AN ERROR (CARRY SET)
-        RST     08H         ; DEBUG CHECKPOINT
+        RST     10H         ; DEBUG CHECKPOINT
         HALT                ; TO-DO:  INDICATE AN ERROR OR SOMETHING
         JR      $
 
@@ -174,7 +175,7 @@ IMPORT "inicdcfg.asm"
         ;;
 BSWTAB: .EQU    $           ; BOOT SWITCH JUMP TABLE
         .DW     BOOT0       ; CONSOLE MENU -- DIAGNOSTICS, BOARD UTILS, MONITOR, LAUNCH OTHER MODES
-        .DW     SYSMNI      ; SYSTEM MONITOR VIA BOOT MODE 1 INSTALLER
+        .DW     SYSMLD      ; SYSTEM MONITOR VIA BOOT MODE 1 LOADER
         .DW     BOOT2       ; CP/M
         .DW     BOOT3       ; FORTH
         .DW     BOOT4       ; BASIC

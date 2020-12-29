@@ -3,7 +3,7 @@ SYSMNS: .EQU    $           ; SYSTEM MONITOR START. TAG FOR RELOC & SIZE CALCS
 
 ;; -------------------------------------------------------------
 ;; SYSTEM MONITOR
-;;  MONITOR LOSELY BASED ON BIG BOARD PFM-80 COMMAND SET
+;;  MONITOR LOOSELY BASED ON BIG BOARD PFM-80 COMMAND SET
 ;;  WITH EXTENSIONS AS USEFUL/NEEDED
 ;;
 ;; MONITOR WILL RESIDE FOR EXECUTION JUST UNDER BIOS AND BUFFERS
@@ -11,10 +11,10 @@ SYSMNS: .EQU    $           ; SYSTEM MONITOR START. TAG FOR RELOC & SIZE CALCS
 ;;  FOR USER WORK
 ;; -------------------------------------------------------------
 
-SYSMON:  .EQU   $
-
-        RST     08H
-        HALT
+SYSMON: .EQU    $
+        CALL    PRINL                           ; DEBUG - REMOVE
+        .TEXT   "CHECKPOINT ALPHA",CR,LF,NULL
+        RST     10H
 
 SMCOLD: .EQU    $           ; SYSMON COLD START
         CALL   SMINIT       ; INTIALIZE WORK BUFFERS, COUNTERS
@@ -39,7 +39,7 @@ SMPRAP: .EQU    $
 
         ;; DISPLAY PROMPT
         CALL    PRINL
-        .TEXT   SMPROMT
+        .TEXT   HT,"MON>",NULL
 
         ;; GET USER INPUT
         LD      HL,SMINBF   ; PARAMETER - USER RETURN BUFFER
@@ -143,7 +143,7 @@ SMMENU: .EQU    $
         CALL    CLSA3
 
         CALL    PRINL
-        .TEXT   "SHALL WE PLAY A GAME?",CR,LF,CR,LF
+        .TEXT   " SHALL WE PLAY A GAME?",CR,LF,CR,LF
         .TEXT   HT, " Command                  Format",CR,LF
         .TEXT   HT, " --------------------     ----------------------------------------------",CR,LF
         ;; TODO       D(isassmble) memory      D   STARTADDR ENDADDR
@@ -173,8 +173,24 @@ SMMENU: .EQU    $
         ;; -------------------------------------------------------------
 SMINIT: .EQU    $
 
+IF 1
+        CALL    PRINL                           ; DEBUG - REMOVE
+        .TEXT   "CHECKPOINT BRAVO",CR,LF,NULL
+        RST     10H
+
+        ;; CLEAR LOW MEMORY FROM PAGE 1 UP TO LAST BYTE BELOW MONITOR
+        LD      A,0
+        LD      (RESET),A
+        LD      HL,RESET
+        LD      DE,RESET+1
+        LD      BC,SYSMON-RESET-2
+        LDIR
+
+        CALL    PRINL                           ; DEBUG - REMOVE
+        .TEXT   "CHECKPOINT BRAVO BRAVO",CR,LF,NULL
+        RST     10H
+ENDIF
         CALL    SMCLRB      ; CLEAR BUFFERS AND WORK VARS
-        ;CALL    SMRSTB      ; RESET TOKEN PARSE BUFFER SELECTOR  REDUNDANT
 
         RET
 
@@ -182,11 +198,19 @@ SMINIT: .EQU    $
         ;;CLEAR BUFFERS AND WORK VARS (THAT CAN RESET TO ZERO)
         ;; -------------------------------------------------------------
 SMCLRB: .EQU    $
+        CALL    PRINL                           ; DEBUG - REMOVE
+        .TEXT   "CHECKPOINT CHARLIE",CR,LF,NULL
+        RST     10H
+
         LD      B,SMCLRE-SMCLRS
         LD      HL,SMINBF   ; START OF CONTIGUOUS GROUP
 _SMCB:  LD      (HL),0      ; WRITE A ZERO TO BYTE
         INC     HL          ; POINT TO NEXT
         DJNZ    _SMCB       ; REPEAT UNTIL ALL BYTES ZEROED
+
+        CALL    PRINL                           ; DEBUG - REMOVE
+        .TEXT   "CHECKPOINT DELTA",CR,LF,NULL
+        RST     10H
         RET
 
         ;; COMMAND VALIDATE AND DISPATCH
@@ -197,9 +221,9 @@ SMVAD:  .EQU    $
 
         ;; -- BEGIN DEBUG
         ;; SIMPLE DISPLAY OF WHAT THE BUFFERS HAVE IN THEM
-        CALL    CLSVT
+        ;CALL    CLSVT
         CALL    PRINL
-        .TEXT   "DEBUG - INPUT AND PARSE BUFFERS:",CR,LF,NUL
+        .TEXT   "DEBUG - INPUT AND PARSE BUFFERS:",CR,LF,NULL
 
         CALL    PRINL
         .TEXT   CR,LF,"SMINBF: ",NULL
@@ -283,9 +307,10 @@ SMVAD:  .EQU    $
 
         ;; -- END DEBUG
         CALL    PRINL
-        .TEXT   "\nPRESS ANY KEY",NULL
-
+        .TEXT   CR,LF,"PRESS ANY KEY",NULL
         CALL    CONCIN
+
+        RST     10H         ; DEBUG
         RET
 
 DBGSCRT:.DS     100         ; DEBUG SCRATCH REMOVE
@@ -321,7 +346,6 @@ SMP6ADR:.DW     SMP6        ; POINTER - ADDRESS OF TOKEN PARSING BUFFER 6
 
         ;; MISC EQUATES
         ;; -------------------------------------------------------------
-SMPROMT:.TEXT   HT,"MON>",NULL          ; USER PROMPT
 SMVALCM:.TEXT   "EMGCFTHRWBIO?X"        ; VALID MAIN MENU COMMANDS
 SMVALCT:.EQU    $-SMVALCM               ; COUNT OF COMMANDS
 SMERR00:.TEXT   "00 SYNTAX ERROR",NULL  ; ERROR MESSAGES
@@ -330,5 +354,5 @@ SMERR02:.TEXT   "02 PARAM WIDTH",NULL   ;
 
         .DEPHASE
 SYSMNE: .EQU    $               ; SYSTEM MONITOR END. TAG FOR RELOC & SIZE CALCS
-SMSIZ:  .EQU    SYSMNE-SYSMNS   ; SIZE OF UTILITIES CODE
+SMSIZ:  .EQU    SYSMNE-SYSMNS-1 ; SIZE OF UTILITIES CODE (SYSMNE IS 1 BYTE *AFTER*)
         ;; -------------------------------------------------------------

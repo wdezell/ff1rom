@@ -9,12 +9,12 @@ BOOT5:  .EQU    $
         ;; DEBUG / REMOVE
         RST     08H
         CALL    PRINL
-        .TEXT   "BOOT 5\n\r\n\r\n\rPRESS ANY KEY\000"
+        .TEXT   "BOOT 5",CR,LF,CR,LF,"PRESS ANY KEY",NULL
 
         CALL    CONCIN
 
         ;; PLACEHOLDER -- ADAPT AS PER FINAL ROUTINE REQUIREMENTS
-        RST     00H         ; REBOOT
+        JP      RESET         ; REBOOT
 
         ;; -------------------------------------------------------------
         
