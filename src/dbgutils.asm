@@ -5,6 +5,38 @@ DBGUTS: .EQU    $               ; DEBUG UTILITIES START. TAG FOR RELOC & SIZE CA
 ;; MISC DEBUG TOOLS
 ;; -------------------------------------------------------------
 
+
+        ;; GENERALIZED ADVISORY AND HALT FOR PLACES WE SHOULD
+        ;;  NEVER REACH.  IF THIS DISPLAYS THE FAT LADY HAS SUNG.
+        ;; ---------------------------------------------------------
+ABEND:  .EQU    $
+
+        ; IN CASE WE'RE RUNNING HEADLESS "DEAD/86" TO THE LEDS IF THEY'RE ATTACHED
+        LD      A,0DEH
+        OUT     (DS4L)
+        LD      A,0ADH
+        OUT     (DS4R)
+        LD      A,86H
+        OUT     (DS2)
+
+        ; IN CASE WE'VE GOT CONSOLE
+        RST     10H
+        CALL    PRINL
+        .TEXT   CR,LF,"ABEND",NULL
+
+        HALT
+        JR      $
+
+
+        ;; CLEAR FLOATING GARBAGE ON DEBUG DISPLAYS IF THEY'RE ATTACHED
+        ;; ---------------------------------------------------------
+CLDBDS: XOR     A           ; ZERO INTO ACCUMULATOR
+        OUT     (DS4L)      ; WRITE TO DEBUG DISPLAY PORTS
+        OUT     (DS4R)
+        OUT     (DS2)
+        RET
+
+
         ;; OUTPUT ACCUMULATOR AND RETURN ADDRESS
          ;; ( ADDRESS *FOLLOWING* RST 08H CALL)
         ;;  DS4L/R HEX DISPLAYS = ADDRESS
@@ -191,27 +223,6 @@ _D10P1:.EQU $
         LD  C,"1"
         CALL CONOUT
         RET
-
-        ;; GENERALIZED ADVISORY AND HALT FOR PLACES WE SHOULD
-        ;;  NEVER REACH.  IF THIS DISPLAYS THE FAT LADY HAS SUNG.
-        ;; ---------------------------------------------------------
-ABEND:  .EQU    $
-
-        ; IN CASE WE'RE RUNNING HEADLESS "DEAD/86" TO THE LEDS IF THEY'RE ATTACHED
-        LD      A,0DEH
-        OUT     (DS4L)
-        LD      A,0ADH
-        OUT     (DS4R)
-        LD      A,86H
-        OUT     (DS2)
-
-        ; IN CASE WE'VE GOT CONSOLE
-        RST     10H
-        CALL    PRINL
-        .TEXT   CR,LF,"ABEND",NULL
-
-        HALT
-        JR      $
 
 ;; -------------------------------------------------------------
         .DEPHASE
