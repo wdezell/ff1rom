@@ -164,7 +164,8 @@ DEBG10: .EQU    $
         CALL    PRINL
         .TEXT   " A [",NULL
         POP     HL          ; GET COPY OF ORIGINAL ACCUMULATOR AND FLAGS
-        LD      (RESRV2),HL
+        LD      (RESRV1),HL ; F INTO 1, A INTO 2
+        LD      HL,RESRV2
         CALL    PRTMEM
         CALL    PRINL
         .TEXT   "]  ",NULL
