@@ -12,23 +12,21 @@ SYSMNS: .EQU    $           ; SYSTEM MONITOR START. TAG FOR RELOC & SIZE CALCS
 ;; -------------------------------------------------------------
 
 SYSMON: .EQU    $
-        CALL    PRINL                           ; DEBUG - REMOVE
-        .TEXT   "CHECKPOINT ALPHA",CR,LF,NULL
-        RST     10H
 
 SMCOLD: .EQU    $           ; SYSMON COLD START
         CALL   SMINIT       ; INTIALIZE WORK BUFFERS, COUNTERS
 
 SMWARM: .EQU    $           ; SYSMON WARM START
 
-        ;; DISPLAY MAIN MENU
-        CALL    SMMENU
-
         ;; DISPLAY USER PROMPT AND PARSE INPUT
         CALL    SMPRAP
 
+        RST     10H         ; DEBUG / REMOVE
+
         ;; COMMAND VALIDATE AND DISPATCH IF NO PARSING ERROR
         CALL    NC,SMVAD
+
+        RST     10H
 
         JR      SMWARM
 
@@ -39,17 +37,25 @@ SMPRAP: .EQU    $
 
         ;; DISPLAY PROMPT
         CALL    PRINL
-        .TEXT   HT,"MON>",NULL
+        .TEXT   CR,LF,"MON>",NULL
 
         ;; GET USER INPUT
         LD      HL,SMINBF   ; PARAMETER - USER RETURN BUFFER
         LD      B,SMINBS    ; BUFFER SIZE
+
+        RST     10H
         CALL    CONLIN      ; COUNT OF CHARS READ RETURNED IN A
+
+        RST     10H
         CP      0           ; NO CHARS READ (USER JUST PRESSED ENTER)
+
+        RST     10H
         JP      Z,SMWARM    ; REDISPLAY
+
+        RST     10H
         LD      B,A         ; ELSE SAVE NUMBER OF CHARS IN BUFFER TO B
 
-        ;CALL   SMEG -- IDEA: EASTER EGG IF USER INPUT MATCHES 'GLOBAL THERMONUCLEAR WAR' (OBFUSCATED)
+        RST     10H
 
         ;; PARSE MAIN INPUT BUFFER
         ;;
@@ -143,7 +149,6 @@ SMMENU: .EQU    $
         CALL    CLSA3
 
         CALL    PRINL
-        .TEXT   " SHALL WE PLAY A GAME?",CR,LF,CR,LF
         .TEXT   HT, " Command                  Format",CR,LF
         .TEXT   HT, " --------------------     ----------------------------------------------",CR,LF
         ;; TODO       D(isassmble) memory      D   STARTADDR ENDADDR
@@ -157,7 +162,7 @@ SMMENU: .EQU    $
         .TEXT   CR,LF
         .TEXT   HT, " R(ead) mass storage      R   UNIT TRACK SECTOR DESTADDR COUNT",CR,LF
         .TEXT   HT, " W(rite) mass storage     W   UNIT TRACK SECTOR STARTADDR ENDADDR",CR,LF
-        .TEXT   HT, " B(oot) mass storage      B",CR,LF
+        .TEXT   HT, " B(oot)                   B   ?,M #, 1-7",CR,LF
         .TEXT   CR,LF
         .TEXT   HT, " I(nput) port             I   PORTNUM",CR,LF
         .TEXT   HT, " O(utput) port            O   PORTNUM CONST",CR,LF
@@ -173,11 +178,6 @@ SMMENU: .EQU    $
         ;; -------------------------------------------------------------
 SMINIT: .EQU    $
 
-IF 1
-        CALL    PRINL                           ; DEBUG - REMOVE
-        .TEXT   "CHECKPOINT BRAVO",CR,LF,NULL
-        RST     10H
-
         ;; CLEAR LOW MEMORY FROM PAGE 1 UP TO LAST BYTE BELOW MONITOR
         LD      A,0
         LD      (RESET),A
@@ -186,11 +186,8 @@ IF 1
         LD      BC,SYSMON-RESET-2
         LDIR
 
-        CALL    PRINL                           ; DEBUG - REMOVE
-        .TEXT   "CHECKPOINT BRAVO BRAVO",CR,LF,NULL
-        RST     10H
-ENDIF
-        CALL    SMCLRB      ; CLEAR BUFFERS AND WORK VARS
+        ; CLEAR BUFFERS AND WORK VARS
+        CALL    SMCLRB
 
         RET
 
@@ -198,19 +195,11 @@ ENDIF
         ;;CLEAR BUFFERS AND WORK VARS (THAT CAN RESET TO ZERO)
         ;; -------------------------------------------------------------
 SMCLRB: .EQU    $
-        CALL    PRINL                           ; DEBUG - REMOVE
-        .TEXT   "CHECKPOINT CHARLIE",CR,LF,NULL
-        RST     10H
-
         LD      B,SMCLRE-SMCLRS
         LD      HL,SMINBF   ; START OF CONTIGUOUS GROUP
 _SMCB:  LD      (HL),0      ; WRITE A ZERO TO BYTE
         INC     HL          ; POINT TO NEXT
         DJNZ    _SMCB       ; REPEAT UNTIL ALL BYTES ZEROED
-
-        CALL    PRINL                           ; DEBUG - REMOVE
-        .TEXT   "CHECKPOINT DELTA",CR,LF,NULL
-        RST     10H
         RET
 
         ;; COMMAND VALIDATE AND DISPATCH
