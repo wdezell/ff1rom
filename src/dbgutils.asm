@@ -11,13 +11,16 @@ DBGUTS: .EQU    $               ; DEBUG UTILITIES START. TAG FOR RELOC & SIZE CA
         ;; ---------------------------------------------------------
 ABEND:  .EQU    $
 
-        ; IN CASE WE'RE RUNNING HEADLESS "DEAD/86" TO THE LEDS IF THEY'RE ATTACHED
-        LD      A,0DEH
-        OUT     (DS4L)
-        LD      A,0ADH
-        OUT     (DS4R)
-        LD      A,86H
-        OUT     (DS2)
+        ; IN CASE DEBUG LED DISPLAY ATTACHED DO RST 08H-EQUIV OUTPUT
+        EX      (SP),HL         ; GET CALLER RETURN ADDRESS INTO HL
+        PUSH    AF              ; PRESERVE A & FLAGS
+        LD      A,H             ; DISPLAY HIGH BYTE OF CALLER'S ADDRESS
+        OUT     (DS4L),A
+        LD      A,L             ; DISPLAY LOW BYTE OF CALLER'S ADDRESS
+        OUT     (DS4R),A
+        POP     AF              ; RESTORE A & FLAGS
+        OUT     (DS2),A         ; DISPLAY CALLER'S A
+        EX      (SP),HL         ; PUT CALLER RETURN ADDRESS & HL BACK
 
         ; IN CASE WE'VE GOT CONSOLE
         RST     10H
