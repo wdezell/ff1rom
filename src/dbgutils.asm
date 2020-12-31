@@ -83,7 +83,11 @@ DEBG08: .EQU    $
         ;; ---------------------------------------------------------
 DEBG10: .EQU    $
 
-        EX      (SP),HL     ; SAVE RETURN ADDRESS FOR DISPLAY
+        ; SP VALUE
+        LD	    (RESRV1),SP     ; SAVE SP VALUE TO SCRATCH LOCATION
+
+        ; SP CONTENTS
+        EX      (SP),HL         ; SAVE RETURN ADDRESS TO SCRATCH LOCATION
         LD      (RESRV3),HL
         EX      (SP),HL
 
@@ -94,11 +98,6 @@ DEBG10: .EQU    $
         PUSH    HL
         PUSH    DE
         PUSH    BC
-
-        ;PUSH    SP - NO SUCH INSTRUCTION SO WE'LL GO THROUGH HL AND SCRATCH RAM TO ACCOMPLISH
-        LD	    (RESRV1),SP     ; SAVE TO SCRATCH LOCATION
-        LD	    HL,(RESRV1)     ; READ VAL INTO HL
-        PUSH    HL              ; SAVE VALUE TO STACK FOR PENDING DISPLAY
 
         ; SWITCH TO ALTERNATE REGISTERS AND FLAGS SO DON'T DISTURB CALLER
         EXX
@@ -111,8 +110,7 @@ DEBG10: .EQU    $
         ; DISPLAY SP
         CALL    PRINL
         .TEXT   "SP [",NULL
-        POP     HL          ; COPY OF ORIGINAL SP
-        LD      (RESRV1),HL ; A WEE REDUNDANT BUT CONSISTENT W/ OTHERS
+        LD      (RESRV1),HL ; FETCH SP VALUE FROM SCRATCH STORAGE
         LD      HL,RESRV2   ; 1ST REG OF PAIR IN LOC+1
         CALL    PRTMEM
         LD      HL,RESRV1   ; 2ND REG OF PAIR IN LOC+0
