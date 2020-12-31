@@ -59,9 +59,20 @@ DEBG08: .EQU    $
         RET
 
 
-        ;; OUTPUTS CONTENTS OF ALL PRIMARY PROCESSOR REGISTERS AND
-        ;;  STATE OF PRIMARY FLAG SET AT TIME OF CALL TO CONSOLE
-        ;;  AND THEN WAITS FOR A SINGLE KEY PRESS BEFORE RETURN
+        ;; OUTPUTS CONTENTS OF PRIMARY PROCESSOR REGISTERS
+        ;;  AND FLAGS TO CONSOLE. CURRENTLY I & R ARE OMITTED.
+        ;;
+        ;; NOTES:
+        ;;   PC         WILL REFLECT ADDRESS OF INSTRUCTION IMMEDIATELY
+        ;;              *FOLLOWING* RST 10H CALL.
+        ;;
+        ;;   SP         REFLECTS ADDRESS OF SP FOLLOWING LAST STATE-CAPTURE PUSH.
+        ;;              THIS CAN SERVE AS A RELATIVE INDICATOR OF STACK LOADING.
+        ;;
+        ;;   BC,DE,HL   REGISTER PAIRS ARE DISPLAYED WITH AN INTERNAL ':' SEPARATOR
+        ;;              WHICH SHOULD BE IGNORED WHEN CONSIDERING AS A 16-BIT REGISTER.
+        ;;              8-BIT COMPONENTS ARE DISPLAYED L-R AS THEY READ ('BB:CC'),
+        ;;              NOT REVERSED AS APPEARING IN MEMORY OR OPCODES.
         ;;
         ;; USAGE:   RST 10H
         ;; AFFECTS: USES SCRATCH LOCATIONS RESERV1-RESERV4
@@ -81,6 +92,11 @@ DEBG10: .EQU    $
         PUSH    DE
         PUSH    BC
 
+        ;PUSH    SP - NO SUCH INSTRUCTION SO WE'LL GO THROUGH HL AND SCRATCH RAM TO ACCOMPLISH
+        LD	    (RESRV1),SP     ; SAVE TO SCRATCH LOCATION
+        LD	    HL,(RESRV1)     ; READ VAL INTO HL
+        PUSH    HL              ; SAVE VALUE TO STACK FOR PENDING DISPLAY
+
         ; SWITCH TO ALTERNATE REGISTERS AND FLAGS SO DON'T DISTURB CALLER
         EXX
         EX      AF,AF'
@@ -89,6 +105,18 @@ DEBG10: .EQU    $
         .TEXT   CR,LF,NULL
 
         ;; LINE 1
+        ; DISPLAY SP
+        CALL    PRINL
+        .TEXT   "SP [",NULL
+        POP     HL          ; COPY OF ORIGINAL SP
+        LD      (RESRV1),HL ; A WEE REDUNDANT BUT CONSISTENT W/ OTHERS
+        LD      HL,RESRV2   ; 1ST REG OF PAIR IN LOC+1
+        CALL    PRTMEM
+        LD      HL,RESRV1   ; 2ND REG OF PAIR IN LOC+0
+        CALL    PRTMEM
+        CALL    PRINL
+        .TEXT   "]  ",NULL
+
         ; DISPLAY BC
         CALL    PRINL
         .TEXT   "BC [",NULL
@@ -96,6 +124,8 @@ DEBG10: .EQU    $
         LD      (RESRV1),HL
         LD      HL,RESRV2   ; 1ST REG OF PAIR IN LOC+1
         CALL    PRTMEM
+        CALL    PRINL
+        .TEXT   ":",NULL
         LD      HL,RESRV1   ; 2ND REG OF PAIR IN LOC+0
         CALL    PRTMEM
         CALL    PRINL
@@ -108,6 +138,8 @@ DEBG10: .EQU    $
         LD      (RESRV1),HL
         LD      HL,RESRV2
         CALL    PRTMEM
+        CALL    PRINL
+        .TEXT   ":",NULL
         LD      HL,RESRV1
         CALL    PRTMEM
         CALL    PRINL
@@ -120,6 +152,8 @@ DEBG10: .EQU    $
         LD      (RESRV1),HL
         LD      HL,RESRV2
         CALL    PRTMEM
+        CALL    PRINL
+        .TEXT   ":",NULL
         LD      HL,RESRV1
         CALL    PRTMEM
         CALL    PRINL
@@ -172,7 +206,7 @@ DEBG10: .EQU    $
 
         ; DISPLAY AF - FLAGS
         CALL    PRINL
-        .TEXT   "  S-",NULL
+        .TEXT   "   S-",NULL
         LD      HL,RESRV1
         BIT     7,(HL)
         CALL    Z,_D10P0
@@ -183,7 +217,7 @@ DEBG10: .EQU    $
         CALL    Z,_D10P0
         CALL    NZ,_D10P1
         CALL    PRINL
-        .TEXT   "  H-",NULL
+        .TEXT   "    H-",NULL
         BIT     4,(HL)
         CALL    Z,_D10P0
         CALL    NZ,_D10P1
