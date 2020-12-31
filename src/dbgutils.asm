@@ -255,9 +255,9 @@ _D10P0:.EQU     $
         RET
 
         ;DEBG10 BIT HELPER
-_D10P1:.EQU $
-        LD  C,"1"
-        CALL CONOUT
+_D10P1:.EQU     $
+        LD      C,"1"
+        CALL    CONOUT
         RET
 
 ;; -------------------------------------------------------------
