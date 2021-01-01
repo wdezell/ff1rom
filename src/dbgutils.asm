@@ -107,10 +107,9 @@ DEBG10: .EQU    $
         .TEXT   CR,LF,NULL
 
         ;; LINE 1
-        ; DISPLAY SP
+        ; DISPLAY SP (STORED BY ABOVE INTO RESRV1 & RESRV2
         CALL    PRINL
         .TEXT   "SP [",NULL
-        LD      (RESRV1),HL ; FETCH SP VALUE FROM SCRATCH STORAGE
         LD      HL,RESRV2   ; 1ST REG OF PAIR IN LOC+1
         CALL    PRTMEM
         LD      HL,RESRV1   ; 2ND REG OF PAIR IN LOC+0
