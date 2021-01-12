@@ -18,17 +18,17 @@ SMCOLD: .EQU    $           ; SYSMON COLD START
 
 SMWARM: .EQU    $           ; SYSMON WARM START
 
-        ;; DISPLAY USER PROMPT AND PARSE INPUT
-        CALL    SMPRAP
+        ;; DISPLAY ONE-TIME HELP MESSAGE
+        CALL    PRINL
+        .TEXT   CR,LF,"('?' = HELP)",CR,LF,NULL
 
-        RST     10H         ; DEBUG / REMOVE
+        ;; DISPLAY USER PROMPT AND PARSE INPUT
+_SMPPL: CALL    SMPRAP
 
         ;; COMMAND VALIDATE AND DISPATCH IF NO PARSING ERROR
         CALL    NC,SMVAD
 
-        RST     10H
-
-        JR      SMWARM
+        JR      _SMPPL      ; PROMPT & PARSE LOOP
 
 
         ;; DISPLAY USER PROMPT AND PARSE INPUT
@@ -40,33 +40,23 @@ SMPRAP: .EQU    $
         .TEXT   CR,LF,"MON>",NULL
 
         ;; GET USER INPUT
-        LD      HL,SMINBF   ; PARAMETER - USER RETURN BUFFER
-        LD      B,SMINBS    ; BUFFER SIZE
-
-        RST     10H
+        LD      HL,CONBUF   ; RETURN BUFFER
+        LD      B,CNBSIZ    ; BUFFER SIZE
         CALL    CONLIN      ; COUNT OF CHARS READ RETURNED IN A
-
-        RST     10H
         CP      0           ; NO CHARS READ (USER JUST PRESSED ENTER)
-
-        RST     10H
-        JP      Z,SMWARM    ; REDISPLAY
-
-        RST     10H
+        JP      Z,SMPRAP    ; REDISPLAY
         LD      B,A         ; ELSE SAVE NUMBER OF CHARS IN BUFFER TO B
-
-        RST     10H
 
         ;; PARSE MAIN INPUT BUFFER
         ;;
         ;;  THERE ARE POTENTIALLY 7 FIELDS SEPARATED BY ONE OR MORE SPACES.
-        ;;  WE ONLY KNOW FOR SURE THAT THERE IS AT LEAST ONE CHARACTER AS B > 0 GOT US HERE.
+        ;;  WE ONLY KNOW FOR SURE THAT THERE IS AT LEAST ONE INPUT CHARACTER AS B > 0 GOT US HERE.
         ;;
         ;;  COPY BYTES L-TO-R INTO DESTINATION BUFFERS FOR FURTHER VALIDATIONS,
         ;;   SWITCHING TO NEW BUFFER AS WE HIT DELIMITERS
         ;;
         CALL    SMRSTB      ; RESET TO FIRST TOKEN DESTINATION BUFFER
-        LD      HL,SMINBF   ; POINT HL TO START OF USER INPUT BUFFER
+        LD      HL,CONBUF   ; POINT HL TO START OF USER INPUT BUFFER
 _SMINBP:LD      A,(HL)      ; INSPECT CHARACTER
         CP      ' '         ; IS IT A SPACE?
         JR      NZ,_SMNAS   ; NO - NOT A SPACE
@@ -76,10 +66,13 @@ _SMINBP:LD      A,(HL)      ; INSPECT CHARACTER
         DJNZ    _SMINBP
         RET
 
-_SMNAS: CALL    SMCKBS      ; CHECK THAT INPUT NOT EXCEEDING BUFFER SIZE
+_SMNAS: .EQU    $           ; TESTING: PASS
+
+        LD      C,A         ; CLEAR CONSECUTIVE-SPACE REF FLAG
+        CALL    SMCKBS      ; CHECK THAT INPUT NOT EXCEEDING BUFFER SIZE
         JP      C,_SMFSE    ; FIELD WIDTH EXCEEDS DESTINATION BUFFER -- ERROR BAIL
         LD      (DE),A      ; WRITE DATA TO LOCATION ADDRESSED BY DE
-        INC     HL          ; POINT HL TO NEXT SOURCE BYTE
+        INC     HL          ; POINT TO NEXT SOURCE BYTE
         INC     DE          ; POINT DE TO NEXT DESTINATION BYTE
         DJNZ    _SMINBP
         RET
@@ -100,23 +93,38 @@ SMCKBS:.EQU     $
 
         ;; SET NEXT TOKEN DESTINATION BUFFER
         ;;  GET POINTER TO NEXT BUFFER START INTO REG PAIR DE
-SMNXTB: PUSH    HL
+        ;
+        ; TESTING: PASS
+SMNXTB: .EQU    $
+        CP      C           ; A CONTAINS ' ' BUT DOES REF REGISTER C? (E.G., BACK-TO-BACK SPACES)
+        RET     Z           ; YES - DON'T SWITCH TO NEXT BUFFER, WE'VE ALREADY DONE IT. IGNORE & RETURN.
+
+        PUSH    HL
         LD      HL,SMTKSL   ; POINT HL TO BUFFER SELECTOR
         INC     (HL)        ; INCREMENT SELECTOR TO POINT TO ADDRESS OF NEXT BUFFER IN TABLE
         INC     (HL)        ;  (EACH TABLE ENTRY IS 2 BYTES SO INCREMENT TWICE)
-        LD      DE,(SMTKSL) ; AND MOVE BUFFER START ADDRESS INTO DE
-        LD      HL, SMCBCC  ; RESET CURRENT BUFFER CHARACTER COUNT TO ZERO
+        LD      HL,(SMTKSL) ; HL NOW POINTING TO TABLE ENTRY ROW ADDRESS
+        LD      E,(HL)      ; FETCH LOW BYTE OF ADDRESS ENTRY INTO E
+        INC     HL          ;
+        LD      D,(HL)      ; FETCH HIGH BYTE OF ADDRESS ENTRY INTO D
+
+        LD      HL,SMCBCC   ; RESET CURRENT BUFFER CHARACTER COUNT TO ZERO
         LD      (HL),0
         POP     HL
+
+        LD      C,A         ; RECORD THE SPACE THAT GOT US HERE INTO CONSEQUTIVE-SPACE REF FLAG REGISTER C
         RET
 
         ;; RESET TOKEN DESTINATION BUFFER AND REG PAIR DE
 SMRSTB: PUSH    HL
         LD      HL,SMP0ADR      ; POINT HL TO *POINTER* TO FIRST BUFFER
+        RST     10H
         LD      (SMTKSL),HL     ; STORE POINTER INTO SELECTOR
         LD      DE,(SMTKSL)     ; AND DE AS WELL
+        RST     10H
         LD      HL, SMCBCC      ; RESET CURRENT BUFFER CHARACTER COUNT TO ZERO
         LD      (HL),0
+        RST     10H
         POP     HL
         RET
 
@@ -126,14 +134,14 @@ SMRSTB: PUSH    HL
 SMPRSE: .EQU    $
 
         PUSH    HL          ; PRESERVE ERROR MESSAGE PASSED IN HL
-        CALL    PRINL       ; DISPLAY ERROR MESSAGE AND WAIT FOR KEYPRESS
+        CALL    PRINL       ; DISPLAY ERROR MESSAGE PREAMBLE
         .TEXT   "**ERROR**: ",0
 
-        POP     HL          ; RETRIEVE FOR PRINTING
+        POP     HL          ; RETRIEVE MESSAGE BODY AND PRINT IT
         CALL    PRSTRZ
 
-        CALL    PRINL
-        .TEXT   HT,"PRESS ANY KEY TO CONTINUE",0
+        CALL    PRINL       ; WAIT FOR ACKKNOWLEDGEMENT
+        .TEXT   HT,"PRESS ANY KEY...",0
 
         CALL    CONCIN      ; READ A KEY
 
@@ -149,6 +157,7 @@ SMMENU: .EQU    $
         CALL    CLSA3
 
         CALL    PRINL
+        .TEXT   HT, "SYSMON - AAAA-EEEE SIZE CCCC",CR,LF,CR,LF      ; FIXME - ADD DYNAMIC SPECS HERE
         .TEXT   HT, " Command                  Format",CR,LF
         .TEXT   HT, " --------------------     ----------------------------------------------",CR,LF
         ;; TODO       D(isassmble) memory      D   STARTADDR ENDADDR
@@ -186,17 +195,28 @@ SMINIT: .EQU    $
         LD      BC,SYSMON-RESET-2
         LDIR
 
-        ; CLEAR BUFFERS AND WORK VARS
+        ;; CLEAR BUFFERS AND WORK VARS, INSTALL NEW BOOT HOOK
         CALL    SMCLRB
+        CALL    SMBPAT
 
         RET
+
+        ;; PATCH SO THAT WARM RESTARTS INVOKE SYSMON DIRECTLY
+SMBPAT: .EQU    $
+        LD      HL,_SMBPAT
+        LD      DE,ROMBEG
+        LD      BC,3
+        LDIR
+        RET
+
+_SMBPAT:JP      SMWARM      ; REPLACES 'JP  RESET' @ LOCATION 0000H
 
 
         ;;CLEAR BUFFERS AND WORK VARS (THAT CAN RESET TO ZERO)
         ;; -------------------------------------------------------------
 SMCLRB: .EQU    $
         LD      B,SMCLRE-SMCLRS
-        LD      HL,SMINBF   ; START OF CONTIGUOUS GROUP
+        LD      HL,SMCLRS   ; START OF CONTIGUOUS GROUP
 _SMCB:  LD      (HL),0      ; WRITE A ZERO TO BYTE
         INC     HL          ; POINT TO NEXT
         DJNZ    _SMCB       ; REPEAT UNTIL ALL BYTES ZEROED
@@ -215,10 +235,10 @@ SMVAD:  .EQU    $
         .TEXT   "DEBUG - INPUT AND PARSE BUFFERS:",CR,LF,NULL
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMINBF: ",NULL
-        LD      HL,SMINBF
+        .TEXT   CR,LF,"CONBUF: ",NULL
+        LD      HL,CONBUF
         LD      DE,DBGSCRT
-        LD      BC,SMINBS
+        LD      BC,CNBSIZ
         LDIR
         EX      DE,HL
         LD      (HL),0
@@ -306,11 +326,9 @@ DBGSCRT:.DS     100         ; DEBUG SCRATCH REMOVE
 
         ;; INPUT & TOKENIZATION BUFFERS
         ;; -------------------------------------------------------------
-SMINBS: .EQU    80          ; USER INPUT BUFFER SIZE
 SMPMSZ: .EQU    10          ; TOKEN BUFFER SIZE (SIZED TO FIT LARGEST FOR SIMPLICITY)
 
 SMCLRS: .EQU    $           ; BUFFER/SCRATCH AREA START
-SMINBF: .DS     SMINBS      ; USER INPUT BUFFER         NB - KEEP THESE CONTIGUOUS FOR SMCLRB
 SMCBCC: .DB     1           ; CURRENT BUFFER ACCUMULATED CHARACTER COUNT (NTE SMPMSZ)
 SMP0:   .DS     SMPMSZ      ; TOKEN 0 (COMMAND)
 SMP1:   .DS     SMPMSZ      ; TOKENS 1 - 6 (POSSIBLE PARAMETERS)

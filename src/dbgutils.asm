@@ -260,6 +260,37 @@ _D10P1:.EQU     $
         CALL    CONOUT
         RET
 
+
+        ;; DEBUG CHECKPOINT HELPER MACRO
+        ;;  SIMPLIFY DISPLAY OF NAMED CHECKPOINTS TO CONSOLE
+        ;;
+        ;; USAGE:   DBCK    ALPHA
+        ;; ---------------------------------------------------------
+DBCK    MACRO   NAMESTR
+
+        ; ----BEGIN DEBUG / REMOVE ----
+        CALL    PRINL
+        .TEXT   "DEBUG: `NAMESTR`",CR,LF,NULL
+        ; ----END DEBUG / REMOVE   ----
+
+        ENDM
+
+
+        ;; DEBUG CHECKPOINT HELPER MACRO
+        ;;  SIMPLIFY DISPLAY OF NAMED CHECKPOINTS TO CONSOLE
+        ;;
+        ;; USAGE:   DBCKD    BRAVO
+        ;; ---------------------------------------------------------
+DBCKD    MACRO   NAMESTR
+
+        ; ----BEGIN DEBUG / REMOVE ----
+        CALL    PRINL
+        .TEXT   "DEBUG: `NAMESTR`",CR,LF,NULL
+        RST     10H
+        ; ----END DEBUG / REMOVE   ----
+
+        ENDM
+
 ;; -------------------------------------------------------------
         .DEPHASE
 DBGUTE: .EQU    $               ; DEBUG UTILITIES END. TAG FOR RELOC & SIZE CALCS
