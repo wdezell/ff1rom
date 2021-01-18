@@ -39,6 +39,13 @@ SMPRAP: .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,"MON>",NULL
 
+        ;; CLEAR CONBUF (FOR EASE OF DEBUG DISPLAY BUT MAY KEEP)
+        LD      HL,CONBUF
+        LD      (HL),0
+        LD      DE,CONBUF+1
+        LD      BC,CNBSIZ-1
+        LDIR
+
         ;; GET USER INPUT
         LD      HL,CONBUF   ; RETURN BUFFER
         LD      B,CNBSIZ    ; BUFFER SIZE
@@ -46,6 +53,10 @@ SMPRAP: .EQU    $
         CP      0           ; NO CHARS READ (USER JUST PRESSED ENTER)
         JP      Z,SMPRAP    ; REDISPLAY
         LD      B,A         ; ELSE SAVE NUMBER OF CHARS IN BUFFER TO B
+
+        ;; DEBUG - DISPLAY CONBUF FOR VERIFICATION
+        LD      HL,CONBUF
+        CALL    PRSTRZ
 
         ;; PARSE MAIN INPUT BUFFER
         ;;
