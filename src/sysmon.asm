@@ -39,13 +39,8 @@ SMPRAP: .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,"MON>",NULL
 
-        ;; ---- CLEAR CONBUF (FOR EASE OF DEBUG DISPLAY BUT MAY KEEP) ----
-        LD      HL,CONBUF
-        LD      (HL),0
-        LD      DE,CONBUF+1
-        LD      BC,CNBSIZ-1
-        LDIR
-        ;; ---------------------------------------------------------------
+        ; CLEAR BUFFERS
+        CALL    SMCLRB
 
         ;; GET USER INPUT
         LD      HL,CONBUF   ; RETURN BUFFER
@@ -212,11 +207,20 @@ _SMBPAT:JP      SMWARM      ; REPLACES 'JP  RESET' @ LOCATION 0000H
         ;;CLEAR BUFFERS AND WORK VARS (THAT CAN RESET TO ZERO)
         ;; -------------------------------------------------------------
 SMCLRB: .EQU    $
+
         LD      B,SMCLRE-SMCLRS
         LD      HL,SMCLRS   ; START OF CONTIGUOUS GROUP
 _SMCB:  LD      (HL),0      ; WRITE A ZERO TO BYTE
         INC     HL          ; POINT TO NEXT
         DJNZ    _SMCB       ; REPEAT UNTIL ALL BYTES ZEROED
+
+        ;; CLEAR CONBUF
+        LD      HL,CONBUF
+        LD      (HL),0
+        LD      DE,CONBUF+1
+        LD      BC,CNBSIZ-1
+        LDIR
+
         RET
 
         ;; RESET TOKEN DESTINATION BUFFER AND REG PAIR DE
