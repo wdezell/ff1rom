@@ -77,7 +77,6 @@ _SMINBP:LD      A,(HL)      ; INSPECT CHARACTER
         JR      NZ,_SMNAS   ; NO - NOT A SPACE
         CALL    _SMNXB      ; YES - SWITCH TO NEXT DESTINATION BUFFER
         RST     10H
-        ;DEC     B           ; ACCOUNT FOR THROW-AWAY CHAR
         INC     HL          ; POINT TO NEXT SOURCE BYTE
         DJNZ    _SMINBP
         RET
@@ -96,7 +95,7 @@ _SMCKB:.EQU     $
         RET
 
 _SMFSE: LD      HL,SMERR02  ; 'PARAM WIDTH' ERROR
-        CALL    SMPRSE      ;
+        CALL    _SMPSE      ;
 
 _SMNAS: .EQU    $           ; TESTING: PASS
 
@@ -136,23 +135,10 @@ _SMNXB: .EQU    $
         LD      C,A         ; RECORD THE SPACE THAT GOT US HERE INTO CONSEQUTIVE-SPACE REF FLAG REGISTER C
         RET
 
-        ;; RESET TOKEN DESTINATION BUFFER AND REG PAIR DE
-        ;; VERIFIED 20210118
-_SMRSB: PUSH    HL
-        LD      HL,SMP0ADR      ; POINT HL TO *POINTER* TO FIRST BUFFER
-        LD      (SMTKSL),HL     ; STORE POINTER INTO SELECTOR
-        LD      E,(HL)          ; FETCH LOW BYTE OF ADDRESS ENTRY INTO E
-        INC     HL              ;
-        LD      D,(HL)          ; FETCH HIGH BYTE OF ADDRESS ENTRY INTO D
-        LD      HL, SMCBCC      ; RESET CURRENT BUFFER CHARACTER COUNT TO ZERO
-        LD      (HL),0
-        POP     HL
-        RET
-
         ;; VALIDATION ERROR HANDLER
         ;;  RETURNS WITH CARRY SET SO UPSTREAM CAN ADAPT FLOW AS REQD
         ;; -------------------------------------------------------------
-SMPRSE: .EQU    $
+_SMPSE: .EQU    $
 
         PUSH    HL          ; PRESERVE ERROR MESSAGE PASSED IN HL
         CALL    PRINL       ; DISPLAY ERROR MESSAGE PREAMBLE
@@ -167,6 +153,19 @@ SMPRSE: .EQU    $
         CALL    CONCIN      ; READ A KEY
 
         SCF                 ; SET CARRY FLAG TO INDICATE ERROR
+        RET
+
+        ;; RESET TOKEN DESTINATION BUFFER AND REG PAIR DE
+        ;; VERIFIED 20210118
+_SMRSB: PUSH    HL
+        LD      HL,SMP0ADR      ; POINT HL TO *POINTER* TO FIRST BUFFER
+        LD      (SMTKSL),HL     ; STORE POINTER INTO SELECTOR
+        LD      E,(HL)          ; FETCH LOW BYTE OF ADDRESS ENTRY INTO E
+        INC     HL              ;
+        LD      D,(HL)          ; FETCH HIGH BYTE OF ADDRESS ENTRY INTO D
+        LD      HL, SMCBCC      ; RESET CURRENT BUFFER CHARACTER COUNT TO ZERO
+        LD      (HL),0
+        POP     HL
         RET
 
 
@@ -258,81 +257,41 @@ SMVAD:  .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,"CONBUF: ",NULL
         LD      HL,CONBUF
-        LD      DE,DBSB
-        LD      BC,CNBSIZ
-        LDIR
-        EX      DE,HL
-        LD      (HL),0
         CALL    PRSTRZ
 
         CALL    PRINL
         .TEXT   CR,LF,"SMP0: ",NULL
         LD      HL,SMP0
-        LD      DE,DBSB
-        LD      BC,SMPMSZ
-        LDIR
-        EX      DE,HL
-        LD      (HL),0
         CALL    PRSTRZ
 
         CALL    PRINL
         .TEXT   CR,LF,"SMP1: ",NULL
         LD      HL,SMP1
-        LD      DE,DBSB
-        LD      BC,SMPMSZ
-        LDIR
-        EX      DE,HL
-        LD      (HL),0
         CALL    PRSTRZ
 
         CALL    PRINL
         .TEXT   CR,LF,"SMP2: ",NULL
         LD      HL,SMP2
-        LD      DE,DBSB
-        LD      BC,SMPMSZ
-        LDIR
-        EX      DE,HL
-        LD      (HL),0
         CALL    PRSTRZ
 
         CALL    PRINL
         .TEXT   CR,LF,"SMP3: ",NULL
         LD      HL,SMP3
-        LD      DE,DBSB
-        LD      BC,SMPMSZ
-        LDIR
-        EX      DE,HL
-        LD      (HL),0
         CALL    PRSTRZ
 
         CALL    PRINL
         .TEXT   CR,LF,"SMP4: ",NULL
         LD      HL,SMP4
-        LD      DE,DBSB
-        LD      BC,SMPMSZ
-        LDIR
-        EX      DE,HL
-        LD      (HL),0
         CALL    PRSTRZ
 
         CALL    PRINL
         .TEXT   CR,LF,"SMP5: ",NULL
         LD      HL,SMP5
-        LD      DE,DBSB
-        LD      BC,SMPMSZ
-        LDIR
-        EX      DE,HL
-        LD      (HL),0
         CALL    PRSTRZ
 
         CALL    PRINL
         .TEXT   CR,LF,"SMP6: ",NULL
         LD      HL,SMP6
-        LD      DE,DBSB
-        LD      BC,SMPMSZ
-        LDIR
-        EX      DE,HL
-        LD      (HL),0
         CALL    PRSTRZ
 
         ;; -- END DEBUG
