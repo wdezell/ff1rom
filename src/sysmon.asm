@@ -39,22 +39,25 @@ SMPRAP: .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,"MON>",NULL
 
-        ;; CLEAR CONBUF (FOR EASE OF DEBUG DISPLAY BUT MAY KEEP)
+        ;; ---- CLEAR CONBUF (FOR EASE OF DEBUG DISPLAY BUT MAY KEEP) ----
         LD      HL,CONBUF
         LD      (HL),0
         LD      DE,CONBUF+1
         LD      BC,CNBSIZ-1
         LDIR
+        ;; ---------------------------------------------------------------
 
         ;; GET USER INPUT
         LD      HL,CONBUF   ; RETURN BUFFER
         LD      B,CNBSIZ    ; BUFFER SIZE
         CALL    CONLIN      ; COUNT OF CHARS READ RETURNED IN A
         CP      0           ; NO CHARS READ (USER JUST PRESSED ENTER)
-        JP      Z,SMPRAP    ; REDISPLAY
+        JP      Z,SMPRAP    ; NO ENTRY - READ AGAIN
         LD      B,A         ; ELSE SAVE NUMBER OF CHARS IN BUFFER TO B
 
         ;; DEBUG - DISPLAY CONBUF FOR VERIFICATION
+        CALL    PRINL       ; PUT US ON A NEW TERMINAL LINE FOR CLARITY
+        .TEXT   CR,LF,NULL
         LD      HL,CONBUF
         CALL    PRSTRZ
 
@@ -66,47 +69,54 @@ SMPRAP: .EQU    $
         ;;  COPY BYTES L-TO-R INTO DESTINATION BUFFERS FOR FURTHER VALIDATIONS,
         ;;   SWITCHING TO NEW BUFFER AS WE HIT DELIMITERS
         ;;
-        CALL    SMRSTB      ; RESET TO FIRST TOKEN DESTINATION BUFFER
+        CALL    _SMRSB      ; RESET TO FIRST TOKEN DESTINATION BUFFER
         LD      HL,CONBUF   ; POINT HL TO START OF USER INPUT BUFFER
 _SMINBP:LD      A,(HL)      ; INSPECT CHARACTER
-        CP      ' '         ; IS IT A SPACE?
+        CP      ' '         ; IS IT A SPACE?                    FIXME - INITIAL SPACE SHOULD NOT INC BUFFER!
+        RST     10H
         JR      NZ,_SMNAS   ; NO - NOT A SPACE
-        CALL    SMNXTB      ; YES - SWITCH TO NEXT DESTINATION BUFFER
-        DEC     B           ; ACCOUNT FOR THROW-AWAY CHAR
+        CALL    _SMNXB      ; YES - SWITCH TO NEXT DESTINATION BUFFER
+        RST     10H
+        ;DEC     B           ; ACCOUNT FOR THROW-AWAY CHAR
         INC     HL          ; POINT TO NEXT SOURCE BYTE
         DJNZ    _SMINBP
         RET
-
-_SMNAS: .EQU    $           ; TESTING: PASS
-
-        LD      C,A         ; CLEAR CONSECUTIVE-SPACE REF FLAG
-        CALL    SMCKBS      ; CHECK THAT INPUT NOT EXCEEDING BUFFER SIZE
-        JP      C,_SMFSE    ; FIELD WIDTH EXCEEDS DESTINATION BUFFER -- ERROR BAIL
-        LD      (DE),A      ; WRITE DATA TO LOCATION ADDRESSED BY DE
-        INC     HL          ; POINT TO NEXT SOURCE BYTE
-        INC     DE          ; POINT DE TO NEXT DESTINATION BYTE
-        DJNZ    _SMINBP
-        RET
-
-_SMFSE: LD      HL,SMERR02  ; 'PARAM WIDTH' ERROR
-        CALL    SMPRSE      ;
 
         ;; CHECK THAT INPUT IS NOT EXCEEDING DESTINATION BUFFER SIZE
         ;;  CARRY SET ON EXIT TO INDICATE BOUNDS EXCEEDED
-SMCKBS:.EQU     $
+_SMCKB:.EQU     $
+        PUSH    AF
         PUSH    HL
         LD      HL,SMCBCC   ; GET CURRENT BUFFER CHARACTER COUNTER
         INC     (HL)        ; INCREMENT COUNT
         LD      A,SMPMSZ    ; LOAD SIZE LIMIT INTO A
         CP      (HL)        ; IF COUNT > A THEN CARRY = SET
         POP     HL
+        POP     AF
+        RET
+
+_SMFSE: LD      HL,SMERR02  ; 'PARAM WIDTH' ERROR
+        CALL    SMPRSE      ;
+
+_SMNAS: .EQU    $           ; TESTING: PASS
+
+        LD      C,A         ; CLEAR CONSECUTIVE-SPACE REF FLAG
+        RST     10H
+        CALL    _SMCKB      ; CHECK THAT INPUT NOT EXCEEDING BUFFER SIZE
+        JP      C,_SMFSE    ; FIELD WIDTH EXCEEDS DESTINATION BUFFER -- ERROR BAIL
+        LD      (DE),A      ; WRITE DATA TO LOCATION ADDRESSED BY DE
+        RST     10H
+        INC     HL          ; POINT TO NEXT SOURCE BYTE
+        INC     DE          ; POINT TO NEXT DESTINATION BYTE
+        RST     10H
+        DJNZ    _SMINBP
         RET
 
         ;; SET NEXT TOKEN DESTINATION BUFFER
         ;;  GET POINTER TO NEXT BUFFER START INTO REG PAIR DE
         ;
-        ; TESTING: PASS
-SMNXTB: .EQU    $
+        ; VERIFIED 20210118
+_SMNXB: .EQU    $
         CP      C           ; A CONTAINS ' ' BUT DOES REF REGISTER C? (E.G., BACK-TO-BACK SPACES)
         RET     Z           ; YES - DON'T SWITCH TO NEXT BUFFER, WE'VE ALREADY DONE IT. IGNORE & RETURN.
 
@@ -127,15 +137,15 @@ SMNXTB: .EQU    $
         RET
 
         ;; RESET TOKEN DESTINATION BUFFER AND REG PAIR DE
-SMRSTB: PUSH    HL
+        ;; VERIFIED 20210118
+_SMRSB: PUSH    HL
         LD      HL,SMP0ADR      ; POINT HL TO *POINTER* TO FIRST BUFFER
-        RST     10H
         LD      (SMTKSL),HL     ; STORE POINTER INTO SELECTOR
-        LD      DE,(SMTKSL)     ; AND DE AS WELL
-        RST     10H
+        LD      E,(HL)          ; FETCH LOW BYTE OF ADDRESS ENTRY INTO E
+        INC     HL              ;
+        LD      D,(HL)          ; FETCH HIGH BYTE OF ADDRESS ENTRY INTO D
         LD      HL, SMCBCC      ; RESET CURRENT BUFFER CHARACTER COUNT TO ZERO
         LD      (HL),0
-        RST     10H
         POP     HL
         RET
 
@@ -248,7 +258,7 @@ SMVAD:  .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,"CONBUF: ",NULL
         LD      HL,CONBUF
-        LD      DE,DBGSCRT
+        LD      DE,DBSB
         LD      BC,CNBSIZ
         LDIR
         EX      DE,HL
@@ -258,7 +268,7 @@ SMVAD:  .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,"SMP0: ",NULL
         LD      HL,SMP0
-        LD      DE,DBGSCRT
+        LD      DE,DBSB
         LD      BC,SMPMSZ
         LDIR
         EX      DE,HL
@@ -268,7 +278,7 @@ SMVAD:  .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,"SMP1: ",NULL
         LD      HL,SMP1
-        LD      DE,DBGSCRT
+        LD      DE,DBSB
         LD      BC,SMPMSZ
         LDIR
         EX      DE,HL
@@ -278,7 +288,7 @@ SMVAD:  .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,"SMP2: ",NULL
         LD      HL,SMP2
-        LD      DE,DBGSCRT
+        LD      DE,DBSB
         LD      BC,SMPMSZ
         LDIR
         EX      DE,HL
@@ -288,7 +298,7 @@ SMVAD:  .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,"SMP3: ",NULL
         LD      HL,SMP3
-        LD      DE,DBGSCRT
+        LD      DE,DBSB
         LD      BC,SMPMSZ
         LDIR
         EX      DE,HL
@@ -298,7 +308,7 @@ SMVAD:  .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,"SMP4: ",NULL
         LD      HL,SMP4
-        LD      DE,DBGSCRT
+        LD      DE,DBSB
         LD      BC,SMPMSZ
         LDIR
         EX      DE,HL
@@ -308,7 +318,7 @@ SMVAD:  .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,"SMP5: ",NULL
         LD      HL,SMP5
-        LD      DE,DBGSCRT
+        LD      DE,DBSB
         LD      BC,SMPMSZ
         LDIR
         EX      DE,HL
@@ -318,7 +328,7 @@ SMVAD:  .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,"SMP6: ",NULL
         LD      HL,SMP6
-        LD      DE,DBGSCRT
+        LD      DE,DBSB
         LD      BC,SMPMSZ
         LDIR
         EX      DE,HL
@@ -333,7 +343,7 @@ SMVAD:  .EQU    $
         RST     10H         ; DEBUG
         RET
 
-DBGSCRT:.DS     100         ; DEBUG SCRATCH REMOVE
+DBSB:   .DS     100         ; DEBUG SCRATCH BUFFER - REMOVE
 
         ;; INPUT & TOKENIZATION BUFFERS
         ;; -------------------------------------------------------------
