@@ -55,12 +55,6 @@ SMPRAP: .EQU    $
         JP      Z,SMPRAP    ; NO ENTRY - READ AGAIN
         LD      B,A         ; ELSE SAVE NUMBER OF CHARS IN BUFFER TO B
 
-        ;; DEBUG - DISPLAY CONBUF FOR VERIFICATION
-        CALL    PRINL       ; PUT US ON A NEW TERMINAL LINE FOR CLARITY
-        .TEXT   CR,LF,NULL
-        LD      HL,CONBUF
-        CALL    PRSTRZ
-
         ;; PARSE MAIN INPUT BUFFER
         ;;
         ;;  THERE ARE POTENTIALLY 7 FIELDS SEPARATED BY ONE OR MORE SPACES.
@@ -69,21 +63,29 @@ SMPRAP: .EQU    $
         ;;  COPY BYTES L-TO-R INTO DESTINATION BUFFERS FOR FURTHER VALIDATIONS,
         ;;   SWITCHING TO NEW BUFFER AS WE HIT DELIMITERS
         ;;
-        CALL    _SMRSB      ; RESET TO FIRST TOKEN DESTINATION BUFFER
+        CALL    SMRSTB      ; RESET TO FIRST TOKEN DESTINATION BUFFER
         LD      HL,CONBUF   ; POINT HL TO START OF USER INPUT BUFFER
 _SMINBP:LD      A,(HL)      ; INSPECT CHARACTER
         CP      ' '         ; IS IT A SPACE?                    FIXME - INITIAL SPACE SHOULD NOT INC BUFFER!
-        RST     10H
         JR      NZ,_SMNAS   ; NO - NOT A SPACE
-        CALL    _SMNXB      ; YES - SWITCH TO NEXT DESTINATION BUFFER
-        RST     10H
+        CALL    SMNXTB      ; YES - SWITCH TO NEXT DESTINATION BUFFER
         INC     HL          ; POINT TO NEXT SOURCE BYTE
         DJNZ    _SMINBP
         RET
 
+_SMNAS: LD      C,A         ; CLEAR CONSECUTIVE-SPACE REF FLAG
+        CALL    SMCKBS      ; CHECK THAT INPUT NOT EXCEEDING BUFFER SIZE
+        JP      C,SMPFSE    ; FIELD WIDTH EXCEEDS DESTINATION BUFFER -- ERROR BAIL
+        LD      (DE),A      ; WRITE DATA TO LOCATION ADDRESSED BY DE
+        INC     HL          ; POINT TO NEXT SOURCE BYTE
+        INC     DE          ; POINT TO NEXT DESTINATION BYTE
+        DJNZ    _SMINBP
+        RET
+
+
         ;; CHECK THAT INPUT IS NOT EXCEEDING DESTINATION BUFFER SIZE
         ;;  CARRY SET ON EXIT TO INDICATE BOUNDS EXCEEDED
-_SMCKB:.EQU     $
+SMCKBS:.EQU     $
         PUSH    AF
         PUSH    HL
         LD      HL,SMCBCC   ; GET CURRENT BUFFER CHARACTER COUNTER
@@ -92,80 +94,6 @@ _SMCKB:.EQU     $
         CP      (HL)        ; IF COUNT > A THEN CARRY = SET
         POP     HL
         POP     AF
-        RET
-
-_SMFSE: LD      HL,SMERR02  ; 'PARAM WIDTH' ERROR
-        CALL    _SMPSE      ;
-
-_SMNAS: .EQU    $           ; TESTING: PASS
-
-        LD      C,A         ; CLEAR CONSECUTIVE-SPACE REF FLAG
-        RST     10H
-        CALL    _SMCKB      ; CHECK THAT INPUT NOT EXCEEDING BUFFER SIZE
-        JP      C,_SMFSE    ; FIELD WIDTH EXCEEDS DESTINATION BUFFER -- ERROR BAIL
-        LD      (DE),A      ; WRITE DATA TO LOCATION ADDRESSED BY DE
-        RST     10H
-        INC     HL          ; POINT TO NEXT SOURCE BYTE
-        INC     DE          ; POINT TO NEXT DESTINATION BYTE
-        RST     10H
-        DJNZ    _SMINBP
-        RET
-
-        ;; SET NEXT TOKEN DESTINATION BUFFER
-        ;;  GET POINTER TO NEXT BUFFER START INTO REG PAIR DE
-        ;
-        ; VERIFIED 20210118
-_SMNXB: .EQU    $
-        CP      C           ; A CONTAINS ' ' BUT DOES REF REGISTER C? (E.G., BACK-TO-BACK SPACES)
-        RET     Z           ; YES - DON'T SWITCH TO NEXT BUFFER, WE'VE ALREADY DONE IT. IGNORE & RETURN.
-
-        PUSH    HL
-        LD      HL,SMTKSL   ; POINT HL TO BUFFER SELECTOR
-        INC     (HL)        ; INCREMENT SELECTOR TO POINT TO ADDRESS OF NEXT BUFFER IN TABLE
-        INC     (HL)        ;  (EACH TABLE ENTRY IS 2 BYTES SO INCREMENT TWICE)
-        LD      HL,(SMTKSL) ; HL NOW POINTING TO TABLE ENTRY ROW ADDRESS
-        LD      E,(HL)      ; FETCH LOW BYTE OF ADDRESS ENTRY INTO E
-        INC     HL          ;
-        LD      D,(HL)      ; FETCH HIGH BYTE OF ADDRESS ENTRY INTO D
-
-        LD      HL,SMCBCC   ; RESET CURRENT BUFFER CHARACTER COUNT TO ZERO
-        LD      (HL),0
-        POP     HL
-
-        LD      C,A         ; RECORD THE SPACE THAT GOT US HERE INTO CONSEQUTIVE-SPACE REF FLAG REGISTER C
-        RET
-
-        ;; VALIDATION ERROR HANDLER
-        ;;  RETURNS WITH CARRY SET SO UPSTREAM CAN ADAPT FLOW AS REQD
-        ;; -------------------------------------------------------------
-_SMPSE: .EQU    $
-
-        PUSH    HL          ; PRESERVE ERROR MESSAGE PASSED IN HL
-        CALL    PRINL       ; DISPLAY ERROR MESSAGE PREAMBLE
-        .TEXT   "**ERROR**: ",0
-
-        POP     HL          ; RETRIEVE MESSAGE BODY AND PRINT IT
-        CALL    PRSTRZ
-
-        CALL    PRINL       ; WAIT FOR ACKKNOWLEDGEMENT
-        .TEXT   HT,"PRESS ANY KEY...",0
-
-        CALL    CONCIN      ; READ A KEY
-
-        SCF                 ; SET CARRY FLAG TO INDICATE ERROR
-        RET
-
-        ;; RESET TOKEN DESTINATION BUFFER AND REG PAIR DE
-        ;; VERIFIED 20210118
-_SMRSB: PUSH    HL
-        LD      HL,SMP0ADR      ; POINT HL TO *POINTER* TO FIRST BUFFER
-        LD      (SMTKSL),HL     ; STORE POINTER INTO SELECTOR
-        LD      E,(HL)          ; FETCH LOW BYTE OF ADDRESS ENTRY INTO E
-        INC     HL              ;
-        LD      D,(HL)          ; FETCH HIGH BYTE OF ADDRESS ENTRY INTO D
-        LD      HL, SMCBCC      ; RESET CURRENT BUFFER CHARACTER COUNT TO ZERO
-        LD      (HL),0
-        POP     HL
         RET
 
 
@@ -199,6 +127,55 @@ SMMENU: .EQU    $
         .TEXT   HT, " ? (Help)                 ?",CR,LF
         .TEXT   HT, " X (Exit)                 X",CR,LF,CR,LF,NULL
 
+        RET
+
+
+        ;; SET NEXT TOKEN DESTINATION BUFFER
+        ;;  GET POINTER TO NEXT BUFFER START INTO REG PAIR DE
+        ;
+SMNXTB: .EQU    $
+        CP      C           ; A CONTAINS ' ' BUT DOES REF REGISTER C? (E.G., BACK-TO-BACK SPACES)
+        RET     Z           ; YES - DON'T SWITCH TO NEXT BUFFER, WE'VE ALREADY DONE IT. IGNORE & RETURN.
+
+        PUSH    HL
+        LD      HL,SMTKSL   ; POINT HL TO BUFFER SELECTOR
+        INC     (HL)        ; INCREMENT SELECTOR TO POINT TO ADDRESS OF NEXT BUFFER IN TABLE
+        INC     (HL)        ;  (EACH TABLE ENTRY IS 2 BYTES SO INCREMENT TWICE)
+        LD      HL,(SMTKSL) ; HL NOW POINTING TO TABLE ENTRY ROW ADDRESS
+        LD      E,(HL)      ; FETCH LOW BYTE OF ADDRESS ENTRY INTO E
+        INC     HL          ;
+        LD      D,(HL)      ; FETCH HIGH BYTE OF ADDRESS ENTRY INTO D
+
+        LD      HL,SMCBCC   ; RESET CURRENT BUFFER CHARACTER COUNT TO ZERO
+        LD      (HL),0
+        POP     HL
+
+        LD      C,A         ; RECORD THE SPACE THAT GOT US HERE INTO CONSEQUTIVE-SPACE REF FLAG REGISTER C
+        RET
+
+
+        ;; PARSE ERROR -- FIELD SIZE
+SMPFSE: LD      HL,SMERR02  ; 'PARAM WIDTH' ERROR
+        CALL    SMPRSE      ;
+
+
+        ;; VALIDATION ERROR HANDLER
+        ;;  RETURNS WITH CARRY SET SO UPSTREAM CAN ADAPT FLOW AS REQD
+SMPRSE: .EQU    $
+
+        PUSH    HL          ; PRESERVE ERROR MESSAGE PASSED IN HL
+        CALL    PRINL       ; DISPLAY ERROR MESSAGE PREAMBLE
+        .TEXT   "**ERROR**: ",0
+
+        POP     HL          ; RETRIEVE MESSAGE BODY AND PRINT IT
+        CALL    PRSTRZ
+
+        CALL    PRINL       ; WAIT FOR ACKKNOWLEDGEMENT
+        .TEXT   HT,"PRESS ANY KEY...",0
+
+        CALL    CONCIN      ; READ A KEY
+
+        SCF                 ; SET CARRY FLAG TO INDICATE ERROR
         RET
 
 
@@ -242,6 +219,18 @@ _SMCB:  LD      (HL),0      ; WRITE A ZERO TO BYTE
         DJNZ    _SMCB       ; REPEAT UNTIL ALL BYTES ZEROED
         RET
 
+        ;; RESET TOKEN DESTINATION BUFFER AND REG PAIR DE
+SMRSTB: PUSH    HL
+        LD      HL,SMP0ADR      ; POINT HL TO *POINTER* TO FIRST BUFFER
+        LD      (SMTKSL),HL     ; STORE POINTER INTO SELECTOR
+        LD      E,(HL)          ; FETCH LOW BYTE OF ADDRESS ENTRY INTO E
+        INC     HL              ;
+        LD      D,(HL)          ; FETCH HIGH BYTE OF ADDRESS ENTRY INTO D
+        LD      HL, SMCBCC      ; RESET CURRENT BUFFER CHARACTER COUNT TO ZERO
+        LD      (HL),0
+        POP     HL
+        RET
+        
         ;; COMMAND VALIDATE AND DISPATCH
         ;; -------------------------------------------------------------
 SMVAD:  .EQU    $
