@@ -6,7 +6,7 @@
 ;; -------------------------------------------------------------
 
         ;; INC MONITOR SOURCE FOR ASSEMBLY
-IMPORT "sysmon.asm"
+IMPORT "smmain.asm"
 
 BOOT0: .EQU    $
 
