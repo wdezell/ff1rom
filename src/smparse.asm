@@ -160,8 +160,10 @@ SMRSTB: PUSH    HL
         POP     HL
         RET
 
-        ;; MISC EQUATES
+        ;; EQUATES, GENERAL WORK VARS
         ;; -------------------------------------------------------------
+SMCURCM:.DB     ' '                     ; CURRENT COMMAND MODE
+SMEOCB: .DW     1                       ; ADDRESS OF ENTER-ONLY INPUT CALLBACK, OR ZERO IF NONE
 SMVALCM:.TEXT   "EMGCFTHRWBIO?X"        ; VALID MAIN MENU COMMANDS
 SMVALCT:.EQU    $-SMVALCM               ; COUNT OF COMMANDS
 SMERR00:.TEXT   "00 SYNTAX ERROR",NULL  ; ERROR MESSAGES
@@ -179,7 +181,7 @@ SMPB5AD:.DW     SMPB5       ; POINTER - ADDRESS OF COMPONENT PARSING BUFFER 5
 SMPB6AD:.DW     SMPB6       ; POINTER - ADDRESS OF COMPONENT PARSING BUFFER 6
         ;; -- TABLE END --
 
-        ;; INPUT & TOKENIZATION BUFFERS
+        ;; INPUT COMPONENT BUFFERS AND RELATED
         ;; -------------------------------------------------------------
 SMPBSZ: .EQU    10          ; COMPONENT BUFFER SIZE (SIZED TO FIT LARGEST FOR SIMPLICITY)
 

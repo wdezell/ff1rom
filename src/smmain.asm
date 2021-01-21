@@ -78,6 +78,11 @@ SMINIT: .EQU    $
         LDIR
 
         ;; CLEAR BUFFERS AND WORK VARS, INSTALL NEW BOOT HOOK
+        LD      HL, SMEOCB  ; CLEAR ENTER-ONLY CALLBACK UNTIL MODE ENTRY SETS ONE
+        LD      (HL),0
+        INC     HL
+        LD      (HL),0
+
         CALL    SMCLRB
         CALL    SMBPAT
 
@@ -104,7 +109,7 @@ SMVAD:  .EQU    $
         ;; SIMPLE DISPLAY OF WHAT THE BUFFERS HAVE IN THEM
         ;CALL    CLSVT
         CALL    PRINL
-        .TEXT   "DEBUG - INPUT AND PARSE BUFFERS:",CR,LF,NULL
+        .TEXT   CR,LF,CR,LF,"DEBUG - INPUT AND PARSE BUFFERS:",CR,LF,NULL
 
         CALL    PRINL
         .TEXT   CR,LF,"CONBUF: ",NULL
