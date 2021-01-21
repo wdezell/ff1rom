@@ -112,38 +112,38 @@ SMVAD:  .EQU    $
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP0: ",NULL
-        LD      HL,SMP0
+        .TEXT   CR,LF,"SMPB0: ",NULL
+        LD      HL,SMPB0
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP1: ",NULL
-        LD      HL,SMP1
+        .TEXT   CR,LF,"SMPB1: ",NULL
+        LD      HL,SMPB1
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP2: ",NULL
-        LD      HL,SMP2
+        .TEXT   CR,LF,"SMPB2: ",NULL
+        LD      HL,SMPB2
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP3: ",NULL
-        LD      HL,SMP3
+        .TEXT   CR,LF,"SMPB3: ",NULL
+        LD      HL,SMPB3
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP4: ",NULL
-        LD      HL,SMP4
+        .TEXT   CR,LF,"SMPB4: ",NULL
+        LD      HL,SMPB4
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP5: ",NULL
-        LD      HL,SMP5
+        .TEXT   CR,LF,"SMPB5: ",NULL
+        LD      HL,SMPB5
         CALL    PRSTRZ
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMP6: ",NULL
-        LD      HL,SMP6
+        .TEXT   CR,LF,"SMPB6: ",NULL
+        LD      HL,SMPB6
         CALL    PRSTRZ
 
         ;; -- END DEBUG
@@ -157,31 +157,6 @@ SMVAD:  .EQU    $
         ;; MODULAR SOURCE FILE INCLUSIONS
 IMPORT  "smparse.asm"
 
-
-        ;; INPUT & TOKENIZATION BUFFERS
-        ;; -------------------------------------------------------------
-SMPMSZ: .EQU    10          ; TOKEN BUFFER SIZE (SIZED TO FIT LARGEST FOR SIMPLICITY)
-
-SMCLRS: .EQU    $           ; BUFFER/SCRATCH AREA START
-SMCBCC: .DB     1           ; CURRENT BUFFER ACCUMULATED CHARACTER COUNT (NTE SMPMSZ)
-SMP0:   .DS     SMPMSZ      ; TOKEN 0 (COMMAND)
-SMP1:   .DS     SMPMSZ      ; TOKENS 1 - 6 (POSSIBLE PARAMETERS)
-SMP2:   .DS     SMPMSZ      ;
-SMP3:   .DS     SMPMSZ      ;
-SMP4:   .DS     SMPMSZ      ;
-SMP5:   .DS     SMPMSZ      ;
-SMP6:   .DS     SMPMSZ      ;
-SMCLRE: .EQU    $           ; BUFFER/SCRATCH AREA END
-        ASSERT  ((SMCLRE-SMCLRS) < 256 )    ; SMCLRB RANGE LIMIT
-
-
-        ;; MISC EQUATES
-        ;; -------------------------------------------------------------
-SMVALCM:.TEXT   "EMGCFTHRWBIO?X"        ; VALID MAIN MENU COMMANDS
-SMVALCT:.EQU    $-SMVALCM               ; COUNT OF COMMANDS
-SMERR00:.TEXT   "00 SYNTAX ERROR",NULL  ; ERROR MESSAGES
-SMERR01:.TEXT   "01 INVALID COMMAND",NULL;
-SMERR02:.TEXT   "02 PARAM WIDTH",NULL   ;
 
         .DEPHASE
 SYSMNE: .EQU    $               ; SYSTEM MONITOR END. TAG FOR RELOC & SIZE CALCS
