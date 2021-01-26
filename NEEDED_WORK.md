@@ -1,6 +1,25 @@
 # Needed Work
 
 ---
+##### ISNUM: Like the C func. 
+Char in A, return unchanged
+Carry = 1 if numeric 30-39H
+
+---
+##### ISALPH: Like C is_alpha() func
+Char in A, return unchanged
+Carry = 1 if alpha upper or lower
+
+---
+##### TOUPPR: Like C function toupper()
+Char in A, return uppercase version in A
+Carry = 1 if changed
+----
+##### TOLOWR: Like C function tolower()
+Char in A, return lowercase version in A
+Carry = 1 if changed
+
+----
 ##### ATOBS:  ASCII Numerical String to Signed 16-bit Binary Conversion
 **Given:**  
 An integer numeric value represented as an ASCII strz with HL pointing to MSD, 
