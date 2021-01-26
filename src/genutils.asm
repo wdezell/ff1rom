@@ -41,7 +41,8 @@ _ASCZ2: ADD     A,'0'       ; ADD OFFSET FOR ASCII
         POP     AF          ; RESTORE REGS
         RET
 
-IF 0
+IF 0    ;; CLEANUP AND PORT TO FIREFLY
+
         ;; PRINT HEX-ASCII REPRESENTATION OF REGISTER PAIR HL BY STORING H & L SEPERATELY
         ;; TO SCRATCH RAM LOCATIONS THEN DOING NORMAL H2ASC CONVERSION/PRINT OF CONTENTS
         ;; HL = ADDRESS VALUE THAT IS TO BE PRINTED IN FORM FFFF
@@ -221,24 +222,121 @@ TABDSP: .EQU    $
         RET                 ; JUMP TO ROUTINE
 
 
+        ;; IS ASCII CHAR IN A AN ASCII ALPHA CHARACTER (UPPERCASE OR LOWERCASE)
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF IS ALPHA CHAR, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISALPHA:AND     A           ; CLEAR CARRY
+        CALL    ISUPPER     ; DOES REG A CONTAIN AN UPPERCASER ASCII CHAR?
+        RET     C           ; YES
+        CALL    ISLOWER     ; NOT UPPERCASE - IS IT LOWERCASE?
+        RET                 ; CARRY WILL INFORM CALLER Y/N
+
+        ;; IS ASCII CHAR IN A AN ASCII LOWER-CASE ALPHA CHAR (61H-7AH)?
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF IS LOWERCASE ALPHA CHAR, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISLOWER:PUSH    HL          ; PRESERVE
+        LD      H,'z'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
+        LD      L,'a'       ; SET LOW RANGE INCLUSIVE BOUNDARY
+        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
+        POP     HL
+        RET
+
+
+        ;; IS ASCII CHAR IN A AN ASCII UPPER-CASE ALPHA CHAR (41H-5AH)?
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF IS UPPERCASE ALPHA CHAR, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISUPPER:PUSH    HL          ; PRESERVE
+        LD      H,'Z'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
+        LD      L,'A'       ; SET LOW RANGE INCLUSIVE BOUNDARY
+        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
+        POP     HL
+        RET
+
+
+        ;; IS ASCII CHAR IN A AN ASCII DIGIT (30H-39H)?
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF IS NUMERIC CHAR, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISNUM:  PUSH    HL          ; PRESERVE
+        LD      H,'9'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
+        LD      L,'0'       ; SET LOW RANGE INCLUSIVE BOUNDARY
+        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
+        POP     HL
+        RET
+
+
+        ;; IS VALUE IN REG A IN THE RANGE (INCLUSIVE) BOUNDED BY H AND L (HIGH & LOW, RESPECTIVELY)
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF IS NUMERIC CHAR, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISINRHL:AND     A           ; CLEAR CARRY
+        CP      L           ; IS A >= LOW LIMIT?
+        JR      NC,_IRGEL   ; YES - NOW CHECK RANGE TOP
+        CCF                 ; RANGE FAIL, A < LOW LIMIT, CLEAR CARRY FOR ERR IND
+        RET
+_IRGEL: CP      H          ; IS A <= HIGH RANGE LIMIT
+        JR      C,_IRLEH
+        JR      Z,_IRLEH
+        RET                 ; RANGE FAIL, A > HIGH LIMIT, LEAVE CARRY CLEAR FOR ERR IND
+_IRLEH: SCF                 ; ENSURE CARRY IS SET TO INDICATE SUCCESS
+        RET
+
+
         ;; CONVERT ASCII CHAR IN A IN RANGE 30-39H TO DIGIT
         ;;
         ;;  RETURNS:
         ;;   A = NUMERICAL VALUE OF CHAR IF VALID, ELSE UNCHANGED
         ;;   CARRY SET FOR VALID CONVERSION
+        ;;
         ;; -------------------------------------------------------------
-TODIGIT:.EQU    $
-
-        CP      '0'         ; IS A >= '0'?
-        JR      NC,_TDGE0   ; YES - NOW CHECK RANGE TOP
-        CCF                 ; RANGE FAIL, A < '0', CLEAR CARRY FOR ERR IND
-        RET
-_TDGE0: CP      '9'         ; IS A <= '9'
-        JR      C,_TDLE9
-        JR      Z,_TDLE9
-        RET                 ; RANGE FAIL, A > '9', LEAVE CARRY CLEAR FOR ERR IND
-_TDLE9: SUB     30H         ; CONVERT ASCII DIGIT TO NUMERICAL VALUE
+TODIGIT:CALL    ISNUM       ; IS VALUE IN A AN ASCII DIGIT 30H-39H?
+        RET     NC          ; NO - ERROR RETURN W/ CARRY CLEAR
+        SUB     30H         ; YES - CONVERT ASCII DIGIT TO NUMERICAL VALUE
         SCF                 ; ENSURE CARRY IS SET TO INDICATE SUCCESS
+        RET
+
+
+        ;; CONVERT UPPERCASE ASCII CHAR IN REG A TO LOWERCASE
+        ;;
+        ;;  RETURNS:
+        ;;   A = LOWERCASE CHAR IF VALID, ELSE UNCHANGED
+        ;;   CARRY SET FOR VALID CONVERSION
+        ;;
+        ;; -------------------------------------------------------------
+TOLOWER:CALL    ISUPPER     ; IS CHARACTER IN REG A A UPPERCASE CHARACTER?
+        RET     NC          ; NO -WON'T CONVERT
+        ADD     20H         ; YES - CONVERT TO LOWERCASE EQUIVALENT
+        RET
+
+
+        ;; CONVERT LOWERCASE ASCII CHAR IN REG A TO UPPERCASE
+        ;;
+        ;;  RETURNS:
+        ;;   A = UPPERCASE CHAR IF VALID, ELSE UNCHANGED
+        ;;   CARRY SET FOR VALID CONVERSION
+        ;;
+        ;; -------------------------------------------------------------
+TOUPPER:CALL    ISLOWER     ; IS CHARACTER IN REG A A LOWERCASE CHARACTER?
+        RET     NC          ; NO -WON'T CONVERT
+        SUB     20H         ; YES - CONVERT TO UPPERCASE EQUIVALENT
         RET
 
 ;; -------------------------------------------------------------
