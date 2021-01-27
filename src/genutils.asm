@@ -321,7 +321,7 @@ TODIGIT:CALL    ISNUM       ; IS VALUE IN A AN ASCII DIGIT 30H-39H?
         ;;   CARRY SET FOR VALID CONVERSION
         ;;
         ;; -------------------------------------------------------------
-TOLOWER:CALL    ISUPPER     ; IS CHARACTER IN REG A A UPPERCASE CHARACTER?
+TOLOWER:CALL    ISUPPER     ; IS CHARACTER IN REG A AN UPPERCASE CHARACTER?
         RET     NC          ; NO -WON'T CONVERT
         ADD     20H         ; YES - CONVERT TO LOWERCASE EQUIVALENT
         RET
