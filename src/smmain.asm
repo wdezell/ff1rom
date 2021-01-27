@@ -78,11 +78,6 @@ SMINIT: .EQU    $
         LDIR
 
         ;; CLEAR BUFFERS AND WORK VARS, INSTALL NEW BOOT HOOK
-        LD      HL, SMEOCB  ; CLEAR ENTER-ONLY CALLBACK UNTIL MODE ENTRY SETS ONE
-        LD      (HL),0
-        INC     HL
-        LD      (HL),0
-
         CALL    SMCLRB
         CALL    SMBPAT
 
@@ -99,68 +94,9 @@ SMBPAT: .EQU    $
 _SMBPAT:JP      SMWARM      ; REPLACES 'JP  RESET' @ LOCATION 0000H
 
 
-        ;; COMMAND VALIDATE AND DISPATCH
-        ;; -------------------------------------------------------------
-SMVAD:  .EQU    $
-
-        ;; TODO -- YOU ARE HERE
-
-        ;; -- BEGIN DEBUG
-        ;; SIMPLE DISPLAY OF WHAT THE BUFFERS HAVE IN THEM
-        ;CALL    CLSVT
-        CALL    PRINL
-        .TEXT   CR,LF,CR,LF,"DEBUG - INPUT AND PARSE BUFFERS:",CR,LF,NULL
-
-        CALL    PRINL
-        .TEXT   CR,LF,"CONBUF: ",NULL
-        LD      HL,CONBUF
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB0: ",NULL
-        LD      HL,SMPB0
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB1: ",NULL
-        LD      HL,SMPB1
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB2: ",NULL
-        LD      HL,SMPB2
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB3: ",NULL
-        LD      HL,SMPB3
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB4: ",NULL
-        LD      HL,SMPB4
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB5: ",NULL
-        LD      HL,SMPB5
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB6: ",NULL
-        LD      HL,SMPB6
-        CALL    PRSTRZ
-
-        ;; -- END DEBUG
-        CALL    PRINL
-        .TEXT   CR,LF,"PRESS ANY KEY",NULL
-        CALL    CONCIN
-
-        RST     10H         ; DEBUG
-        RET
-
         ;; MODULAR SOURCE FILE INCLUSIONS
 IMPORT  "smparse.asm"
+IMPORT  "smvad.asm"
 
 
         .DEPHASE
