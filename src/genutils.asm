@@ -343,7 +343,7 @@ TOUPPER:CALL    ISLOWER     ; IS CHARACTER IN REG A A LOWERCASE CHARACTER?
 ;; -------------------------------------------------------------
 
         ;; BASIC CONSOLE INITIALIZATION
-        ;;  SIO CHANNEL A WILL BE CONFIGURED TO 9600-N-8-1 FOR TX &
+        ;;  SIO CHANNEL A WILL BE CONFIGURED TO 19200-N-8-1 FOR TX &
         ;;  SIMPLE POLLED-MODE RX.  MODE-SPECIFIC BOOT INITIALIZERS CAN
         ;;  RECONFIGURE IF NEEDED.
         ;; -------------------------------------------------------------
@@ -363,9 +363,9 @@ CONINIT:    .EQU    $
         IN      A,(SYSCFG)  ; READ CONFIG SWITCH
         BIT     3,A         ; IS BIT 3 SET?
         JR      NZ,_EXCLK   ; YES - SETUP FOR EXTERNAL CLOCK TIMING SOURCE
-        LD      L,20        ; NO -- SET TC FOR INTERNAL SYSTEM CLOCK
+        LD      L,10        ; NO -- SET TC FOR INTERNAL SYSTEM CLOCK
         JR      _CALSB
-_EXCLK: LD      L,12        ; SET TC FOR EXTERNAL CLOCK
+_EXCLK: LD      L,6         ; SET TC FOR EXTERNAL CLOCK
 _CALSB: LD      H,CTCCH0    ; SIO CHANNEL A DRIVEN THROUGH CTC CH0
         CALL    SETBDR      ; CALL SET BAUDRATE SUBROUTINE
 

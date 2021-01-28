@@ -44,7 +44,7 @@ SMMENU: .EQU    $
         .TEXT   " --------------------     ----------------------------------------------",CR,LF
         ;; TODO       D(isassmble) memory      D   STARTADDR ENDADDR
         .TEXT   " E(xamine) memory         E   STARTADDR COUNT",CR,LF
-        .TEXT   " M(odify) memory          M   ADDRESS",CR,LF
+        .TEXT   " M(odify) memory          M   ADDRESS VALUE",CR,LF
         .TEXT   " G(o) execute memory      G   ADDRESS",CR,LF
         .TEXT   " C(opy) memory            C   STARTADDR ENDADDR DESTADDR",CR,LF
         .TEXT   " F(ill) memory            F   STARTADDR ENDADDR CONST",CR,LF
@@ -55,8 +55,8 @@ SMMENU: .EQU    $
         .TEXT   " W(rite) mass storage     W   UNIT TRACK SECTOR STARTADDR ENDADDR",CR,LF
         .TEXT   " B(oot)                   B   ?,M #, 1-7",CR,LF
         .TEXT   CR,LF
-        .TEXT   " I(nput) port             I   PORTNUM",CR,LF
-        .TEXT   " O(utput) port            O   PORTNUM CONST",CR,LF
+        .TEXT   " I(nput) port             I   PORTNUM COUNT",CR,LF
+        .TEXT   " O(utput) port            O   PORTNUM CONST COUNT",CR,LF
         .TEXT   CR,LF
         .TEXT   " ? (Help)                 ?",CR,LF,CR,LF,NULL
 
