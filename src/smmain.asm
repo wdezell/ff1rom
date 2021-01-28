@@ -39,27 +39,26 @@ SMMENU: .EQU    $
         CALL    CLSA3
 
         CALL    PRINL
-        .TEXT   CR,LF,HT, "SYSTEM MONITOR",CR,LF,CR,LF      ; FIXME - display address and size here
-        .TEXT   HT, " Command                  Format",CR,LF
-        .TEXT   HT, " --------------------     ----------------------------------------------",CR,LF
+        .TEXT   CR,LF, "SYSTEM MONITOR",CR,LF,CR,LF      ; FIXME - display address and size here
+        .TEXT   " Command                  Format",CR,LF
+        .TEXT   " --------------------     ----------------------------------------------",CR,LF
         ;; TODO       D(isassmble) memory      D   STARTADDR ENDADDR
-        .TEXT   HT, " E(xamine) memory         E   STARTADDR COUNT",CR,LF
-        .TEXT   HT, " M(odify) memory          M   ADDRESS",CR,LF
-        .TEXT   HT, " G(o) execute memory      G   ADDRESS",CR,LF
-        .TEXT   HT, " C(opy) memory            C   STARTADDR ENDADDR DESTADDR",CR,LF
-        .TEXT   HT, " F(ill) memory            F   STARTADDR ENDADDR CONST",CR,LF
-        .TEXT   HT, " T(est) memory            T   STARTADDR ENDADDR",CR,LF
-        .TEXT   HT, " H(ex Load) memory        H   SER_A/B BAUD PARITY WORD STOP AUTOEXECUTE",CR,LF
+        .TEXT   " E(xamine) memory         E   STARTADDR COUNT",CR,LF
+        .TEXT   " M(odify) memory          M   ADDRESS",CR,LF
+        .TEXT   " G(o) execute memory      G   ADDRESS",CR,LF
+        .TEXT   " C(opy) memory            C   STARTADDR ENDADDR DESTADDR",CR,LF
+        .TEXT   " F(ill) memory            F   STARTADDR ENDADDR CONST",CR,LF
+        .TEXT   " T(est) memory            T   STARTADDR ENDADDR",CR,LF
+        .TEXT   " H(ex Load) memory        H   SER_A/B BAUD PARITY WORD STOP AUTOEXECUTE",CR,LF
         .TEXT   CR,LF
-        .TEXT   HT, " R(ead) mass storage      R   UNIT TRACK SECTOR DESTADDR COUNT",CR,LF
-        .TEXT   HT, " W(rite) mass storage     W   UNIT TRACK SECTOR STARTADDR ENDADDR",CR,LF
-        .TEXT   HT, " B(oot)                   B   ?,M #, 1-7",CR,LF
+        .TEXT   " R(ead) mass storage      R   UNIT TRACK SECTOR DESTADDR COUNT",CR,LF
+        .TEXT   " W(rite) mass storage     W   UNIT TRACK SECTOR STARTADDR ENDADDR",CR,LF
+        .TEXT   " B(oot)                   B   ?,M #, 1-7",CR,LF
         .TEXT   CR,LF
-        .TEXT   HT, " I(nput) port             I   PORTNUM",CR,LF
-        .TEXT   HT, " O(utput) port            O   PORTNUM CONST",CR,LF
+        .TEXT   " I(nput) port             I   PORTNUM",CR,LF
+        .TEXT   " O(utput) port            O   PORTNUM CONST",CR,LF
         .TEXT   CR,LF
-        .TEXT   HT, " ? (Help)                 ?",CR,LF
-        .TEXT   HT, " X (Exit)                 X",CR,LF,CR,LF,NULL
+        .TEXT   " ? (Help)                 ?",CR,LF,CR,LF,NULL
 
         ; CLEAR ACTIVE COMMAND REFERENCE
         CALL    SMCCC

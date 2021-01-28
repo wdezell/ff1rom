@@ -33,12 +33,11 @@ _SMVM:  LD      HL,SMCURCM  ; UPDATE 'CURRENT COMMAND' REFERENCE BYTE
         ;; DISPATCH HANDLER FOR COMMAND
         LD      HL,SMCMTAB  ; POINT TO START OF DISPATCH TABLE
         LD      B,SMVCMCT   ; NUMBER OF ENTRIES IN TABLE
-        RST     10H
         CALL    TABDSP      ; INVOKE COMMAND HANDLER
         RET
 
 
-_SMVDZ: ;; -- BEGIN DEBUG  -- MOD TO DO THIS FOR ~ COMMAND
+_SMVDZ: ;; -- BEGIN DEBUG  -- MOD TO DO THIS FOR ~ COMMAND      TODO: REPLACE THIS WITH BETTER
         ;; SIMPLE DISPLAY OF WHAT THE BUFFERS HAVE IN THEM
         ;CALL    CLSVT
         CALL    PRINL
@@ -96,34 +95,93 @@ _SMVDZ: ;; -- BEGIN DEBUG  -- MOD TO DO THIS FOR ~ COMMAND
 
         ;; VALIDATION AND DISPATCH WORKING STORAGE
 SMCURCM:.DB     ' '                     ; CURRENT COMMAND MODE
-SMVCMDS:.TEXT   ".?BCEFGHIMORTWX"       ; VALID MAIN MENU COMMANDS
+SMVCMDS:.TEXT   ".?BCEFGHIMORTW"        ; VALID MAIN MENU COMMANDS
 SMVCMCT:.EQU    $-SMVCMDS               ; COUNT OF COMMANDS
 
         ; MAIN MENU COMMAND HANDLER DISPATCH TABLE
 SMCMTAB:.DW     _SMVDZ                  ; HANDLER FOR '.' (HIDDEN DEBUG MONKEY)
         .DW     SMMENU                  ; ?
-        .DW     SMCNYI                  ; B
-        .DW     SMCNYI                  ; C
-        .DW     SMCNYI                  ; E
-        .DW     SMCNYI                  ; F
-        .DW     SMCNYI                  ; G
-        .DW     SMCNYI                  ; H
-        .DW     SMCNYI                  ; I
-        .DW     SMCNYI                  ; M
-        .DW     SMCNYI                  ; O
-        .DW     SMCNYI                  ; R
-        .DW     SMCNYI                  ; T
-        .DW     SMCNYI                  ; W
-        .DW     SMCNYI                  ; X
+        .DW     SMCMDB                  ; B
+        .DW     SMCMDC                  ; C
+        .DW     SMCMDE                  ; E
+        .DW     SMCMDF                  ; F
+        .DW     SMCMDG                  ; G
+        .DW     SMCMDH                  ; H
+        .DW     SMCMDI                  ; I
+        .DW     SMCMDM                  ; M
+        .DW     SMCMDO                  ; O
+        .DW     SMCMDR                  ; R
+        .DW     SMCMDT                  ; T
+        .DW     SMCMDW                  ; W
 
         ; DISPATCH TABLE ENTRIES MUST MATCH NUMBER OF COMMANDS (AND ORDER)
         ASSERT( ($ - SMCMTAB)/2 = SMVCMCT )
 
-        ;; DISPLAY SIMPLE 'NOT YET IMPLEMENTED' MESSAGE FOR COMMAND
+        ;; STUBS FOR COMMAND HANDLERS - MOVE TO INDIVIDUAL SOURCE FILES AS IMPLEMENTED
         ;; -------------------------------------------------------------
-SMCNYI: LD      HL,SMERR03
-        CALL    SMPRSE
-        AND     A           ; CLEAR CARRY AND ERROR STATUS
+SMCMDB: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'B' NOT YET IMPLEMENTED",NULL
+        CALL    SMCCC
+        RET
+        
+SMCMDC: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'C' NOT YET IMPLEMENTED",NULL
+        CALL    SMCCC
+        RET
+        
+SMCMDE: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'E' NOT YET IMPLEMENTED",NULL
+        CALL    SMCCC
+        RET
+        
+SMCMDF: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'F' NOT YET IMPLEMENTED",NULL
+        CALL    SMCCC
+        RET
+        
+SMCMDG: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'G' NOT YET IMPLEMENTED",NULL
+        CALL    SMCCC
+        RET
+        
+SMCMDH: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'H' NOT YET IMPLEMENTED",NULL
+        CALL    SMCCC
+        RET
+        
+SMCMDI: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'I' NOT YET IMPLEMENTED",NULL
+        CALL    SMCCC
+        RET
+        
+SMCMDM: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'M' NOT YET IMPLEMENTED",NULL
+        CALL    SMCCC
+        RET
+        
+SMCMDO: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'O' NOT YET IMPLEMENTED",NULL
+        CALL    SMCCC
+        RET
+        
+SMCMDR: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'R' NOT YET IMPLEMENTED",NULL
+        CALL    SMCCC
+        RET
+        
+SMCMDT: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'T' NOT YET IMPLEMENTED",NULL
+        CALL    SMCCC
+        RET
+        
+SMCMDW: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'W' NOT YET IMPLEMENTED",NULL
+        CALL    SMCCC
+        RET
+        
+SMCMDX: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'X' NOT YET IMPLEMENTED",NULL
+        CALL    SMCCC
         RET
         
         ;; -------------------------------------------------------------
