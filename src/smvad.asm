@@ -12,9 +12,33 @@
         ;; -------------------------------------------------------------
 SMVAD:  .EQU    $
 
-        ;; TODO -- YOU ARE HERE
+        ;; VALIDATE COMMAND AND GET POSITION INDEX   (MAYBE MOVE TOUPPER HERE, YES? IS GOOD IDEA.)
+        LD      HL,SMPB0    ; GET FIRST CHAR FROM COMMAND BUFFER INTO REG A
+        LD      A,(HL)
+        ;CALL    TOUPPER    ; NOTE - CALL HERE INSTEAD OF IN PARSE IF CMD-ONLY CASE CONVERSION
+        LD      HL,SMVCMDS  ; POINT HL TO ORDERED LIST OF VALID COMMANDS
+        LD      BC,SMVCMCT  ; SET SEARCH COUNTER TO NUMBER OF COMMANDS
+        CPIR                ; SEARCH LIST FOR COMMAND MATCHING CHARACTER IN REG A
+        JR      Z,_SMVM     ; WE MATCHED A VALID COMMAND
+        LD      HL,SMERR01  ; NO MATCH - DISPLAY ERROR MESSAGE
+        CALL    SMPRSE
+        RET
 
-_SMVDZ: ;; -- BEGIN DEBUG
+        ;; COMMAND VALID - DERIVE DISPATCH INDEX FROM COMMAND POSITION IN REFERENCE LIST
+_SMVM:  LD      HL,SMCURCM  ; UPDATE 'CURRENT COMMAND' REFERENCE BYTE
+        LD      (HL),A
+        LD      A,SMVCMCT-1 ; GET COUNT OF TOTAL COMMANDS IN A, ADJUST FOR ZERO-BASED TABLE INDEX
+        SUB     C           ; SUBTRACT 'TRIES REMAINING' COUNT (B IS ZERO SO JUST LOOK AT C)
+
+        ;; DISPATCH HANDLER FOR COMMAND
+        LD      HL,SMCMTAB  ; POINT TO START OF DISPATCH TABLE
+        LD      B,SMVCMCT   ; NUMBER OF ENTRIES IN TABLE
+        RST     10H
+        CALL    TABDSP      ; INVOKE COMMAND HANDLER
+        RET
+
+
+_SMVDZ: ;; -- BEGIN DEBUG  -- MOD TO DO THIS FOR ~ COMMAND
         ;; SIMPLE DISPLAY OF WHAT THE BUFFERS HAVE IN THEM
         ;CALL    CLSVT
         CALL    PRINL
@@ -63,35 +87,44 @@ _SMVDZ: ;; -- BEGIN DEBUG
         CALL    PRINL
         .TEXT   CR,LF,NULL
         RST     10H
-        ;; -- END DEBUG
+
+        ; CLEAR ACTIVE COMMAND REFERENCE
+        CALL    SMCCC
         RET
+        ;; -- END DEBUG
 
 
         ;; VALIDATION AND DISPATCH WORKING STORAGE
 SMCURCM:.DB     ' '                     ; CURRENT COMMAND MODE
-SMVCMDS:.TEXT   "?BCEFGHIMORTWX"        ; VALID MAIN MENU COMMANDS IN UPPERCASE
+SMVCMDS:.TEXT   ".?BCEFGHIMORTWX"       ; VALID MAIN MENU COMMANDS
 SMVCMCT:.EQU    $-SMVCMDS               ; COUNT OF COMMANDS
 
         ; MAIN MENU COMMAND HANDLER DISPATCH TABLE
-SMCMTAB:.DW     SMDUMMY                 ; ADDRESS FOR COMMAND HANDLER FOR '?'
-        .DW     SMDUMMY                 ; B
-        .DW     SMDUMMY                 ; C
-        .DW     SMDUMMY                 ; E
-        .DW     SMDUMMY                 ; F
-        .DW     SMDUMMY                 ; G
-        .DW     SMDUMMY                 ; H
-        .DW     SMDUMMY                 ; I
-        .DW     SMDUMMY                 ; M
-        .DW     SMDUMMY                 ; O
-        .DW     SMDUMMY                 ; R
-        .DW     SMDUMMY                 ; T
-        .DW     SMDUMMY                 ; W
-        .DW     SMDUMMY                 ; X
+SMCMTAB:.DW     _SMVDZ                  ; HANDLER FOR '.' (HIDDEN DEBUG MONKEY)
+        .DW     SMMENU                  ; ?
+        .DW     SMCNYI                  ; B
+        .DW     SMCNYI                  ; C
+        .DW     SMCNYI                  ; E
+        .DW     SMCNYI                  ; F
+        .DW     SMCNYI                  ; G
+        .DW     SMCNYI                  ; H
+        .DW     SMCNYI                  ; I
+        .DW     SMCNYI                  ; M
+        .DW     SMCNYI                  ; O
+        .DW     SMCNYI                  ; R
+        .DW     SMCNYI                  ; T
+        .DW     SMCNYI                  ; W
+        .DW     SMCNYI                  ; X
 
-        ; DISPATCH TABLE ENTRIES MUST MATCH ORDER AND NUMBER OF COMMANDS
+        ; DISPATCH TABLE ENTRIES MUST MATCH NUMBER OF COMMANDS (AND ORDER)
         ASSERT( ($ - SMCMTAB)/2 = SMVCMCT )
 
-SMDUMMY:.EQU    $                       ; DUMMY ADDRESS -- DELETE AS HAVE IMPLEMENTATIONS
-
+        ;; DISPLAY SIMPLE 'NOT YET IMPLEMENTED' MESSAGE FOR COMMAND
+        ;; -------------------------------------------------------------
+SMCNYI: LD      HL,SMERR03
+        CALL    SMPRSE
+        AND     A           ; CLEAR CARRY AND ERROR STATUS
+        RET
+        
         ;; -------------------------------------------------------------
         ;; END -- COMMAND VALIDATION AND HANDLER DISPATCH

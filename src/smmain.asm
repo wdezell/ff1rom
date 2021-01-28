@@ -39,17 +39,17 @@ SMMENU: .EQU    $
         CALL    CLSA3
 
         CALL    PRINL
-        .TEXT   HT, "SYSMON - AAAA-EEEE SIZE CCCC",CR,LF,CR,LF      ; FIXME - ADD DYNAMIC SPECS HERE
+        .TEXT   CR,LF,HT, "SYSTEM MONITOR",CR,LF,CR,LF      ; FIXME - display address and size here
         .TEXT   HT, " Command                  Format",CR,LF
         .TEXT   HT, " --------------------     ----------------------------------------------",CR,LF
         ;; TODO       D(isassmble) memory      D   STARTADDR ENDADDR
-        .TEXT   HT, " E(xamine) memory         E   STARTADDR ENDADDR",CR,LF
+        .TEXT   HT, " E(xamine) memory         E   STARTADDR COUNT",CR,LF
         .TEXT   HT, " M(odify) memory          M   ADDRESS",CR,LF
         .TEXT   HT, " G(o) execute memory      G   ADDRESS",CR,LF
         .TEXT   HT, " C(opy) memory            C   STARTADDR ENDADDR DESTADDR",CR,LF
         .TEXT   HT, " F(ill) memory            F   STARTADDR ENDADDR CONST",CR,LF
         .TEXT   HT, " T(est) memory            T   STARTADDR ENDADDR",CR,LF
-        .TEXT   HT, " H(ex Load) memory        H   SERCHAN BAUD PARITY WORD STOP AUTOEXECUTE",CR,LF
+        .TEXT   HT, " H(ex Load) memory        H   SER_A/B BAUD PARITY WORD STOP AUTOEXECUTE",CR,LF
         .TEXT   CR,LF
         .TEXT   HT, " R(ead) mass storage      R   UNIT TRACK SECTOR DESTADDR COUNT",CR,LF
         .TEXT   HT, " W(rite) mass storage     W   UNIT TRACK SECTOR STARTADDR ENDADDR",CR,LF
@@ -61,8 +61,18 @@ SMMENU: .EQU    $
         .TEXT   HT, " ? (Help)                 ?",CR,LF
         .TEXT   HT, " X (Exit)                 X",CR,LF,CR,LF,NULL
 
+        ; CLEAR ACTIVE COMMAND REFERENCE
+        CALL    SMCCC
         RET
 
+
+        ;; CLEAR ACTIVE COMMAND REFERENCE
+        ;; -------------------------------------------------------------
+SMCCC:  PUSH    HL
+        LD      HL,SMCURCM
+        LD      (HL),' '
+        POP     HL
+        RET
 
         ;; SYSMON INIT
         ;;  INITIALIZE WORK BUFFERS, COUNTERS

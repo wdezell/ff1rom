@@ -218,7 +218,6 @@ TABDSP: .EQU    $
         LD      H,(HL)
         LD      L,A
         EX      (SP),HL     ;RESTORE OLD HL, PUSH ROUTINE ADDRESS
-
         RET                 ; JUMP TO ROUTINE
 
 

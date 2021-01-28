@@ -20,8 +20,9 @@ SMPRAP: .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,"MON>",NULL
 
-        ; CLEAR BUFFERS
+        ; CLEAR BUFFERS, RESET ERROR FLAG
         CALL    SMCLRB
+        AND     A           ; CLEAR CARRY
 
         ;; GET USER INPUT
         LD      HL,CONBUF   ; RETURN BUFFER
@@ -34,8 +35,7 @@ _SMHVCM:LD      A,' '       ; SEE IF WE ARE IN AN ACTIVE COMMAND MODE
         LD      HL,SMCURCM
         CP      (HL)
         JP      Z,SMPRAP    ; NO ENTRY, NO ACTIVE COMMAND MODE - READ AGAIN
-        SCF                 ; ENSURE RETURN WITH CARRY = 0 TO SIGNAL NO ERROR
-        CCF
+        AND     A           ; ENSURE RETURN WITH CARRY = 0 TO SIGNAL NO ERROR
         RET                 ; NO ENTRY BUT HAVE ACTIVE COMMAND MODE
 
         ;; PARSE MAIN INPUT BUFFER
@@ -137,21 +137,24 @@ SMPFSE: LD      HL,SMERR02  ; 'PARAM WIDTH' ERROR
 
         ;; VALIDATION ERROR HANDLER
         ;;  RETURNS WITH CARRY SET SO UPSTREAM CAN ADAPT FLOW AS REQD
+        ;;
+        ;; USAGE:   SET HL = ADDRESS OF SPECIFIC ERROR TEXT
+        ;;          CALL SMPRSE
         ;; -------------------------------------------------------------
 SMPRSE: .EQU    $
-
+        PUSH    AF          ; PRESERVE A, FLAGS
         PUSH    HL          ; PRESERVE ERROR MESSAGE PASSED IN HL
         CALL    PRINL       ; DISPLAY ERROR MESSAGE PREAMBLE
-        .TEXT   "**ERROR**: ",0
+        .TEXT   CR,LF,"**ERROR**: ",NULL
 
         POP     HL          ; RETRIEVE MESSAGE BODY AND PRINT IT
         CALL    PRSTRZ
 
         CALL    PRINL       ; WAIT FOR ACKKNOWLEDGEMENT
-        .TEXT   HT,"PRESS ANY KEY...",0
+        .TEXT   CR,LF,"PRESS ANY KEY...",NULL
 
         CALL    CONCIN      ; READ A KEY
-
+        POP     AF
         SCF                 ; SET CARRY FLAG TO INDICATE ERROR
         RET
 
@@ -171,9 +174,10 @@ SMRSTB: PUSH    HL
 
         ;; EQUATES, GENERAL WORK VARS
         ;; -------------------------------------------------------------
-SMERR00:.TEXT   "00 SYNTAX ERROR",NULL  ; ERROR MESSAGES
-SMERR01:.TEXT   "01 INVALID COMMAND",NULL;
-SMERR02:.TEXT   "02 PARAM WIDTH",NULL   ;
+SMERR00:.TEXT   "SYNTAX ERROR",NULL  ; ERROR MESSAGES
+SMERR01:.TEXT   "INVALID COMMAND",NULL;
+SMERR02:.TEXT   "PARAM WIDTH",NULL   ;
+SMERR03:.TEXT   "NOT IMPLEMENTED YET",NULL   ;
 
         ;; -- PARSE DESTINATION BUFFER LOOKUP TABLE --
 SMCBSL: .DW     0           ; BUFFER SELECTOR (ADDRESS OF DESTINATION BUFFER WE'RE PARSING INTO)
