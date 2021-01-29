@@ -47,139 +47,6 @@ _BY2H2: ADD     A,'0'       ; ADD OFFSET FOR ASCII
         RET
 
 
-        ;; DISPLAY VALUE OF REGISTER PAIR HL AS
-        ;;   4-DIGIT HEXADECIMAL NUMBER
-        ;;
-        ;;  REGISTERS AFFECTED: NONE
-        ;; -------------------------------------------------------------
-PRTHLR: .EQU    $
-
-        CALL    SAVE        ; SAVE ALL REGISTERS AND FLAGS
-        EX      DE,HL       ; SWAP - WE NEED HL FOR INDIRECTION
-
-        LD      HL,_PHTMP   ; POINT TO WORKING STORAGE BYTE
-        LD      A,D         ; SAVE WHAT WAS 'H' AND PRINT IT
-        LD      (HL),A
-        CALL    PRTMEM
-
-        LD      A,E         ; SAVE WHAT WAS 'L' AND PRINT IT
-        LD      (HL),A
-        CALL    PRTMEM
-
-        RET
-
-_PHTMP: .DB     1           ; SCRATCH STORAGE
-
-
-        ;; DISPLAY VALUE OF MEMORY LOCATION ADDRESSED BY HL
-        ;;  AS 2-DIGIT HEXADECIMAL NUMBER
-        ;;
-        ;;  REGISTERS AFFECTED: NONE
-        ;; -------------------------------------------------------------
-PRTMEM: .EQU    $
-
-        CALL    SAVE        ; SAVE ALL REGISTERS AND FLAGS
-
-        CALL    BY2HXA
-        LD      C,D         ; GET HIGH NIBBLE INTO C FOR OUTPUT
-        CALL    CONOUT      ;
-        LD      C,E         ; GET LOW NIBBLE INTO C FOR OUTPUT
-        CALL    CONOUT      ;
-
-        RET
-
-
-        ;; IN-LINE PRINT ROUTINE
-        ;;  PRINT NULL-TERMINATED STRING IMMEDIATELY FOLLOWING SUBROUTINE CALL.
-        ;;  STACK RETURN ADDRESS IS ADJUSTED TO BYTE FOLLOWING TERMINATING NULL.
-        ;;
-        ;; REGISTERS AFFECTED:  NONE
-        ;; -------------------------------------------------------------
-PRINL:  EX      (SP),HL     ; NEXT BYTE AFTER CALL NOT RETURN ADDR BUT STRING
-        CALL    PRSTRZ      ; HL NOW POINTS TO STRING; PRINT AS USUAL
-        INC     HL          ; ADJUST HL ONE BYTE BEYOND NULL TERMINATOR
-        EX      (SP),HL     ; PUT HL BACK ON STACK AS ADJUSTED RETURN ADDRESS
-        RET
-
-
-        ;; PRINT NULL-TERMINATED STRING POINTED TO BY HL REGISTER PAIR
-        ;;  HL = START  ADDRESS OF STRING
-        ;;
-        ;;  REGISTERS AFFECTED:  HL IS LEFT POINTING TO NULL TERMINATOR CHARACTER
-        ;;                        AS REQUIRED BY INLPRT
-        ;; -------------------------------------------------------------
-PRSTRZ: PUSH    AF          ; SAVE AFFECTED REGS
-        PUSH    BC
-_PRGTC: LD      A,(HL)      ; GET CHAR
-        CP      0           ; IS CHAR NULL END-OF-STRING DELIM ?
-        JP      Z,_PRDON    ; YES, DONE
-        LD      C,A         ; NO, SEND TO CHAROUT ROUTINE
-        CALL    CONOUT
-        INC     HL          ; GET NEXT CHARACTER
-        JP      _PRGTC
-_PRDON: POP     BC          ; RESTORE AFFECTED REGS
-        POP     AF
-        RET
-
-;; -------------------------------------------------------------
-;; MATH ROUTINES
-;; -------------------------------------------------------------
-
-        ;; TODO:  8-BIT MULTIPLY
-
-        ;; TODO:  16-BIT DIVIDE
-
-
-;; -------------------------------------------------------------
-;; MISCELLANEOUS UTILITY
-;; -------------------------------------------------------------
-
-        ;; SEND ADM3A COMPATIBLE SCREEN CLEAR COMMAND
-        ;;  REGISTERS AFFECTED:  NONE
-        ;;
-        ;; NOTE: LS ADM3A SCREEN CLEAR FUNCTION MAY BE DISABLED
-        ;;       BY INTERNAL SWITCH #3 ON SWITCH BLOCK A6
-        ;; -------------------------------------------------------------
-CLSA3:  CALL    PRINL
-        .DB     01AH, NULL  ; SINGLE CTRL-Z CHAR
-        RET
-
-
-        ;; SEND VT-100 COMPATIBLE SCREEN CLEAR COMMAND SEQUENCE
-        ;;  REGISTERS AFFECTED:  NONE
-        ;; -------------------------------------------------------------
-CLSVT:  CALL    PRINL
-        .DB     1BH, '[', '2', 'J', NULL
-        RET
-
-
-        ;; DELAY .25 SEC TIMES B
-        ;;  PROVIVIDES A DELAY OF APPROXIMATELY 250,000 US
-        ;;  FOR EVERY COUNT SPECIFIED BY B
-        ;;
-        ;;  TIMING IS BASED ON EXECUTION TIMES ON A 6.144 MHZ SYSTEM
-        ;;  CLOCK.  DOES NOT ACCOUNT FOR CALL & RETURN TIMES NOR
-        ;;  ~4 USEC OVERALL SETUP AND TEARDOWN TIMES.
-        ;;
-        ;; REGISTERS AFFECTED:
-        ;;  B
-        ;;  AF'
-        ;; -------------------------------------------------------------
-        ;;
-DLY25B:	EX	    AF,AF'          ; 0.65  US @ 6.144 MHZ
-	    LD	    DE,34176D		; 1.63
-_DLY25:	DEC	    DE			    ; 0.975  ---
-	    LD	    A,D			    ; 0.65   ^
-	    OR	    E 			    ; 0.65   5.205 US
-	    JP	    NZ,_DLY25		; 1.63
-	    NOP				        ; 0.65   v
-	    NOP 				    ; 0.65   ---
-	    DJNZ	DLY25B		    ; 2.11 B != 0, 1.3 US B = 0
-	    EX	    AF,AF'          ; 0.65
-
-	    RET
-
-
         ;; IS ASCII CHAR IN A AN ASCII ALPHA CHARACTER (UPPERCASE OR LOWERCASE)
         ;;
         ;;  RETURNS:
@@ -235,8 +102,10 @@ ISLOWER:PUSH    HL          ; PRESERVE
         ;;   A = UNCHANGED
         ;;   CARRY = 1 IF IS NUMERIC CHAR, ELSE CARRY = 0
         ;;
+        ;; TODO: NEED TO MOD TO ACCOMMODATE A RADIX PARAM AND EXPAND TO
+        ;;       ANSWER CORRECTLY FOR BINARY, OCTAL, AND HEX
         ;; -------------------------------------------------------------
-ISNUM:  PUSH    HL          ; PRESERVE
+ISDIGT: PUSH    HL          ; PRESERVE
         LD      H,'9'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
         LD      L,'0'       ; SET LOW RANGE INCLUSIVE BOUNDARY
         CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
@@ -258,6 +127,230 @@ ISUPPER:PUSH    HL          ; PRESERVE
         POP     HL
         RET
 
+
+
+        ;; DISPLAY VALUE OF REGISTER PAIR HL AS
+        ;;   4-DIGIT HEXADECIMAL NUMBER
+        ;;
+        ;;  REGISTERS AFFECTED: NONE
+        ;; -------------------------------------------------------------
+PRTHLR: .EQU    $
+
+        CALL    SAVE        ; SAVE ALL REGISTERS AND FLAGS
+        EX      DE,HL       ; SWAP - WE NEED HL FOR INDIRECTION
+
+        LD      HL,_PHTMP   ; POINT TO WORKING STORAGE BYTE
+        LD      A,D         ; SAVE WHAT WAS 'H' AND PRINT IT
+        LD      (HL),A
+        CALL    PRTMEM
+
+        LD      A,E         ; SAVE WHAT WAS 'L' AND PRINT IT
+        LD      (HL),A
+        CALL    PRTMEM
+
+        RET
+
+_PHTMP: .DB     1           ; SCRATCH STORAGE
+
+
+        ;; DISPLAY VALUE OF MEMORY LOCATION ADDRESSED BY HL
+        ;;  AS 2-DIGIT HEXADECIMAL NUMBER
+        ;;
+        ;;  REGISTERS AFFECTED: NONE
+        ;; -------------------------------------------------------------
+PRTMEM: PUSH    BC
+        PUSH    AF
+
+        CALL    BY2HXA
+        LD      C,D         ; GET HIGH NIBBLE INTO C FOR OUTPUT
+        CALL    CONOUT      ;
+        LD      C,E         ; GET LOW NIBBLE INTO C FOR OUTPUT
+        CALL    CONOUT      ;
+
+        POP     AF
+        POP     BC
+        RET
+
+
+        ;; IN-LINE PRINT ROUTINE
+        ;;  PRINT NULL-TERMINATED STRING IMMEDIATELY FOLLOWING SUBROUTINE CALL.
+        ;;  STACK RETURN ADDRESS IS ADJUSTED TO BYTE FOLLOWING TERMINATING NULL.
+        ;;
+        ;; REGISTERS AFFECTED:  NONE
+        ;; -------------------------------------------------------------
+PRINL:  EX      (SP),HL     ; NEXT BYTE AFTER CALL NOT RETURN ADDR BUT STRING
+        CALL    PRSTRZ      ; HL NOW POINTS TO STRING; PRINT AS USUAL
+        INC     HL          ; ADJUST HL ONE BYTE BEYOND NULL TERMINATOR
+        EX      (SP),HL     ; PUT HL BACK ON STACK AS ADJUSTED RETURN ADDRESS
+        RET
+
+
+        ;; PRINT NULL-TERMINATED STRING POINTED TO BY HL REGISTER PAIR
+        ;;  HL = START  ADDRESS OF STRING
+        ;;
+        ;;  REGISTERS AFFECTED:  HL IS LEFT POINTING TO NULL TERMINATOR CHARACTER
+        ;;                        AS REQUIRED BY INLPRT
+        ;; -------------------------------------------------------------
+PRSTRZ: PUSH    AF          ; SAVE AFFECTED REGS
+        PUSH    BC
+_PRGTC: LD      A,(HL)      ; GET CHAR
+        CP      0           ; IS CHAR NULL END-OF-STRING DELIM ?
+        JP      Z,_PRDON    ; YES, DONE
+        LD      C,A         ; NO, SEND TO CHAROUT ROUTINE
+        CALL    CONOUT
+        INC     HL          ; GET NEXT CHARACTER
+        JP      _PRGTC
+_PRDON: POP     BC          ; RESTORE AFFECTED REGS
+        POP     AF
+        RET
+
+
+        ;; CONVERT ASCII CHAR IN A IN RANGE 30-39H TO DIGIT
+        ;;
+        ;;  RETURNS:
+        ;;   A = NUMERICAL VALUE OF CHAR IF VALID, ELSE UNCHANGED
+        ;;   CARRY SET FOR VALID CONVERSION
+        ;;
+        ;; -------------------------------------------------------------
+TODIGIT:CALL    ISDIGT      ; IS VALUE IN A AN ASCII DIGIT 30H-39H?
+        RET     NC          ; NO - ERROR RETURN W/ CARRY CLEAR
+        SUB     30H         ; YES - CONVERT ASCII DIGIT TO NUMERICAL VALUE
+        SCF                 ; ENSURE CARRY IS SET TO INDICATE SUCCESS
+        RET
+
+
+        ;; CONVERT UPPERCASE ASCII CHAR IN REG A TO LOWERCASE
+        ;;
+        ;;  RETURNS:
+        ;;   A = LOWERCASE CHAR IF VALID, ELSE UNCHANGED
+        ;;   CARRY SET FOR VALID CONVERSION
+        ;;
+        ;; -------------------------------------------------------------
+TOLOWER:CALL    ISUPPER     ; IS CHARACTER IN REG A AN UPPERCASE CHARACTER?
+        RET     NC          ; NO -WON'T CONVERT
+        ADD     20H         ; YES - CONVERT TO LOWERCASE EQUIVALENT
+        RET
+
+
+        ;; CONVERT LOWERCASE ASCII CHAR IN REG A TO UPPERCASE
+        ;;
+        ;;  RETURNS:
+        ;;   A = UPPERCASE CHAR IF VALID, ELSE UNCHANGED
+        ;;   CARRY SET FOR VALID CONVERSION
+        ;;
+        ;; -------------------------------------------------------------
+TOUPPER:CALL    ISLOWER     ; IS CHARACTER IN REG A A LOWERCASE CHARACTER?
+        RET     NC          ; NO -WON'T CONVERT
+        SUB     20H         ; YES - CONVERT TO UPPERCASE EQUIVALENT
+        RET
+
+;; -------------------------------------------------------------
+;; MATH ROUTINES
+;; -------------------------------------------------------------
+
+        ;; TODO:  8-BIT MULTIPLY
+
+        ;; TODO:  16-BIT DIVIDE
+
+
+        ;; 16-BIT * 8-BIT UNSIGNED
+        ;;
+        ;; INPUT:               OUTPUT:
+        ;;  A = MULTIPLIER       A:HL = PRODUCT
+        ;;  DE = MULTIPLICAND
+        ;;  HL = 0
+        ;;  C = 0
+        ;;
+        ;; CREDIT: Z80 BITS, MILOS "BAZE" BAZELIDES, BAZE_AT_BAZE_AU_COM
+        ;; -------------------------------------------------------------
+M168U:  ADD     A,A         ; OPTIMISED 1ST ITERATION
+        JR      NC,$+4
+        LD      H,D
+        LD      L,E
+
+        ADD     HL,HL       ; UNROLL 7 TIMES
+        RLA                 ; ...
+        JR      NC,$+4      ; ...
+        ADD     HL,DE       ; ...
+        ADC     A,C         ; ...
+
+        RET
+
+
+        ;; 16-BIT * 16-BIT UNSIGNED MULTIPLICATION
+        ;;
+        ;; INPUT:                OUTPUT:
+        ;;  DE = MULTIPLIER       DE:HL = PRODUCT
+        ;;  BC = MULTIPLICAND
+        ;;  HL = 0
+        ;;
+        ;; CREDIT: Z80 BITS, MILOS "BAZE" BAZELIDES, BAZE_AT_BAZE_AU_COM
+        ;; -------------------------------------------------------------
+M1616U: SLA     E           ; OPTIMISED 1ST ITERATION
+        RL      D
+        JR      NC,$+4
+        LD      H,B
+        LD      L,C
+
+        ADD     HL,HL       ; UNROLL 15 TIMES
+        RL      E           ; ...
+        RL      D           ; ...
+        JR      NC,$+6      ; ...
+        ADD     HL,BC       ; ...
+        JR      NC,$+3      ; ...
+        INC     DE          ; ...
+
+        RET
+
+
+;; -------------------------------------------------------------
+;; MISCELLANEOUS UTILITY
+;; -------------------------------------------------------------
+
+        ;; SEND ADM3A COMPATIBLE SCREEN CLEAR COMMAND
+        ;;  REGISTERS AFFECTED:  NONE
+        ;;
+        ;; NOTE: LS ADM3A SCREEN CLEAR FUNCTION MAY BE DISABLED
+        ;;       BY INTERNAL SWITCH #3 ON SWITCH BLOCK A6
+        ;; -------------------------------------------------------------
+CLSA3:  CALL    PRINL
+        .DB     01AH, NULL  ; SINGLE CTRL-Z CHAR
+        RET
+
+
+        ;; SEND VT-100 COMPATIBLE SCREEN CLEAR COMMAND SEQUENCE
+        ;;  REGISTERS AFFECTED:  NONE
+        ;; -------------------------------------------------------------
+CLSVT:  CALL    PRINL
+        .DB     1BH, '[', '2', 'J', NULL
+        RET
+
+
+        ;; DELAY .25 SEC TIMES B
+        ;;  PROVIVIDES A DELAY OF APPROXIMATELY 250,000 US
+        ;;  FOR EVERY COUNT SPECIFIED BY B
+        ;;
+        ;;  TIMING IS BASED ON EXECUTION TIMES ON A 6.144 MHZ SYSTEM
+        ;;  CLOCK.  DOES NOT ACCOUNT FOR CALL & RETURN TIMES NOR
+        ;;  ~4 USEC OVERALL SETUP AND TEARDOWN TIMES.
+        ;;
+        ;; REGISTERS AFFECTED:
+        ;;  B
+        ;;  AF'
+        ;; -------------------------------------------------------------
+        ;;
+DLY25B:	EX	    AF,AF'          ; 0.65  US @ 6.144 MHZ
+	    LD	    DE,34176D		; 1.63
+_DLY25:	DEC	    DE			    ; 0.975  ---
+	    LD	    A,D			    ; 0.65   ^
+	    OR	    E 			    ; 0.65   5.205 US
+	    JP	    NZ,_DLY25		; 1.63
+	    NOP				        ; 0.65   v
+	    NOP 				    ; 0.65   ---
+	    DJNZ	DLY25B		    ; 2.11 B != 0, 1.3 US B = 0
+	    EX	    AF,AF'          ; 0.65
+
+	    RET
 
         ;; "MATHEWS SAVE REGISTER ROUTINE"
         ;;  FROM ZILOG MICROPROCESSOR APPLICATIONS REFERENCE BOOK VOLUME 1, 2-18-81
@@ -338,46 +431,6 @@ TABDSP: .EQU    $
         LD      L,A
         EX      (SP),HL     ;RESTORE OLD HL, PUSH ROUTINE ADDRESS
         RET                 ; JUMP TO ROUTINE
-
-
-        ;; CONVERT ASCII CHAR IN A IN RANGE 30-39H TO DIGIT
-        ;;
-        ;;  RETURNS:
-        ;;   A = NUMERICAL VALUE OF CHAR IF VALID, ELSE UNCHANGED
-        ;;   CARRY SET FOR VALID CONVERSION
-        ;;
-        ;; -------------------------------------------------------------
-TODIGIT:CALL    ISNUM       ; IS VALUE IN A AN ASCII DIGIT 30H-39H?
-        RET     NC          ; NO - ERROR RETURN W/ CARRY CLEAR
-        SUB     30H         ; YES - CONVERT ASCII DIGIT TO NUMERICAL VALUE
-        SCF                 ; ENSURE CARRY IS SET TO INDICATE SUCCESS
-        RET
-
-
-        ;; CONVERT UPPERCASE ASCII CHAR IN REG A TO LOWERCASE
-        ;;
-        ;;  RETURNS:
-        ;;   A = LOWERCASE CHAR IF VALID, ELSE UNCHANGED
-        ;;   CARRY SET FOR VALID CONVERSION
-        ;;
-        ;; -------------------------------------------------------------
-TOLOWER:CALL    ISUPPER     ; IS CHARACTER IN REG A AN UPPERCASE CHARACTER?
-        RET     NC          ; NO -WON'T CONVERT
-        ADD     20H         ; YES - CONVERT TO LOWERCASE EQUIVALENT
-        RET
-
-
-        ;; CONVERT LOWERCASE ASCII CHAR IN REG A TO UPPERCASE
-        ;;
-        ;;  RETURNS:
-        ;;   A = UPPERCASE CHAR IF VALID, ELSE UNCHANGED
-        ;;   CARRY SET FOR VALID CONVERSION
-        ;;
-        ;; -------------------------------------------------------------
-TOUPPER:CALL    ISLOWER     ; IS CHARACTER IN REG A A LOWERCASE CHARACTER?
-        RET     NC          ; NO -WON'T CONVERT
-        SUB     20H         ; YES - CONVERT TO UPPERCASE EQUIVALENT
-        RET
 
 
 ;; -------------------------------------------------------------
