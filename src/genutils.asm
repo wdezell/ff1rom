@@ -263,16 +263,18 @@ TOUPPER:CALL    ISLOWER     ; IS CHARACTER IN REG A A LOWERCASE CHARACTER?
         ;;
         ;; CREDIT: Z80 BITS, MILOS "BAZE" BAZELIDES, BAZE_AT_BAZE_AU_COM
         ;; -------------------------------------------------------------
-M168U:  ADD     A,A         ; OPTIMISED 1ST ITERATION
+M168U:  ADD     A,A         ; OPTIMIZED 1ST ITERATION
         JR      NC,$+4
         LD      H,D
         LD      L,E
 
-        ADD     HL,HL       ; UNROLL 7 TIMES
+        LD      B,7
+_168U:  ADD     HL,HL       ; UNROLL 7 TIMES
         RLA                 ; ...
         JR      NC,$+4      ; ...
         ADD     HL,DE       ; ...
         ADC     A,C         ; ...
+        DJNZ    _168U
 
         RET
 
@@ -292,13 +294,16 @@ M1616U: SLA     E           ; OPTIMISED 1ST ITERATION
         LD      H,B
         LD      L,C
 
-        ADD     HL,HL       ; UNROLL 15 TIMES
+        LD      A,15
+_1616U: ADD     HL,HL       ; UNROLL 15 TIMES
         RL      E           ; ...
         RL      D           ; ...
         JR      NC,$+6      ; ...
         ADD     HL,BC       ; ...
         JR      NC,$+3      ; ...
         INC     DE          ; ...
+        SUB     1
+        JR      NZ,_1616U
 
         RET
 
