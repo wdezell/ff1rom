@@ -354,69 +354,13 @@ _SMVM:  LD      HL,SMCURCM  ; UPDATE 'CURRENT COMMAND' REFERENCE BYTE
         RET
 
 
-_SMVDZ: ;; -- BEGIN DEBUG  -- MOD TO DO THIS FOR ~ COMMAND      TODO: REPLACE THIS WITH BETTER
-        ;; SIMPLE DISPLAY OF WHAT THE BUFFERS HAVE IN THEM
-        ;CALL    CLSVT
-        CALL    PRINL
-        .TEXT   CR,LF,CR,LF,"DEBUG - INPUT AND PARSE BUFFERS:",CR,LF,NULL
-
-        CALL    PRINL
-        .TEXT   CR,LF,"CONBUF: ",NULL
-        LD      HL,CONBUF
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB0: ",NULL
-        LD      HL,SMPB0
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB1: ",NULL
-        LD      HL,SMPB1
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB2: ",NULL
-        LD      HL,SMPB2
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB3: ",NULL
-        LD      HL,SMPB3
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB4: ",NULL
-        LD      HL,SMPB4
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB5: ",NULL
-        LD      HL,SMPB5
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB6: ",NULL
-        LD      HL,SMPB6
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,NULL
-        RST     10H
-
-        ; CLEAR ACTIVE COMMAND REFERENCE
-        CALL    SMCCC
-        RET
-        ;; -- END DEBUG
-
-
         ;; VALIDATION AND DISPATCH WORKING STORAGE
 SMCURCM:.DB     ' '                     ; CURRENT COMMAND MODE
 SMVCMDS:.TEXT   ".?BCEFGHIMORTW"        ; VALID MAIN MENU COMMANDS
 SMVCMCT:.EQU    $-SMVCMDS               ; COUNT OF COMMANDS
 
         ; TABLE: MAIN MENU COMMAND HANDLER DISPATCH
-SMCMTAB:.DW     _SMVDZ                  ; HANDLER FOR '.' (HIDDEN DEBUG MONKEY)
+SMCMTAB:.DW     DBGMKY                  ; '.' (HIDDEN DEBUG MONKEY)
         .DW     SMMENU                  ; ?
         .DW     SMCMDB                  ; B
         .DW     SMCMDC                  ; C
@@ -504,6 +448,7 @@ SMCMDX: CALL    PRINL
         ;; -------------------------------------------------------------
         ;; END -- COMMAND VALIDATION AND HANDLER DISPATCH SECTION
 
+IMPORT "dbgmnky.asm"        ;; THE DEBUG MONKEY
 
         .DEPHASE
 SYSMNE: .EQU    $               ; SYSTEM MONITOR END. TAG FOR RELOC & SIZE CALCS
