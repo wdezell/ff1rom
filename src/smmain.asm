@@ -378,6 +378,13 @@ SMCMTAB:.DW     DBGMKY                  ; '.' (HIDDEN DEBUG MONKEY)
         ; DISPATCH TABLE ENTRIES MUST MATCH NUMBER OF COMMANDS (AND ORDER)
         ASSERT( ($ - SMCMTAB)/2 = SMVCMCT )
 
+DBGMKY: .EQU    $
+
+        IMPORT "dbgmnky.asm"        ;; THE DEBUG MONKEY
+
+        CALL    SMCCC
+        RET
+
         ;; STUBS FOR COMMAND HANDLERS - MOVE TO INDIVIDUAL SOURCE FILES AS IMPLEMENTED
         ;; -------------------------------------------------------------
 SMCMDB: CALL    PRINL
@@ -440,15 +447,9 @@ SMCMDW: CALL    PRINL
         CALL    SMCCC
         RET
 
-SMCMDX: CALL    PRINL
-        .TEXT   CR,LF,"COMMAND 'X' NOT YET IMPLEMENTED",NULL
-        CALL    SMCCC
-        RET
-
         ;; -------------------------------------------------------------
         ;; END -- COMMAND VALIDATION AND HANDLER DISPATCH SECTION
 
-IMPORT "dbgmnky.asm"        ;; THE DEBUG MONKEY
 
         .DEPHASE
 SYSMNE: .EQU    $               ; SYSTEM MONITOR END. TAG FOR RELOC & SIZE CALCS
