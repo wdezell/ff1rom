@@ -9,12 +9,17 @@ GUTLSS: .EQU    $               ; GENERAL UTILITIES START. TAG FOR RELOC & SIZE 
 ;; -------------------------------------------------------------
 
         ;; BYTE-TO-ASCII CONVERSION
-        ;;  HL = ADDRESS OF MEMORY LOCATION TO BE CONVERTED
-        ;;  B = RETURNED ASCII REPRESENTATION OF LOW NIBBLE
-        ;;  C = RETURNED ASCII REPRESENTATION OF HIGH NIBBLE
+        ;;  GIVEN A LOCATION IN MEMORY ADDRESSED BY REGISTER PAIR HL,
+        ;;  RETURN 2-DIGIT HEXADECIMAL ASCII CHARACTER REPRESENTATIONS OF
+        ;;  NIBBLE VALUES IN REGISTERS D AND E
         ;;
+        ;;  HL = ADDRESS OF MEMORY LOCATION TO BE CONVERTED
+        ;;  D = RETURNED ASCII CHARACTER REPRESENTATION OF HIGH NIBBLE
+        ;;  E = RETURNED ASCII CHARACTER REPRESENTATION OF LOW NIBBLE
+        ;;
+        ;; ALTERS: DE
         ;; -------------------------------------------------------------
-HX2ASC: PUSH    AF          ; SAVE REGS
+BY2HXA: PUSH    AF          ; SAVE REGS
 
         ;; CONVERT HIGH NIBBLE
         LD      A,(HL)      ; GET MEMORY CONTENTS INTO A
@@ -24,73 +29,65 @@ HX2ASC: PUSH    AF          ; SAVE REGS
         RRA
         RRA
         CP      10          ; IS DATA 10 OR MORE?
-        JR      C,_ASCZ1
+        JR      C,_BY2H1
         ADD     A,'A'-'9'-1 ; YES - ADD OFFSET FOR LETTERS
-_ASCZ1: ADD     A,'0'       ; ADD OFFSET FOR ASCII
-        LD      C,A
+_BY2H1: ADD     A,'0'       ; ADD OFFSET FOR ASCII
+        LD      D,A
 
         ;; CONVERT LOW NIBBLE
         LD      A,(HL)      ; GET MEMORY CONTENTS INTO A
         AND     00001111B   ; CLEAR HIGH NIBBLE
         CP      10          ; IS DATA 10 OR MORE?
-        JR      C,_ASCZ2
+        JR      C,_BY2H2
         ADD     A,'A'-'9'-1 ; YES - ADD OFFSET FOR LETTERS
-_ASCZ2: ADD     A,'0'       ; ADD OFFSET FOR ASCII
-        LD      B,A
+_BY2H2: ADD     A,'0'       ; ADD OFFSET FOR ASCII
+        LD      E,A
 
         POP     AF          ; RESTORE REGS
         RET
 
-IF 0    ;; CLEANUP AND PORT TO FIREFLY
 
-        ;; PRINT HEX-ASCII REPRESENTATION OF REGISTER PAIR HL BY STORING H & L SEPERATELY
-        ;; TO SCRATCH RAM LOCATIONS THEN DOING NORMAL H2ASC CONVERSION/PRINT OF CONTENTS
-        ;; HL = ADDRESS VALUE THAT IS TO BE PRINTED IN FORM FFFF
+        ;; DISPLAY VALUE OF REGISTER PAIR HL AS
+        ;;   4-DIGIT HEXADECIMAL NUMBER
         ;;
+        ;;  REGISTERS AFFECTED: NONE
         ;; -------------------------------------------------------------
-PRTADR: PUSH    HL          ; SAVE REGS WHILE WE DO ASCII CONVERSION OF ADDRESS
-        PUSH    DE
-        PUSH    BC
-        LD      D,H         ; SAVE ADDRESS IN REG PAIR DE
-        LD      E,L
-        LD      HL,RESRV3   ; POINT HL TO HIGH-BYTE STORAGE LOCATION
-        LD      A,D         ; GET HIGH BYTE OF WORKING ADDRESS
-        LD      (HL),A      ; SAVE TO WORK VAR
-        CALL    HX2ASC      ; GET ASCII REPRESENTATION OF HIGH-BYTE INTO BC REG PAIR
-        CALL    CONOUT      ; PRINT HIGH NIBBLE ASII REPRESENTATION (ALREADY IN REG C)
-        LD      C,B         ; MOVE LOW-NIBBLE ASCII REPRESENTATION INTO REG C
-        CALL    CONOUT      ; PRINT LOW-NIBBLE
-        LD      HL,RESRV4   ; POINT HL TO LOW-BYTE STORAGE LOCATION
-        LD      A,E         ; GET LOW BYTE OF WORKING ADDRESS
-        LD      (HL),A      ; SAVE TO WORK VAR
-        CALL    HX2ASC      ; GET ASCII REPRESENTATION OF HIGH-BYTE INTO BC REG PAIR
-        CALL    CONOUT      ; PRINT HIGH NIBBLE ASII REPRESENTATION (ALREADY IN REG C)
-        LD      C,B         ; MOVE LOW-NIBBLE ASCII REPRESENTATION INTO REG C
-        CALL    CONOUT      ; PRINT LOW-NIBBLE
-        POP     BC
-        POP     DE
-        POP     HL
-        RET
-ENDIF
+PRTHLR: .EQU    $
 
-        ;; DISPLAY VALUE OF MEMORY LOCATION POINTED TO BY HL IN FORM FF
-        ;;  HL = ADDRESS
+        CALL    SAVE        ; SAVE ALL REGISTERS AND FLAGS
+        EX      DE,HL       ; SWAP - WE NEED HL FOR INDIRECTION
+
+        LD      HL,_PHTMP   ; POINT TO WORKING STORAGE BYTE
+        LD      A,D         ; SAVE WHAT WAS 'H' AND PRINT IT
+        LD      (HL),A
+        CALL    PRTMEM
+
+        LD      A,E         ; SAVE WHAT WAS 'L' AND PRINT IT
+        LD      (HL),A
+        CALL    PRTMEM
+
+        RET
+
+_PHTMP: .DB     1           ; SCRATCH STORAGE
+
+
+        ;; DISPLAY VALUE OF MEMORY LOCATION ADDRESSED BY HL
+        ;;  AS 2-DIGIT HEXADECIMAL NUMBER
         ;;
         ;;  REGISTERS AFFECTED: NONE
         ;; -------------------------------------------------------------
 PRTMEM: .EQU    $
 
-        PUSH    BC
-        PUSH    AF
+        CALL    SAVE        ; SAVE ALL REGISTERS AND FLAGS
 
-        CALL    HX2ASC
-        CALL    CONOUT      ; HIGH NIBBLE ALREADY IN C
-        LD      C,B         ; GET LOW NIBBLE INTO C FOR OUTPUT
-        CALL    CONOUT      ; AND PRINT
+        CALL    BY2HXA
+        LD      C,D         ; GET HIGH NIBBLE INTO C FOR OUTPUT
+        CALL    CONOUT      ;
+        LD      C,E         ; GET LOW NIBBLE INTO C FOR OUTPUT
+        CALL    CONOUT      ;
 
-        POP     AF
-        POP     BC
         RET
+
 
         ;; IN-LINE PRINT ROUTINE
         ;;  PRINT NULL-TERMINATED STRING IMMEDIATELY FOLLOWING SUBROUTINE CALL.
@@ -103,6 +100,7 @@ PRINL:  EX      (SP),HL     ; NEXT BYTE AFTER CALL NOT RETURN ADDR BUT STRING
         INC     HL          ; ADJUST HL ONE BYTE BEYOND NULL TERMINATOR
         EX      (SP),HL     ; PUT HL BACK ON STACK AS ADJUSTED RETURN ADDRESS
         RET
+
 
         ;; PRINT NULL-TERMINATED STRING POINTED TO BY HL REGISTER PAIR
         ;;  HL = START  ADDRESS OF STRING
@@ -123,23 +121,6 @@ _PRDON: POP     BC          ; RESTORE AFFECTED REGS
         POP     AF
         RET
 
-        ;; SEND ADM3A COMPATIBLE SCREEN CLEAR COMMAND
-        ;;  REGISTERS AFFECTED:  NONE
-        ;;
-        ;; NOTE: LS ADM3A SCREEN CLEAR FUNCTION MAY BE DISABLED
-        ;;       BY INTERNAL SWITCH #3 ON SWITCH BLOCK A6
-        ;; -------------------------------------------------------------
-CLSA3:  CALL    PRINL
-        .DB     01AH, NULL  ; SINGLE CTRL-Z CHAR
-        RET
-
-        ;; SEND VT-100 COMPATIBLE SCREEN CLEAR COMMAND SEQUENCE
-        ;;  REGISTERS AFFECTED:  NONE
-        ;; -------------------------------------------------------------
-CLSVT:  CALL    PRINL
-        .DB     1BH, '[', '2', 'J', NULL
-        RET
-
 ;; -------------------------------------------------------------
 ;; MATH ROUTINES
 ;; -------------------------------------------------------------
@@ -152,6 +133,25 @@ CLSVT:  CALL    PRINL
 ;; -------------------------------------------------------------
 ;; MISCELLANEOUS UTILITY
 ;; -------------------------------------------------------------
+
+        ;; SEND ADM3A COMPATIBLE SCREEN CLEAR COMMAND
+        ;;  REGISTERS AFFECTED:  NONE
+        ;;
+        ;; NOTE: LS ADM3A SCREEN CLEAR FUNCTION MAY BE DISABLED
+        ;;       BY INTERNAL SWITCH #3 ON SWITCH BLOCK A6
+        ;; -------------------------------------------------------------
+CLSA3:  CALL    PRINL
+        .DB     01AH, NULL  ; SINGLE CTRL-Z CHAR
+        RET
+
+
+        ;; SEND VT-100 COMPATIBLE SCREEN CLEAR COMMAND SEQUENCE
+        ;;  REGISTERS AFFECTED:  NONE
+        ;; -------------------------------------------------------------
+CLSVT:  CALL    PRINL
+        .DB     1BH, '[', '2', 'J', NULL
+        RET
+
 
         ;; DELAY .25 SEC TIMES B
         ;;  PROVIVIDES A DELAY OF APPROXIMATELY 250,000 US
@@ -178,6 +178,125 @@ _DLY25:	DEC	    DE			    ; 0.975  ---
 	    EX	    AF,AF'          ; 0.65
 
 	    RET
+
+
+        ;; IS ASCII CHAR IN A AN ASCII ALPHA CHARACTER (UPPERCASE OR LOWERCASE)
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF IS ALPHA CHAR, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISALPHA:AND     A           ; CLEAR CARRY
+        CALL    ISUPPER     ; DOES REG A CONTAIN AN UPPERCASER ASCII CHAR?
+        RET     C           ; YES
+        CALL    ISLOWER     ; NOT UPPERCASE - IS IT LOWERCASE?
+        RET                 ; CARRY WILL INFORM CALLER Y/N
+
+
+        ;; IS VALUE IN REG A IN THE RANGE (INCLUSIVE) BOUNDED BY H AND L (HIGH & LOW, RESPECTIVELY)
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF IS NUMERIC CHAR, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISINRHL:AND     A           ; CLEAR CARRY
+        CP      L           ; IS A >= LOW LIMIT?
+        JR      NC,_IRGEL   ; YES - NOW CHECK RANGE TOP
+        CCF                 ; RANGE FAIL, A < LOW LIMIT, CLEAR CARRY FOR ERR IND
+        RET
+_IRGEL: CP      H          ; IS A <= HIGH RANGE LIMIT
+        JR      C,_IRLEH
+        JR      Z,_IRLEH
+        RET                 ; RANGE FAIL, A > HIGH LIMIT, LEAVE CARRY CLEAR FOR ERR IND
+_IRLEH: SCF                 ; ENSURE CARRY IS SET TO INDICATE SUCCESS
+        RET
+
+
+        ;; IS ASCII CHAR IN A AN ASCII LOWER-CASE ALPHA CHAR (61H-7AH)?
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF IS LOWERCASE ALPHA CHAR, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISLOWER:PUSH    HL          ; PRESERVE
+        LD      H,'z'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
+        LD      L,'a'       ; SET LOW RANGE INCLUSIVE BOUNDARY
+        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
+        POP     HL
+        RET
+
+
+        ;; IS ASCII CHAR IN A AN ASCII DIGIT (30H-39H)?
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF IS NUMERIC CHAR, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISNUM:  PUSH    HL          ; PRESERVE
+        LD      H,'9'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
+        LD      L,'0'       ; SET LOW RANGE INCLUSIVE BOUNDARY
+        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
+        POP     HL
+        RET
+
+
+        ;; IS ASCII CHAR IN A AN ASCII UPPER-CASE ALPHA CHAR (41H-5AH)?
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF IS UPPERCASE ALPHA CHAR, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISUPPER:PUSH    HL          ; PRESERVE
+        LD      H,'Z'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
+        LD      L,'A'       ; SET LOW RANGE INCLUSIVE BOUNDARY
+        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
+        POP     HL
+        RET
+
+
+        ;; "MATHEWS SAVE REGISTER ROUTINE"
+        ;;  FROM ZILOG MICROPROCESSOR APPLICATIONS REFERENCE BOOK VOLUME 1, 2-18-81
+        ;;
+        ;; SAVE AND AUTOMATICALLY RESTORE ALL REGISTERS AND FLAGS IN ANY SUBROUTINE
+        ;;  WITH JUST A SINGLE 'CALL SAVE' AT ROUTINE START
+SAVE:   EX      (SP),HL     ; SP = HL
+        PUSH    DE          ;      DE
+        PUSH    BC          ;      BC
+        PUSH    AF          ;      AF
+        PUSH    IX          ;      IX
+        PUSH    IY          ;      IY
+        CALL    _GO         ;      PC
+        POP     IY
+        POP     IX
+        POP     AF
+        POP     BC
+        POP     DE
+        POP     HL
+        RET
+_GO:    JP      (HL)
+
+        ;; VARIATION FOR USE IN INTERRUPT SERVICE ROUTINES
+SAVEI:  EX      (SP),HL     ; SP = HL
+        PUSH    DE          ;      DE
+        PUSH    BC          ;      BC
+        PUSH    AF          ;      AF
+        PUSH    IX          ;      IX
+        PUSH    IY          ;      IY
+        CALL    _GOI        ;      PC
+        POP     IY
+        POP     IX
+        POP     AF
+        POP     BC
+        POP     DE
+        POP     HL
+        EI
+        RETI
+_GOI:   JP      (HL)
 
 
         ;; -------------------------------------------------------------
@@ -221,84 +340,6 @@ TABDSP: .EQU    $
         RET                 ; JUMP TO ROUTINE
 
 
-        ;; IS ASCII CHAR IN A AN ASCII ALPHA CHARACTER (UPPERCASE OR LOWERCASE)
-        ;;
-        ;;  RETURNS:
-        ;;   A = UNCHANGED
-        ;;   CARRY = 1 IF IS ALPHA CHAR, ELSE CARRY = 0
-        ;;
-        ;; -------------------------------------------------------------
-ISALPHA:AND     A           ; CLEAR CARRY
-        CALL    ISUPPER     ; DOES REG A CONTAIN AN UPPERCASER ASCII CHAR?
-        RET     C           ; YES
-        CALL    ISLOWER     ; NOT UPPERCASE - IS IT LOWERCASE?
-        RET                 ; CARRY WILL INFORM CALLER Y/N
-
-        ;; IS ASCII CHAR IN A AN ASCII LOWER-CASE ALPHA CHAR (61H-7AH)?
-        ;;
-        ;;  RETURNS:
-        ;;   A = UNCHANGED
-        ;;   CARRY = 1 IF IS LOWERCASE ALPHA CHAR, ELSE CARRY = 0
-        ;;
-        ;; -------------------------------------------------------------
-ISLOWER:PUSH    HL          ; PRESERVE
-        LD      H,'z'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
-        LD      L,'a'       ; SET LOW RANGE INCLUSIVE BOUNDARY
-        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
-        POP     HL
-        RET
-
-
-        ;; IS ASCII CHAR IN A AN ASCII UPPER-CASE ALPHA CHAR (41H-5AH)?
-        ;;
-        ;;  RETURNS:
-        ;;   A = UNCHANGED
-        ;;   CARRY = 1 IF IS UPPERCASE ALPHA CHAR, ELSE CARRY = 0
-        ;;
-        ;; -------------------------------------------------------------
-ISUPPER:PUSH    HL          ; PRESERVE
-        LD      H,'Z'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
-        LD      L,'A'       ; SET LOW RANGE INCLUSIVE BOUNDARY
-        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
-        POP     HL
-        RET
-
-
-        ;; IS ASCII CHAR IN A AN ASCII DIGIT (30H-39H)?
-        ;;
-        ;;  RETURNS:
-        ;;   A = UNCHANGED
-        ;;   CARRY = 1 IF IS NUMERIC CHAR, ELSE CARRY = 0
-        ;;
-        ;; -------------------------------------------------------------
-ISNUM:  PUSH    HL          ; PRESERVE
-        LD      H,'9'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
-        LD      L,'0'       ; SET LOW RANGE INCLUSIVE BOUNDARY
-        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
-        POP     HL
-        RET
-
-
-        ;; IS VALUE IN REG A IN THE RANGE (INCLUSIVE) BOUNDED BY H AND L (HIGH & LOW, RESPECTIVELY)
-        ;;
-        ;;  RETURNS:
-        ;;   A = UNCHANGED
-        ;;   CARRY = 1 IF IS NUMERIC CHAR, ELSE CARRY = 0
-        ;;
-        ;; -------------------------------------------------------------
-ISINRHL:AND     A           ; CLEAR CARRY
-        CP      L           ; IS A >= LOW LIMIT?
-        JR      NC,_IRGEL   ; YES - NOW CHECK RANGE TOP
-        CCF                 ; RANGE FAIL, A < LOW LIMIT, CLEAR CARRY FOR ERR IND
-        RET
-_IRGEL: CP      H          ; IS A <= HIGH RANGE LIMIT
-        JR      C,_IRLEH
-        JR      Z,_IRLEH
-        RET                 ; RANGE FAIL, A > HIGH LIMIT, LEAVE CARRY CLEAR FOR ERR IND
-_IRLEH: SCF                 ; ENSURE CARRY IS SET TO INDICATE SUCCESS
-        RET
-
-
         ;; CONVERT ASCII CHAR IN A IN RANGE 30-39H TO DIGIT
         ;;
         ;;  RETURNS:
@@ -337,6 +378,7 @@ TOUPPER:CALL    ISLOWER     ; IS CHARACTER IN REG A A LOWERCASE CHARACTER?
         RET     NC          ; NO -WON'T CONVERT
         SUB     20H         ; YES - CONVERT TO UPPERCASE EQUIVALENT
         RET
+
 
 ;; -------------------------------------------------------------
 ;; SERIAL UTILITY ROUTINES
@@ -427,6 +469,7 @@ SETBDR: .EQU    $
         OUT     (C),A
         OUT     (C),L                   ; TC VIA PARAMETER
         RET
+
 
 ;; -------------------------------------------------------------
 ;; USEFUL CONSTANTS

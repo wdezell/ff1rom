@@ -131,48 +131,6 @@ _NOCHR: XOR     A           ; A = 0, Z = 1
         ;; TO-DO ONCE WE HAVE IMPLEMENTED OUR HARDWARE
 
 
-;; -------------------------------------------------------------
-;; MISCELLANEOUS UTILITY
-;; -------------------------------------------------------------
-
-        ;; "MATHEWS SAVE REGISTER ROUTINE"
-        ;;  FROM ZILOG MICROPROCESSOR APPLICATIONS REFERENCE BOOK VOLUME 1, 2-18-81
-        ;;
-        ;; SAVE AND AUTOMATICALLY RESTORE ALL REGISTERS AND FLAGS IN ANY SUBROUTINE
-        ;;  WITH JUST A SINGLE 'CALL SAVE' AT ROUTINE START
-SAVE:   EX      (SP),HL     ; SP = HL
-        PUSH    DE          ;      DE
-        PUSH    BC          ;      BC
-        PUSH    AF          ;      AF
-        PUSH    IX          ;      IX
-        PUSH    IY          ;      IY
-        CALL    _GO         ;      PC
-        POP     IY
-        POP     IX
-        POP     AF
-        POP     BC
-        POP     DE
-        POP     HL
-        RET
-_GO:    JP      (HL)
-
-        ;; VARIATION FOR USE IN INTERRUPT SERVICE ROUTINES
-SAVEI:  EX      (SP),HL     ; SP = HL
-        PUSH    DE          ;      DE
-        PUSH    BC          ;      BC
-        PUSH    AF          ;      AF
-        PUSH    IX          ;      IX
-        PUSH    IY          ;      IY
-        CALL    _GOI        ;      PC
-        POP     IY
-        POP     IX
-        POP     AF
-        POP     BC
-        POP     DE
-        POP     HL
-        EI
-        RETI
-_GOI:   JP      (HL)
 
         .DEPHASE
 BBIOSE: .EQU    $               ; BOARD BIOS END. TAG FOR RELOC & SIZE CALCS

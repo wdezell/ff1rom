@@ -219,7 +219,7 @@ IMPORT "dbgutils.asm"       ;; MISC DEBUG TOOLS
 
 ;; EQUATES
 IMPORT "hwdefs.asm"
-IMPORT "memdefs.asm"
+IMPORT "memmap.asm"
 
         .END                ; CONCLUSION OF ROM CODE
 
