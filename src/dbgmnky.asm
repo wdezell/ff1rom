@@ -13,6 +13,21 @@ IF 0
 ENDIF
 
 IF 1
+        ; VERIFY STRLEN USING CONBUF AS REFERENCE
+        CALL    PRINL
+        .TEXT   CR,LF,"CONBUF: ",NULL
+        LD      HL,CONBUF
+        CALL    PRSTRZ
+
+        LD      HL,CONBUF
+        CALL    STRLEN
+
+        RST     10H
+
+
+ENDIF
+
+IF 0
         ;; TEST M168U
         ;;
 

@@ -205,6 +205,80 @@ _PRDON: POP     BC          ; RESTORE AFFECTED REGS
         RET
 
 
+        ;; CONVERT CHARACTER STRING TO 16-BIT UNSIGNED BINARY VALUE
+        ;;
+        ;;   HL = BUFFER CONTAINING NULL-TERMINATED STRING OF NUMERIC CHARACTERS
+        ;;   DE = ADDRESS OF 16-BIT WORD INTO WHICH RESULT WILL BE STORED
+        ;;
+        ;; RETURNS:
+        ;;   VALID CONVERSION: 16-BIT UNSIGNED VALUE, CARRY = 0
+        ;;   ERROR:  0, CARRY = 1
+        ;;
+        ;; ONLY THE FOLLOWING CHARACTERS MAY APPEAR IN THE STRING:
+        ;;   - LEADING SPACES (IGNORED)
+        ;;   - ALPHA NUMERIC DIGITS AS LEGAL FOR THE RADIX
+        ;;   - RADIX IDENTIFIER (PREFIX OR SUFFIX), ONE OF
+        ;;     'D' OR ' ' = DECIMAL      DIGITS 0-9
+        ;;     '$' OR 'H' = HEXADECIMAL  DIGITS 0-9,A-F
+        ;;     'B'        = BINARY       DIGITS 0,1
+        ;;     'Q'        = OCTAL        DIGITS 0-7
+        ;;
+        ;; -------------------------------------------------------------
+SZ216U: .EQU    $
+
+        ;; >>> TODO: YOU ARE HERE
+
+        ;; INITS (VALUE ACCUM, CONTROL FLAGS, ETC...)
+
+        ;; SCAN SOURCE STRING AND IDENTIFY RADIX MODE, SET POSITION MULTIPLER
+
+
+        ; SCAN L-R AND PROCESS
+
+
+        RET
+
+        ; SUPPORTED RADIX IDENTIFIERS AND LEGAL DIGITS
+_S16BI: .DB     "B"         ; BASE 2 -  BINARY
+_S16BL: .DB     "01"
+_S16DI: .DB     "D"         ; BASE 10 - DECIMAL (SPACE IGNORED)
+_S16DL: .DB     "0123456789"
+_S16HI: .DB     "H$"        ; BASE 16 - HEXADECIMAL
+_S16HL: .DB     "0123456789ABCDEF"
+_S16OI: .DB     "Q"         ; BASE 8 -  OCTAL
+_S16OL: .DB     "01234567"
+
+_S16RDX:.DS     1           ; DETERMINED RADIX
+
+
+        ;; DETERMINE LENGTH OF NULL-TERMINATED STRING
+        ;;
+        ;; INPUT:
+        ;;   HL = ADDRESS OF STRING START
+        ;;
+        ;; OUTPUT:
+        ;;   BC = LENGTH OF STRING *NOT COUNTING* NULL TERMINATOR
+
+        ;; OTHER REGISTERS AFFECTED:
+        ;;   NONE
+        ;;
+        ;; -------------------------------------------------------------
+STRLEN: PUSH    AF      ; PRESERVE ORIGINAL CONTENTS FOR A, FLAGS, & HL
+        PUSH    HL
+        XOR     A		; LOAD A WITH NULL
+        LD      C,A		; ZERO B & C COUNT AS WELL
+        LD      B,A		;
+        CPIR		    ; SEARCH
+        LD      HL,-1	; CALC LENGTH
+        SBC     HL,BC	; RESULT IS IN HL BUT WE WANT IN BC FOR CONVENTION
+        LD      B,H
+        LD      C,L
+        POP     HL      ; RESTORE ORIG A, FLAGS, & HL
+        POP     AF
+
+        RET
+
+
         ;; CONVERT ASCII CHAR IN A IN RANGE 30-39H TO DIGIT
         ;;
         ;;  RETURNS:
