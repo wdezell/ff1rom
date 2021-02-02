@@ -47,11 +47,11 @@ _BY2H2: ADD     A,'0'       ; ADD OFFSET FOR ASCII
         RET
 
 
-        ;; IS ASCII CHAR IN A AN ASCII ALPHA CHARACTER (UPPERCASE OR LOWERCASE)
+        ;; IS ASCII CHAR IN AN ALPHA CHARACTER (UPPERCASE OR LOWERCASE)
         ;;
         ;;  RETURNS:
         ;;   A = UNCHANGED
-        ;;   CARRY = 1 IF IS ALPHA CHAR, ELSE CARRY = 0
+        ;;   CARRY = 1 IF TRUE, ELSE CARRY = 0
         ;;
         ;; -------------------------------------------------------------
 ISALPHA:AND     A           ; CLEAR CARRY
@@ -61,16 +61,87 @@ ISALPHA:AND     A           ; CLEAR CARRY
         RET                 ; CARRY WILL INFORM CALLER Y/N
 
 
-        ;; IS ASCII CHAR IN A AN ASCII CONTROL CHAR (00H-1AH)?
+        ;; IS ASCII CHAR IN A BINARY DIGIT (30H-31H)?
         ;;
         ;;  RETURNS:
         ;;   A = UNCHANGED
-        ;;   CARRY = 1 IF IS UPPERCASE ALPHA CHAR, ELSE CARRY = 0
+        ;;   CARRY = 1 IF TRUE, ELSE CARRY = 0
         ;;
         ;; -------------------------------------------------------------
-ISCTRL: PUSH    HL          ; PRESERVE
+ISBDIGT:AND     A           ; CLEAR CARRY
+        PUSH    HL          ; PRESERVE
+        LD      H,'1'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
+        LD      L,'0'       ; SET LOW RANGE INCLUSIVE BOUNDARY
+        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
+        POP     HL
+        RET
+
+
+        ;; IS ASCII CHAR IN A CONTROL CHAR (00H-1AH)?
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF IS CONTROL CHAR, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISCTRL: AND    A           ; CLEAR CARRY
+        PUSH    HL          ; PRESERVE
         LD      H,1AH       ; SET HIGH RANGE INCLUSIVE BOUNDARY
-        LD      L,0         ; SET LOW RANGE INCLUSIVE BOUNDARY
+        LD      L,00H       ; SET LOW RANGE INCLUSIVE BOUNDARY
+        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
+        POP     HL
+        RET
+
+
+        ;; IS ASCII CHAR IN A DECIMAL DIGIT (30H-39H)?
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF TRUE, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISDDIGT:AND     A           ; CLEAR CARRY
+        PUSH    HL          ; PRESERVE
+        LD      H,'9'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
+        LD      L,'0'       ; SET LOW RANGE INCLUSIVE BOUNDARY
+        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
+        POP     HL
+        RET
+
+
+        ;; IS ASCII CHAR IN A HEXADECIMAL DIGIT (30H-39H OR 41H-46H)?
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF TRUE, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISHDIGT:AND     A           ; CLEAR CARRY
+        CALL    ISDDIGT     ; IS IT ONE OF THE ALSO-DECIMAL DIGITS 0-9?
+        RET     C           ; YES
+        PUSH    HL          ; NO - PRESERVE HL
+        LD      H,'F'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
+        LD      L,'A'       ; SET LOW RANGE INCLUSIVE BOUNDARY
+        CALL    ISINRHL     ; IS 'A'-'F'?
+        JR      C,_ISHAF    ; YES - CARRY RESULT PROPAGATES UP
+        LD      H,'f'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
+        LD      L,'a'       ; SET LOW RANGE INCLUSIVE BOUNDARY
+        CALL    ISINRHL     ; IS 'a'-'f'?  CARRY RESULT PROPAGATES UP
+_ISHAF: POP     HL
+        RET
+
+
+        ;; IS ASCII CHAR IN AN OCTAL DIGIT (30H-37H)?
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF TRUE, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISODIGT:AND     A           ; CLEAR CARRY
+        PUSH    HL          ; PRESERVE
+        LD      H,'7'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
+        LD      L,'0'       ; SET LOW RANGE INCLUSIVE BOUNDARY
         CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
         POP     HL
         RET
@@ -80,7 +151,7 @@ ISCTRL: PUSH    HL          ; PRESERVE
         ;;
         ;;  RETURNS:
         ;;   A = UNCHANGED
-        ;;   CARRY = 1 IF IS NUMERIC CHAR, ELSE CARRY = 0
+        ;;   CARRY = 1 IF TRUE, ELSE CARRY = 0
         ;;
         ;; -------------------------------------------------------------
 ISINRHL:AND     A           ; CLEAR CARRY
@@ -96,14 +167,15 @@ _IRLEH: SCF                 ; ENSURE CARRY IS SET TO INDICATE SUCCESS
         RET
 
 
-        ;; IS ASCII CHAR IN A AN ASCII LOWER-CASE ALPHA CHAR (61H-7AH)?
+        ;; IS ASCII CHAR IN A LOWER-CASE ALPHA CHAR (61H-7AH)?
         ;;
         ;;  RETURNS:
         ;;   A = UNCHANGED
-        ;;   CARRY = 1 IF IS LOWERCASE ALPHA CHAR, ELSE CARRY = 0
+        ;;   CARRY = 1 IF TRUE, ELSE CARRY = 0
         ;;
         ;; -------------------------------------------------------------
-ISLOWER:PUSH    HL          ; PRESERVE
+ISLOWER:AND     A           ; CLEAR CARRY
+        PUSH    HL          ; PRESERVE
         LD      H,'z'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
         LD      L,'a'       ; SET LOW RANGE INCLUSIVE BOUNDARY
         CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
@@ -111,31 +183,15 @@ ISLOWER:PUSH    HL          ; PRESERVE
         RET
 
 
-        ;; IS ASCII CHAR IN A AN ASCII DIGIT (30H-39H)?
+        ;; IS ASCII CHAR IN AN UPPER-CASE ALPHA CHAR (41H-5AH)?
         ;;
         ;;  RETURNS:
         ;;   A = UNCHANGED
-        ;;   CARRY = 1 IF IS NUMERIC CHAR, ELSE CARRY = 0
-        ;;
-        ;; TODO: NEED TO MOD TO ACCOMMODATE A RADIX PARAM AND EXPAND TO
-        ;;       ANSWER CORRECTLY FOR BINARY, OCTAL, AND HEX
-        ;; -------------------------------------------------------------
-ISDIGT: PUSH    HL          ; PRESERVE
-        LD      H,'9'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
-        LD      L,'0'       ; SET LOW RANGE INCLUSIVE BOUNDARY
-        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
-        POP     HL
-        RET
-
-
-        ;; IS ASCII CHAR IN A AN ASCII UPPER-CASE ALPHA CHAR (41H-5AH)?
-        ;;
-        ;;  RETURNS:
-        ;;   A = UNCHANGED
-        ;;   CARRY = 1 IF IS UPPERCASE ALPHA CHAR, ELSE CARRY = 0
+        ;;   CARRY = 1 IF TRUE, ELSE CARRY = 0
         ;;
         ;; -------------------------------------------------------------
-ISUPPER:PUSH    HL          ; PRESERVE
+ISUPPER:AND     A           ; CLEAR CARRY
+        PUSH    HL          ; PRESERVE
         LD      H,'Z'       ; SET HIGH RANGE INCLUSIVE BOUNDARY
         LD      L,'A'       ; SET LOW RANGE INCLUSIVE BOUNDARY
         CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
@@ -255,17 +311,17 @@ STRLEN: PUSH    AF      ; PRESERVE ORIGINAL CONTENTS FOR A, FLAGS, & HL
         ;;   CARRY SET FOR VALID CONVERSION
         ;;
         ;; -------------------------------------------------------------
-TODIGIT:CALL    ISDIGT      ; IS VALUE IN A AN ASCII DIGIT 30H-39H?
+TODIGIT:CALL    ISDDIGT     ; IS VALUE IN A AN ASCII DIGIT 30H-39H?
         RET     NC          ; NO - ERROR RETURN W/ CARRY CLEAR
         SUB     30H         ; YES - CONVERT ASCII DIGIT TO NUMERICAL VALUE
         SCF                 ; ENSURE CARRY IS SET TO INDICATE SUCCESS
         RET
 
 
-        ;; TOINT 'A' - CONVERT CHARACTER STRING TO 16-BIT UNSIGNED BINARY VALUE
+        ;; TOINT - CONVERT CHARACTER STRING TO 16-BIT UNSIGNED BINARY VALUE
         ;;
         ;;   HL = BUFFER CONTAINING NULL-TERMINATED STRING OF NUMERIC CHARACTERS
-        ;;   DE = ADDRESS OF 16-BIT WORD INTO WHICH RESULT WILL BE STORED
+        ;;   DE = CONVERTED RESULT
         ;;
         ;; RETURNS:
         ;;   VALID CONVERSION: 16-BIT UNSIGNED VALUE, CARRY = 0
@@ -279,57 +335,52 @@ TODIGIT:CALL    ISDIGT      ; IS VALUE IN A AN ASCII DIGIT 30H-39H?
         ;;     'B'           = BINARY       DIGITS 0,1
         ;;     'Q'           = OCTAL        DIGITS 0-7
         ;;
-        ;;   NOTE:  THERE MIGHT WIND UP EXISTING 'TOINTB', 'TOINTC', ETC...,
-        ;;          TO HANDLE OTHER WORD SIZES AND SIGNED NUMBERS
         ;; -------------------------------------------------------------
 IF 0
-TOINTA: .EQU    $
+TOINT:  .EQU    $
 
-        ;; >>> TODO: YOU ARE HERE
-
-        ;; INITS (VALUE ACCUM, CONTROL FLAGS, ETC...)
         PUSH    HL          ; SAVE STRING START ADDRESS
 
         ;; EXAMINE SOURCE STRING AND IDENTIFY RADIX MODE, SET POSITION MULTIPLER
         CALL    STRLEN      ; GET LENGTH OF STRING INTO BC
-        ADD     HL,BC       ; EXAMINE OPTIONAL RADIX SUFFIX
+        ADD     HL,BC       ; EXAMINE LAST POSITION FOR OPTIONAL RADIX SUFFIX
         LD      A,(HL)      ;
         CP      'H'         ; IS IT HEX?
-        JR      Z,_TIAH     ; YES
+        JR      Z,_TIH      ; YES
         CP      'Q'         ; IS IT OCTAL?
-        JR      Z,_TIAQ     ; YES
+        JR      Z,_TIQ      ; YES
         CP      'B'         ; IS IT BINARY?
-        JR      Z,_TIAB     ; YES
-        JR      NZ,_TIAD    ; ASSUME DECIMAL
+        JR      Z,_TIB      ; YES
 
-_TIAD:  LD      A,10        ; SET BASE-10
-        LD      (_TIARDX),A
-        JR      _TIASP
-_TIAB:  LD      A,2         ; SET BASE-2
-        LD      (_TIARDX),A
-        JR      _TIASP
-_TIAH:  LD      A,16        ; SET BASE-16
-        LD      (_TIARDX),A
-        JR      _TIASP
-_TIAQ:  LD      A,8         ; SET BASE-8
-        LD      (_TIARDX),A
-        ;JR      _TIASP
+_TID:   LD      A,10        ; ASSUME DECIMAL, SET BASE-10
+        JR      _TISTO
+_TIB:   LD      A,2         ; SET BASE-2
+        JR      _TISTO
+_TIH:   LD      A,16        ; SET BASE-16
+        JR      _TISTO
+_TIQ:   LD      A,8         ; SET BASE-8
 
-        ; SCAN L-R AND PROCESS
-_TIASP: POP     HL          ; RESTORE START ADDRESS OF STRING
+_TISTO: LD      (_TIRDX),A  ; STORE BASE MULTIPLIER
+        POP     HL          ; RESTORE START ADDRESS OF STRING
+
+        ; SCAN L-R AND SUM ACCORDING TO THE FORMULA 'VALUE = VALUE * BASE + DIGIT'
+
+
+
+
 
         ;; >>> TODO: AND HERE
 
         RET
 
         ; SUPPORTED RADIX IDENTIFIERS AND LEGAL DIGITS
-_TIABL: .DB     "01"
-_TIADL: .DB     "0123456789"
-_TIAHL: .DB     "0123456789ABCDEF"
-_TIAQL: .DB     "01234567"
+_TIBL:  .DB     "01"
+_TIDL:  .DB     "0123456789"
+_TIHL:  .DB     "0123456789ABCDEF"
+_TIQL:  .DB     "01234567"
 
-_TIABSV:.DW     1           ; STRING BUFFER START ADDRESS SAVE
-_TIARDX:.DS     1           ; DETERMINED RADIX
+_TIBSV: .DW     1           ; STRING BUFFER START ADDRESS SAVE
+_TIRDX: .DS     1           ; DETERMINED RADIX
 ENDIF
 
 
