@@ -67,10 +67,10 @@ SMMENU: .EQU    $
 
         ;; CLEAR ACTIVE COMMAND REFERENCE
         ;; -------------------------------------------------------------
-SMCCC:  PUSH    HL
-        LD      HL,SMCURCM
-        LD      (HL),' '
-        POP     HL
+SMCCC:  PUSH    AF
+        LD      A,' '
+        LD      (SMCURCM),a
+        POP     AF
         RET
 
         ;; SYSMON INIT

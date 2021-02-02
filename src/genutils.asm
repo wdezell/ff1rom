@@ -61,6 +61,21 @@ ISALPHA:AND     A           ; CLEAR CARRY
         RET                 ; CARRY WILL INFORM CALLER Y/N
 
 
+        ;; IS ASCII CHAR IN A AN ASCII CONTROL CHAR (00H-1AH)?
+        ;;
+        ;;  RETURNS:
+        ;;   A = UNCHANGED
+        ;;   CARRY = 1 IF IS UPPERCASE ALPHA CHAR, ELSE CARRY = 0
+        ;;
+        ;; -------------------------------------------------------------
+ISCTRL: PUSH    HL          ; PRESERVE
+        LD      H,1AH       ; SET HIGH RANGE INCLUSIVE BOUNDARY
+        LD      L,0         ; SET LOW RANGE INCLUSIVE BOUNDARY
+        CALL    ISINRHL     ; CALL EVAL ROUTINE, CARRY RESULT PROPAGATES UP
+        POP     HL
+        RET
+
+
         ;; IS VALUE IN REG A IN THE RANGE (INCLUSIVE) BOUNDED BY H AND L (HIGH & LOW, RESPECTIVELY)
         ;;
         ;;  RETURNS:
@@ -205,52 +220,6 @@ _PRDON: POP     BC          ; RESTORE AFFECTED REGS
         RET
 
 
-        ;; CONVERT CHARACTER STRING TO 16-BIT UNSIGNED BINARY VALUE
-        ;;
-        ;;   HL = BUFFER CONTAINING NULL-TERMINATED STRING OF NUMERIC CHARACTERS
-        ;;   DE = ADDRESS OF 16-BIT WORD INTO WHICH RESULT WILL BE STORED
-        ;;
-        ;; RETURNS:
-        ;;   VALID CONVERSION: 16-BIT UNSIGNED VALUE, CARRY = 0
-        ;;   ERROR:  0, CARRY = 1
-        ;;
-        ;; ONLY THE FOLLOWING CHARACTERS MAY APPEAR IN THE STRING:
-        ;;   - LEADING SPACES (IGNORED)
-        ;;   - ALPHA NUMERIC DIGITS AS LEGAL FOR THE RADIX
-        ;;   - RADIX IDENTIFIER (PREFIX OR SUFFIX), ONE OF
-        ;;     'D' OR ' ' = DECIMAL      DIGITS 0-9
-        ;;     '$' OR 'H' = HEXADECIMAL  DIGITS 0-9,A-F
-        ;;     'B'        = BINARY       DIGITS 0,1
-        ;;     'Q'        = OCTAL        DIGITS 0-7
-        ;;
-        ;; -------------------------------------------------------------
-SZ216U: .EQU    $
-
-        ;; >>> TODO: YOU ARE HERE
-
-        ;; INITS (VALUE ACCUM, CONTROL FLAGS, ETC...)
-
-        ;; SCAN SOURCE STRING AND IDENTIFY RADIX MODE, SET POSITION MULTIPLER
-
-
-        ; SCAN L-R AND PROCESS
-
-
-        RET
-
-        ; SUPPORTED RADIX IDENTIFIERS AND LEGAL DIGITS
-_S16BI: .DB     "B"         ; BASE 2 -  BINARY
-_S16BL: .DB     "01"
-_S16DI: .DB     "D"         ; BASE 10 - DECIMAL (SPACE IGNORED)
-_S16DL: .DB     "0123456789"
-_S16HI: .DB     "H$"        ; BASE 16 - HEXADECIMAL
-_S16HL: .DB     "0123456789ABCDEF"
-_S16OI: .DB     "Q"         ; BASE 8 -  OCTAL
-_S16OL: .DB     "01234567"
-
-_S16RDX:.DS     1           ; DETERMINED RADIX
-
-
         ;; DETERMINE LENGTH OF NULL-TERMINATED STRING
         ;;
         ;; INPUT:
@@ -291,6 +260,77 @@ TODIGIT:CALL    ISDIGT      ; IS VALUE IN A AN ASCII DIGIT 30H-39H?
         SUB     30H         ; YES - CONVERT ASCII DIGIT TO NUMERICAL VALUE
         SCF                 ; ENSURE CARRY IS SET TO INDICATE SUCCESS
         RET
+
+
+        ;; TOINT 'A' - CONVERT CHARACTER STRING TO 16-BIT UNSIGNED BINARY VALUE
+        ;;
+        ;;   HL = BUFFER CONTAINING NULL-TERMINATED STRING OF NUMERIC CHARACTERS
+        ;;   DE = ADDRESS OF 16-BIT WORD INTO WHICH RESULT WILL BE STORED
+        ;;
+        ;; RETURNS:
+        ;;   VALID CONVERSION: 16-BIT UNSIGNED VALUE, CARRY = 0
+        ;;   ERROR:  0, CARRY = 1
+        ;;
+        ;; ONLY THE FOLLOWING CHARACTERS MAY APPEAR IN THE STRING:
+        ;;   - ALPHA NUMERIC DIGITS AS LEGAL FOR THE RADIX
+        ;;   - RADIX IDENTIFIER (SUFFIX), ONE OF
+        ;;     'D' (OR NONE) = DECIMAL      DIGITS 0-9
+        ;;     'H'           = HEXADECIMAL  DIGITS 0-9,A-F
+        ;;     'B'           = BINARY       DIGITS 0,1
+        ;;     'Q'           = OCTAL        DIGITS 0-7
+        ;;
+        ;;   NOTE:  THERE MIGHT WIND UP EXISTING 'TOINTB', 'TOINTC', ETC...,
+        ;;          TO HANDLE OTHER WORD SIZES AND SIGNED NUMBERS
+        ;; -------------------------------------------------------------
+IF 0
+TOINTA: .EQU    $
+
+        ;; >>> TODO: YOU ARE HERE
+
+        ;; INITS (VALUE ACCUM, CONTROL FLAGS, ETC...)
+        PUSH    HL          ; SAVE STRING START ADDRESS
+
+        ;; EXAMINE SOURCE STRING AND IDENTIFY RADIX MODE, SET POSITION MULTIPLER
+        CALL    STRLEN      ; GET LENGTH OF STRING INTO BC
+        ADD     HL,BC       ; EXAMINE OPTIONAL RADIX SUFFIX
+        LD      A,(HL)      ;
+        CP      'H'         ; IS IT HEX?
+        JR      Z,_TIAH     ; YES
+        CP      'Q'         ; IS IT OCTAL?
+        JR      Z,_TIAQ     ; YES
+        CP      'B'         ; IS IT BINARY?
+        JR      Z,_TIAB     ; YES
+        JR      NZ,_TIAD    ; ASSUME DECIMAL
+
+_TIAD:  LD      A,10        ; SET BASE-10
+        LD      (_TIARDX),A
+        JR      _TIASP
+_TIAB:  LD      A,2         ; SET BASE-2
+        LD      (_TIARDX),A
+        JR      _TIASP
+_TIAH:  LD      A,16        ; SET BASE-16
+        LD      (_TIARDX),A
+        JR      _TIASP
+_TIAQ:  LD      A,8         ; SET BASE-8
+        LD      (_TIARDX),A
+        ;JR      _TIASP
+
+        ; SCAN L-R AND PROCESS
+_TIASP: POP     HL          ; RESTORE START ADDRESS OF STRING
+
+        ;; >>> TODO: AND HERE
+
+        RET
+
+        ; SUPPORTED RADIX IDENTIFIERS AND LEGAL DIGITS
+_TIABL: .DB     "01"
+_TIADL: .DB     "0123456789"
+_TIAHL: .DB     "0123456789ABCDEF"
+_TIAQL: .DB     "01234567"
+
+_TIABSV:.DW     1           ; STRING BUFFER START ADDRESS SAVE
+_TIARDX:.DS     1           ; DETERMINED RADIX
+ENDIF
 
 
         ;; CONVERT UPPERCASE ASCII CHAR IN REG A TO LOWERCASE
