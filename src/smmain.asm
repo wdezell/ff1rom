@@ -61,18 +61,19 @@ SMMENU: .EQU    $
         .TEXT   " ? (Help)",CR,LF,CR,LF,NULL
 
         ; CLEAR ACTIVE COMMAND REFERENCE
-        CALL    SMCCC
+        ;
         RET
 
 
+IF 0    ; TODO -- REMOVE AS UNNECESSARY
         ;; CLEAR ACTIVE COMMAND REFERENCE
         ;; -------------------------------------------------------------
 SMCCC:  PUSH    AF
         LD      A,' '
-        LD      (SMCURCM),a
+        LD      (SMCURCM),A
         POP     AF
         RET
-
+ENDIF
         ;; SYSMON INIT
         ;;  INITIALIZE WORK BUFFERS, COUNTERS
         ;; -------------------------------------------------------------
@@ -250,17 +251,12 @@ SMPRSE: .EQU    $
         PUSH    AF          ; PRESERVE A, FLAGS
         PUSH    HL          ; PRESERVE ERROR MESSAGE PASSED IN HL
         CALL    PRINL       ; DISPLAY ERROR MESSAGE PREAMBLE
-        .TEXT   CR,LF,"**ERROR**: ",NULL
+        .TEXT   CR,LF,CR,LF,"**ERROR**: ",NULL
 
         POP     HL          ; RETRIEVE MESSAGE BODY AND PRINT IT
         CALL    PRSTRZ
-
-        CALL    PRINL       ; WAIT FOR ACKKNOWLEDGEMENT
-        .TEXT   CR,LF,"PRESS ANY KEY...",NULL
-
-        CALL    CONCIN      ; READ A KEY
         POP     AF
-        SCF                 ; SET CARRY FLAG TO INDICATE ERROR
+        SCF                 ; SET CARRY FLAG TO INDICATE ERROR      TODO - INVERT CARRY FLAG LOGIC FOR CONSISTENCY
         RET
 
         ;; RESET DESTINATION BUFFER AND REG PAIR DE
@@ -279,10 +275,10 @@ SMRSTB: PUSH    HL
 
         ;; EQUATES, GENERAL WORK VARS
         ;; -------------------------------------------------------------
-SMERR00:.TEXT   "SYNTAX ERROR",NULL  ; ERROR MESSAGES
-SMERR01:.TEXT   "INVALID COMMAND",NULL;
-SMERR02:.TEXT   "PARAM WIDTH",NULL   ;
-SMERR03:.TEXT   "NOT IMPLEMENTED YET",NULL   ;
+SMERR00:.TEXT   "SYNTAX ERROR",CR,LF,NULL  ; ERROR MESSAGES
+SMERR01:.TEXT   "INVALID COMMAND",CR,LF,NULL;
+SMERR02:.TEXT   "PARAM WIDTH",CR,LF,NULL   ;
+SMERR03:.TEXT   "NOT IMPLEMENTED YET",CR,LF,NULL   ;
 
         ;; -- TABLE: PARSE DESTINATION BUFFER LOOKUP --
 SMCBSL: .DW     0           ; BUFFER SELECTOR (ADDRESS OF DESTINATION BUFFER WE'RE PARSING INTO)
@@ -332,6 +328,9 @@ SMVAD:  .EQU    $
         ;; VALIDATE COMMAND AND GET POSITION INDEX   (MAYBE MOVE TOUPPER HERE, YES? IS GOOD IDEA.)
         LD      HL,SMPB0    ; GET FIRST CHAR FROM COMMAND BUFFER INTO REG A
         LD      A,(HL)
+
+        ; FIXME -- THIS IS WHERE WE NEED TO DETECT ENTER-ONLY AND DISPATCH FROM SMCURCM IF NON-BLANK
+
         ;CALL    TOUPPER    ; NOTE - CALL HERE INSTEAD OF IN PARSE IF CMD-ONLY CASE CONVERSION
         LD      HL,SMVCMDS  ; POINT HL TO ORDERED LIST OF VALID COMMANDS
         LD      BC,SMVCMCT  ; SET SEARCH COUNTER TO NUMBER OF COMMANDS
@@ -356,6 +355,7 @@ _SMVM:  LD      HL,SMCURCM  ; UPDATE 'CURRENT COMMAND' REFERENCE BYTE
 
         ;; VALIDATION AND DISPATCH WORKING STORAGE
 SMCURCM:.DB     ' '                     ; CURRENT COMMAND MODE
+SMCURAD:.DW     1                       ; CURRENT ADDRESS FOR NEXT MEMORY COMMAND
 SMVCMDS:.TEXT   ".?BCEFGHIMORTW"        ; VALID MAIN MENU COMMANDS
 SMVCMCT:.EQU    $-SMVCMDS               ; COUNT OF COMMANDS
 
@@ -380,71 +380,67 @@ SMCMTAB:.DW     DBGMKY                  ; '.' (HIDDEN DEBUG MONKEY)
 
 DBGMKY: .EQU    $
 
-        IMPORT "dbgmnky.asm"        ;; THE DEBUG MONKEY
-
-        CALL    SMCCC
+        IMPORT "dbgmnky.asm"        ;; THE DEBUG MONKEY - LOVE THE MONKEY
+        ;
         RET
 
         ;; STUBS FOR COMMAND HANDLERS - MOVE TO INDIVIDUAL SOURCE FILES AS IMPLEMENTED
         ;; -------------------------------------------------------------
 SMCMDB: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'B' NOT YET IMPLEMENTED",NULL
-        CALL    SMCCC
+        ;
         RET
 
 SMCMDC: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'C' NOT YET IMPLEMENTED",NULL
-        CALL    SMCCC
+        ;
         RET
 
-SMCMDE: CALL    PRINL
-        .TEXT   CR,LF,"COMMAND 'E' NOT YET IMPLEMENTED",NULL
-        CALL    SMCCC
-        RET
+        IMPORT "smcmd_e.asm"        ;; EXAMINE MEMORY
 
 SMCMDF: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'F' NOT YET IMPLEMENTED",NULL
-        CALL    SMCCC
+        ;
         RET
 
 SMCMDG: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'G' NOT YET IMPLEMENTED",NULL
-        CALL    SMCCC
+        ;
         RET
 
 SMCMDH: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'H' NOT YET IMPLEMENTED",NULL
-        CALL    SMCCC
+        ;
         RET
 
 SMCMDI: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'I' NOT YET IMPLEMENTED",NULL
-        CALL    SMCCC
+        ;
         RET
 
 SMCMDM: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'M' NOT YET IMPLEMENTED",NULL
-        CALL    SMCCC
+        ;
         RET
 
 SMCMDO: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'O' NOT YET IMPLEMENTED",NULL
-        CALL    SMCCC
+        ;
         RET
 
 SMCMDR: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'R' NOT YET IMPLEMENTED",NULL
-        CALL    SMCCC
+        ;
         RET
 
 SMCMDT: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'T' NOT YET IMPLEMENTED",NULL
-        CALL    SMCCC
+        ;
         RET
 
 SMCMDW: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'W' NOT YET IMPLEMENTED",NULL
-        CALL    SMCCC
+        ;
         RET
 
         ;; -------------------------------------------------------------
