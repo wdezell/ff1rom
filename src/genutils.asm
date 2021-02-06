@@ -345,7 +345,9 @@ _TIID:  SUB     30H         ; YES - CONVERT ASCII DIGIT TO NUMERICAL VALUE
         ;;     'B'            = BINARY       DIGITS 0,1
         ;;     'Q'            = OCTAL        DIGITS 0-7
         ;;
-        ;; TODO - OPTIMIZE THIS BEAST
+        ;; TODO - OPTIMIZE THIS UGLY BEAST
+        ;;
+        ;; FIXME - CARRY NOT BEING CLEARED BY 16-BIT PRODUCT OVERFLOW ERROR EXIT (E.G. 65536)
         ;; -------------------------------------------------------------
 TOINT:  .EQU    $
 

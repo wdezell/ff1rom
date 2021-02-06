@@ -58,7 +58,7 @@ SMMENU: .EQU    $
         .TEXT   " I(nput) port             I   PORTNUM COUNT",CR,LF
         .TEXT   " O(utput) port            O   PORTNUM CONST COUNT",CR,LF
         .TEXT   CR,LF
-        .TEXT   " ? (Help)                 ?",CR,LF,CR,LF,NULL
+        .TEXT   " ? (Help)",CR,LF,CR,LF,NULL
 
         ; CLEAR ACTIVE COMMAND REFERENCE
         CALL    SMCCC
