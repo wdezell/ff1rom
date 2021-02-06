@@ -47,7 +47,7 @@ _BY2H2: ADD     A,'0'       ; ADD OFFSET FOR ASCII
         RET
 
 
-        ;; IS ASCII CHAR IN AN ALPHA CHARACTER (UPPERCASE OR LOWERCASE)
+        ;; IS ASCII CHAR IN A AN ALPHA CHARACTER (UPPERCASE OR LOWERCASE)
         ;;
         ;;  RETURNS:
         ;;   A = UNCHANGED
@@ -311,9 +311,19 @@ STRLEN: PUSH    AF      ; PRESERVE ORIGINAL CONTENTS FOR A, FLAGS, & HL
         ;;   CARRY SET FOR VALID CONVERSION
         ;;
         ;; -------------------------------------------------------------
-TODIGIT:CALL    ISDDIGT     ; IS VALUE IN A AN ASCII DIGIT 30H-39H?
+TODIGIT:AND     A           ; CLEAR CARRY
+        CALL    ISHDIGT     ; IS VALUE IN A DIGIT 30H-39H OR 41H-46H? INCLUDES B, O, D, & H
         RET     NC          ; NO - ERROR RETURN W/ CARRY CLEAR
-        SUB     30H         ; YES - CONVERT ASCII DIGIT TO NUMERICAL VALUE
+
+        CALL    ISDDIGT     ; IS IT PLAIN OLD 0-9?
+        JR      C,_TIID     ; YES
+
+        CALL    ISUPPER     ; IS IT UPPERCASE A-F?
+        JR      C,_TIIU     ; YES
+
+        SUB     20H         ; SO MUST BE LOWERCASE A-F, ADJUST FOR UPPER/LOWER OFFSET
+_TIIU:  SUB     'A'-'9'-1   ; ADJUST FOR ALPHA/DIGIT OFFSET
+_TIID:  SUB     30H         ; YES - CONVERT ASCII DIGIT TO NUMERICAL VALUE
         SCF                 ; ENSURE CARRY IS SET TO INDICATE SUCCESS
         RET
 
@@ -324,64 +334,130 @@ TODIGIT:CALL    ISDDIGT     ; IS VALUE IN A AN ASCII DIGIT 30H-39H?
         ;;   DE = CONVERTED RESULT
         ;;
         ;; RETURNS:
-        ;;   VALID CONVERSION: 16-BIT UNSIGNED VALUE, CARRY = 0
-        ;;   ERROR:  0, CARRY = 1
+        ;;   VALID CONVERSION: 16-BIT UNSIGNED VALUE, CARRY = 1
+        ;;   ERROR:  0, CARRY = 0
         ;;
         ;; ONLY THE FOLLOWING CHARACTERS MAY APPEAR IN THE STRING:
         ;;   - ALPHA NUMERIC DIGITS AS LEGAL FOR THE RADIX
         ;;   - RADIX IDENTIFIER (SUFFIX), ONE OF
-        ;;     'D' (OR NONE) = DECIMAL      DIGITS 0-9
-        ;;     'H'           = HEXADECIMAL  DIGITS 0-9,A-F
-        ;;     'B'           = BINARY       DIGITS 0,1
-        ;;     'Q'           = OCTAL        DIGITS 0-7
+        ;;     'D' (OPTIONAL) = DECIMAL      DIGITS 0-9
+        ;;     'H'            = HEXADECIMAL  DIGITS 0-9,A-F
+        ;;     'B'            = BINARY       DIGITS 0,1
+        ;;     'Q'            = OCTAL        DIGITS 0-7
         ;;
+        ;; TODO - OPTIMIZE THIS BEAST
         ;; -------------------------------------------------------------
-IF 0
 TOINT:  .EQU    $
 
-        PUSH    HL          ; SAVE STRING START ADDRESS
+        LD      (_TIBSV),HL ; SAVE BUFFER START ADDRESS
 
         ;; EXAMINE SOURCE STRING AND IDENTIFY RADIX MODE, SET POSITION MULTIPLER
         CALL    STRLEN      ; GET LENGTH OF STRING INTO BC
+        DEC     BC          ; ADJUST FOR 0-BASED COUNT
         ADD     HL,BC       ; EXAMINE LAST POSITION FOR OPTIONAL RADIX SUFFIX
         LD      A,(HL)      ;
         CP      'H'         ; IS IT HEX?
         JR      Z,_TIH      ; YES
-        CP      'Q'         ; IS IT OCTAL?
+        CP      'Q'         ; OCTAL?
         JR      Z,_TIQ      ; YES
-        CP      'B'         ; IS IT BINARY?
+        CP      'B'         ; BINARY?
         JR      Z,_TIB      ; YES
+        CP      'D'         ; EXPLICITLY DECIMAL?
+        JR      Z,_TIDE     ; YES
+        JR      _TID
 
-_TID:   LD      A,10        ; ASSUME DECIMAL, SET BASE-10
-        JR      _TISTO
-_TIB:   LD      A,2         ; SET BASE-2
-        JR      _TISTO
-_TIH:   LD      A,16        ; SET BASE-16
-        JR      _TISTO
-_TIQ:   LD      A,8         ; SET BASE-8
+_TIDE:  LD      (HL),0      ; REMOVE RADIX SUFFIX
+_TID:   LD      A,10        ; NONE OF THE ABOVE. ASSUME DECIMAL, SET BASE-10
+        JR      _TIBSTO
+_TIB:   LD      (HL),0      ; REMOVE RADIX SUFFIX
+        LD      A,2         ; SET BASE-2
+        JR      _TIBSTO
+_TIH:   LD      (HL),0      ; REMOVE RADIX SUFFIX
+        LD      A,16        ; SET BASE-16
+        JR      _TIBSTO
+_TIQ:   LD      (HL),0      ; REMOVE RADIX SUFFIX
+        LD      A,8         ; SET BASE-8
 
-_TISTO: LD      (_TIRDX),A  ; STORE BASE MULTIPLIER
-        POP     HL          ; RESTORE START ADDRESS OF STRING
-
-        ; SCAN L-R AND SUM ACCORDING TO THE FORMULA 'VALUE = VALUE * BASE + DIGIT'
+_TIBSTO:LD      (_TIRDX),A  ; STORE BASE MULTIPLIER
+        LD      HL,(_TIBSV) ; RESTORE START ADDRESS OF STRING
 
 
+        ;; SCAN L-R AND SUM ACCORDING TO THE FORMULA 'VALUE = VALUE * BASE + DIGIT'
+        ;; WE WILL ACCUMULATE VALUE IN REG PAIR DE AS IT IS CONVENIENTLY ALSO OUR MULTIPLICAND
+        LD      D,0         ; INIT 'VALUE' TO ZERO
+        LD      E,0
+_TIINSP:LD      A,(HL)      ; GET CHARACTER INTO A
+        CP      0           ; ARE WE AT END OF STRING?
+        JP      Z,_TIDON    ; YES
+        CALL    _TIVLD      ; NO - IS CHARACTER A VALID DIGIT FOR BASE?
+        JR      NC,_TIERR   ; NO
+
+        ; MULTIPLY CURRENT VALUE ACCUMULATION BY BASE
+        LD      (_TIBSV),HL ; SAVE POSITION IN CHARACTER STRING BECAUSE HL NEEDED FOR PRODUCT RETURN
+        LD      A,(_TIRDX)  ; BASE MULTIPLIER INTO REG A, DE ALREADY HOLDS MULTIPLICAND (VALUE)
+        CALL    M168U       ; PERFORM MULTIPLY OF 16-BIT * 8-BIT UNSIGNED
 
 
+        ; CHECK OVERFLOW (PRODUCT IS IN A:HL)
+        CP      0           ; A MUST EQUAL 0 OR WE HAVE EXCEEDED DESIRED 16-BIT PRODUCT RANGE
+        JR      NZ,_TIERR   ; A IS NONZERO SO WE WILL CALL THIS AN ERROR
 
-        ;; >>> TODO: AND HERE
+        ; MOVE PRODUCT BACK TO REG PAIR DE AND ADD CURRENT DIGIT
+        EX      DE,HL
+        LD      HL,(_TIBSV) ; RESTORE BUFFER POINTER
+        LD      A,(HL)      ; FETCH CHARACTER THAT'S THERE
+        CALL    TODIGIT     ; CONVERT FROM ASCII TO NUMERICAL VALUE
+        PUSH    BC          ; SAVE BC SO CAN USE FOR 8-BIT TO 16-BIT ADD
+        LD      B,0
+        LD      C,A         ; NUMERICAL VALUE OF CURRENT DIGIT
+        EX      DE,HL       ; GET DE INTO HL (PSEUDO 16-BIT ADD ACCUMULATOR)
+        ADD     HL,BC
+        EX      DE,HL       ; DE=DE+A, HL=BUFFER POINTER
+        POP     BC          ; BC=ORIG CONTENTS
+        INC     HL          ; ADVANCE TO NEXT CHARACTER
 
+        JR      _TIINSP
+
+_TIDON: SCF     ; SET CARRY FOR SUCCESS
         RET
 
-        ; SUPPORTED RADIX IDENTIFIERS AND LEGAL DIGITS
-_TIBL:  .DB     "01"
-_TIDL:  .DB     "0123456789"
-_TIHL:  .DB     "0123456789ABCDEF"
-_TIQL:  .DB     "01234567"
+_TIERR: LD      D,0         ; ERROR RETURN - DE = 0, CARRY = 0
+        LD      E,0
+        AND     A           ; CLEAR CARRY FLAG
+        RET
 
-_TIBSV: .DW     1           ; STRING BUFFER START ADDRESS SAVE
+        ; IS CHARACTER A VALID DIGIT FOR BASE?
+_TIVLD: PUSH    AF          ; SAVE CHAR, FLAGS TOO
+        LD      A,(_TIRDX)  ; GET STORED BASE MULTIPLIER
+        CP      2           ; JUMP TO APPROPRIATE VALIDATOR
+        JR      Z,_TIIBD    ; BINARY
+        CP      8
+        JR      Z,_TIIOD    ; OCTAL
+        CP      10
+        JR      Z,_TIIDD    ; DECIMAL
+        CP      16
+        JR      Z,_TIIHD    ; HEXADECIMAL
+
+        JP      ABEND       ; THIS SHOULDN'T HAPPEN.
+
+_TIIBD: POP     AF          ; CHAR TO INSPECT BACK IN A
+        CALL    ISBDIGT     ; IS IT A VALID BINARY DIGIT?
+        RET                 ; CARRY = 1 YES, CARRY = 0 NO
+
+_TIIOD: POP     AF          ;
+        CALL    ISODIGT     ; OCTAL DIGIT?
+        RET                 ;
+
+_TIIDD: POP     AF          ;
+        CALL    ISDDIGT     ; DECIMAL DIGIT?
+        RET                 ;
+
+_TIIHD: POP     AF          ;
+        CALL    ISHDIGT     ; HEXADECIMAL DIGIT?
+        RET                 ;
+
+_TIBSV: .DW     1           ; STRING BUFFER ADDRESS SAVE
 _TIRDX: .DS     1           ; DETERMINED RADIX
-ENDIF
 
 
         ;; CONVERT UPPERCASE ASCII CHAR IN REG A TO LOWERCASE
@@ -413,22 +489,20 @@ TOUPPER:CALL    ISLOWER     ; IS CHARACTER IN REG A A LOWERCASE CHARACTER?
 ;; MATH ROUTINES
 ;; -------------------------------------------------------------
 
-        ;; TODO:  8-BIT MULTIPLY
-
-        ;; TODO:  16-BIT DIVIDE
-
-
         ;; 16-BIT * 8-BIT UNSIGNED
         ;;
         ;; INPUT:               OUTPUT:
         ;;  A = MULTIPLIER       A:HL = PRODUCT
         ;;  DE = MULTIPLICAND
-        ;;  HL = 0
-        ;;  C = 0
+        ;;
+        ;; DESTROYS:
+        ;;  BC
         ;;
         ;; CREDIT: Z80 BITS, MILOS "BAZE" BAZELIDES, BAZE_AT_BAZE_AU_COM
         ;; -------------------------------------------------------------
-M168U:  ADD     A,A         ; OPTIMIZED 1ST ITERATION
+M168U:  LD      HL,0
+        LD      C,0
+        ADD     A,A         ; OPTIMIZED 1ST ITERATION
         JR      NC,$+4
         LD      H,D
         LD      L,E
@@ -449,11 +523,11 @@ _168U:  ADD     HL,HL       ; UNROLL 7 TIMES
         ;; INPUT:                OUTPUT:
         ;;  DE = MULTIPLIER       DE:HL = PRODUCT
         ;;  BC = MULTIPLICAND
-        ;;  HL = 0
         ;;
         ;; CREDIT: Z80 BITS, MILOS "BAZE" BAZELIDES, BAZE_AT_BAZE_AU_COM
         ;; -------------------------------------------------------------
-M1616U: SLA     E           ; OPTIMISED 1ST ITERATION
+M1616U: LD      HL,0
+        SLA     E           ; OPTIMISED 1ST ITERATION
         RL      D
         JR      NC,$+4
         LD      H,B
