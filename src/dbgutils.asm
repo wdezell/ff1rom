@@ -194,6 +194,22 @@ DEBG10: .EQU    $
         CALL    PRINL
         .TEXT   "]  ",NULL
 
+        ; DISPLAY I AND R REGISTERS
+        CALL    PRINL
+        .TEXT   "IR [",NULL
+        LD      A,I
+        LD      (RESRV1),A
+        LD      A,R
+        LD      (RESRV2),A
+        LD      HL,RESRV1
+        CALL    PRTMEM
+        CALL    PRINL
+        .TEXT   "|",NULL    ; SEPARATE, NOT A REGISTER PAIR, SO A DIFFERENT SEPARATOR
+        LD      HL,RESRV2
+        CALL    PRTMEM
+        CALL    PRINL
+        .TEXT   "]  ",NULL
+
         ; DISPLAY AF - A
         CALL    PRINL
         .TEXT   " A [",NULL
