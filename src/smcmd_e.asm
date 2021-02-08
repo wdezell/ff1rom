@@ -34,8 +34,8 @@ SMCMDE: .EQU    $
         CALL    STRLEN      ; CHECK FOR STRING LENGTH = 0
         LD      A,B         ; LENGTH RETURNED AS BC PAIR, ENSURE BOTH REGS ARE 0
         OR      C           ;
-        JR      Z,_SMDNX    ; BLANK, MODE = DISPLAY 256 BYTES BEGINNING AT NEXT START ADDRESS
-        CALL    TOINT       ; NOT BLANK. DOES IT CONVERT TO A NUMBER?
+        JR      Z,_SMDSA    ; BLANK, MODE = DISPLAY 256 BYTES BEGINNING AT NEXT START ADDRESS
+        CALL    TOINT       ; NOT BLANK = A SPECIFIED STARTING ADDRESS. DOES IT CONVERT TO A NUMBER?
         JP      NC,_SMEV1   ; NO
         LD      (SMCURA),DE ; YES - SAVE PARAMETER 'SMCURA' (START/CURRENT ADDRESS)
 
@@ -70,16 +70,14 @@ SMCMDE: .EQU    $
         JP      _SMDSE      ; ALL GOOD, MODE = DISPLAY NUMBER OF BYTES BETWEEN START ADDRESS AND END ADDRESS
 
 
-_SMDNX: ;; DISPLAY 256 BYTES BEGINNING AT NEXT ADDRESS
+    ;; DISPLAY 256 BYTES BEGINNING AT SPECIFIED ADDRESS
+    ;;   HANDLES 'E' WITH ONE OR ZERO ADDRESS PARAMETERS
+    ;;   1 PARAM = SPECIFIED STARTING ADDRESS
+    ;;   0 PARAM = DEFAULT STARTING ADDRESS IS NEXT UNDISPLAYED ADDRESS OR 0000H IF FIRST INVOCATION
+    ;;
+    ;; ---------------------------------------------------------------------------------------------
+_SMDSA: .EQU    $
 
-        ; FIXME - THIS MAY NOT BE RIGHT, OR MAY NOT BE SET UP YET
-        LD      HL,(SMCURA) ; SMCURA CAN'T BE 0000H ON A 'NEXT' UNLESS PRIOR WRAPPED AROUND END OF MEMORY,
-        LD      A,H         ; SO TEST AND DISALLOW IF SO
-        OR      L
-        LD      HL,SMERR05  ; LOAD "NOT ALLOWED" ERROR MESSAGE
-        JP      Z,SMPRSE    ; WAS ZERO, SO DISPLAY MESSAGE AND BAIL
-
-_SMDSA: ;; DISPLAY 256 BYTES BEGINNING AT SPECIFIED ADDRESS
         ; SET END ADDRESS AS CURRENT + 256
         LD      HL,(SMCURA) ; GET CURRENT ADDRESS FROM VARIABLE 'SMCURA'
         LD      DE,0100H    ;
@@ -93,13 +91,15 @@ _SMENX: LD      HL,0FFFFH   ; LIMIT ENDING ADDRESS TO LAST BYTE OF MEMORY
         JR      _SMDISP     ; DISPLAY
 
 
-_SMDSE: ;; DISPLAY BYTES BETWEEN START ADDRESS AND END ADDRESS
+        ;; DISPLAY BYTES BETWEEN START ADDRESS AND END ADDRESS
+_SMDSE: .EQU    $
 
         CALL    _SMDISP     ; DISPLAY
         RET
 
 
-_SMDISP:;; DISPLAY WORKER ROUTINE
+        ;; DISPLAY WORKER ROUTINE
+_SMDISP:.EQU    $
 
         ; PRINT ADDRESS
 _SMDSL: LD      HL,SMCURA+1         ; POINT HL AT ADDRESS WORD HIGH BYTE
@@ -119,28 +119,31 @@ _SMDSL: LD      HL,SMCURA+1         ; POINT HL AT ADDRESS WORD HIGH BYTE
         CALL    PRINL
         .TEXT   "H  ",NULL
 
-        ; PRINT CONTENTS OF 16 DATA BYES
+        ; PRINT HEX REPRESENTATION OF 16 DATA BYTES BEGINNING AT CURRENT ADDRESS
         LD      B,16
         LD      HL,(SMCURA)
-_SMDSD: CALL    BY2HXA              ; CONVERT BYTE TO 2 PRINTABLE ASCII CHARS IN REG PAIR DE
-        LD      C,D                 ; PRINT
-        CALL    CONOUT
-        CALL    _SMDAB              ; SAVE TO ASCII DISPLAY BUFFER
-        LD      C,E
-        CALL    CONOUT
+_SMDSD: CALL    BY2HXA              ; CONVERT BYTE VALUE TO PRINTABLE 2-CHAR HEX VALUE IN REG PAIR DE
+        LD      C,D                 ; PRINT HEX DIGIT FOR HIGH NIBBLE
+        CALL    CONOUT              ;
+        LD      C,E                 ; PRINT HEX DIGIT FOR LOW NIBBLE
+        CALL    CONOUT              ;
+        LD      A,(HL)              ; GET BYTE VALUE FOR DISPLAY AS ASCII REPRESENTATION
         CALL    _SMDAB              ; SAVE TO ASCII DISPLAY BUFFER
 
-        CALL    PRINL
+        CALL    PRINL               ; PRINT SEPARATOR BETWEEN BYTE HEX REPRESENTATION DIGIT PAIRS
         .TEXT   " ",NULL
 
         INC     HL                  ; NEXT BYTE
-        DJNZ    _SMDSD
+        DJNZ    _SMDSD              ;
 
         LD      (SMCURA),HL         ; UPDATE CURRENT ADDRESS
 
-        ; PRINT ACCUMULATED ASCII CHAR BUFFER AND CR/LF
+        CALL    PRINL               ; PRINT AN EXTRA SPACE SEPARATOR
+        .TEXT   " ",NULL
+
+        ; PRINT ACCUMULATED ASCII CHAR BUFFER AND CONCLUDE LINE
         PUSH    HL
-        LD      HL,SMASCII+16
+        LD      HL,SMASCII+16       ; ENSURE BUFFER HAS TERMINATING NULL
         LD      (HL),0
         LD      HL,SMASCII
         CALL    PRSTRZ
@@ -164,22 +167,33 @@ _SMDSD: CALL    BY2HXA              ; CONVERT BYTE TO 2 PRINTABLE ASCII CHARS IN
 
         RET
 
-_SMDAB: PUSH    AF                  ; TODO - IMPROVE INEFFICIENT MATH
+        ;; ASCII-REPRESENTATION BUFFER BUILD
+        ;;   FOR BYTE VALUES 20H-7EH, STORE FOR DISPLAY IN CORRESPONDING BUFFER LOCATION 1-16
+        ;;   FOR NON-PRINTABLE BYTE VALUES LESS THAN 20H OR GREATER THAN 7EH, STORE A PERIOD.
+        ;;
+        ;; PARAMETERS:
+        ;;   A = CHARACTER
+        ;;
+        ;;------------------------------------------------------------------------------------
+_SMDAB: PUSH    AF          ; SAVE REGS WE'LL USE
         PUSH    HL
         PUSH    DE
 
-        LD      D,0                 ; B INTO DE FOR HL MATH
+        LD      D,0         ; B INTO DE FOR HL MATH
         LD      E,B
-        LD      HL,SMASCII+16       ; POINT TO END
-        AND     A                   ; CLEAR CARRY
-        SBC     HL,DE               ; SUBTRACT REVERSE COUNT TO GET LOC
-        LD      A,20H
-        CP      C                   ; IS CHARACTER LESS THAN 20H?
-        JR      C,_SMDA1            ; NO - SAVE AS-IS
-        LD      C,'.'               ; YES - REPLACE WITH A PERIOD
-_SMDA1: LD      (HL),C
+        LD      HL,SMASCII+16   ; POINT TO END OF BUFFER
+        AND     A           ; CLEAR CARRY
+        SBC     HL,DE       ; SUBTRACT REVERSE COUNT TO GET STORAGE LOC
+        PUSH    HL          ; SAVE SO CAN USE AS PARAMS FOR RANGE CALL
+        LD      H,7EH       ; SEE IF CHARACTER IS BETWEEN 20H AND 7EH INCLUSIVE
+        LD      L,20H
+        CALL    ISINRHL
+        POP     HL
+        JR      C,_SMDA1    ; YES - SAVE AS-IS
+        LD      A,'.'       ; NO - REPLACE WITH A PERIOD
+_SMDA1: LD      (HL),A
 
-        POP     DE
+        POP     DE          ; RESTORE REGS
         POP     HL
         POP     AF
         RET
@@ -188,7 +202,8 @@ _SMDA1: LD      (HL),C
 _SMEV1: LD      HL,SMERR00  ; LOAD 'SYNTAX ERROR' MESSAGE
         CALL    SMPRSE      ; DISPLAY AND EXIT
         RET
-_SMEV2: LD      HL,SMERR04  ; LOAD 'RANGE MALFORMED' MESSAGE
+
+_SMEV2: LD      HL,SMERR04  ; LOAD 'MALFORMED RANGE' MESSAGE
         CALL    SMPRSE      ; DISPLAY AND EXIT
         RET
 

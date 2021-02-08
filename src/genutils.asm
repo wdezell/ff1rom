@@ -316,14 +316,14 @@ TODIGIT:AND     A           ; CLEAR CARRY
         RET     NC          ; NO - ERROR RETURN W/ CARRY CLEAR
 
         CALL    ISDDIGT     ; IS IT PLAIN OLD 0-9?
-        JR      C,_TIID     ; YES
+        JR      C,_TDID     ; YES
 
         CALL    ISUPPER     ; IS IT UPPERCASE A-F?
-        JR      C,_TIIU     ; YES
+        JR      C,_TDIU     ; YES
 
         SUB     20H         ; SO MUST BE LOWERCASE A-F, ADJUST FOR UPPER/LOWER OFFSET
-_TIIU:  SUB     'A'-'9'-1   ; ADJUST FOR ALPHA/DIGIT OFFSET
-_TIID:  SUB     30H         ; YES - CONVERT ASCII DIGIT TO NUMERICAL VALUE
+_TDIU:  SUB     'A'-'9'-1   ; ADJUST FOR ALPHA/DIGIT OFFSET
+_TDID:  SUB     30H         ; YES - CONVERT ASCII DIGIT TO NUMERICAL VALUE
         SCF                 ; ENSURE CARRY IS SET TO INDICATE SUCCESS
         RET
 

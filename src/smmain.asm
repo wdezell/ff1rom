@@ -91,6 +91,10 @@ SMINIT: .EQU    $
         CALL    SMCLRB
         CALL    SMBPAT
 
+        ; THINGS THAT NEED TO BE ZEROED ONCE ON STARTUP
+        XOR     A           ; 0 INTO REG A
+        LD      (SMCURA),A  ; 'CURRENT ADDRESS' FROM CMD 'E'
+
         RET
 
         ;; PATCH SO THAT WARM RESTARTS INVOKE SYSMON DIRECTLY
