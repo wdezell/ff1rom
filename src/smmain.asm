@@ -43,8 +43,8 @@ SMMENU: .EQU    $
         .TEXT   " Command                  Format",CR,LF
         .TEXT   " --------------------     ----------------------------------------------",CR,LF
         ;; TODO       D(isassmble) memory      D   STARTADDR ENDADDR
-        .TEXT   " E(xamine) memory         E   STARTADDR COUNT",CR,LF
-        .TEXT   " M(odify) memory          M   ADDRESS VALUE",CR,LF
+        .TEXT   " E(xamine) memory         E   <STARTADDR> <ENDADDR> | <STARTADDR> | ",CR,LF
+        .TEXT   " M(odify) memory          M   <ADDRESS>",CR,LF
         .TEXT   " G(o) execute memory      G   ADDRESS",CR,LF
         .TEXT   " C(opy) memory            C   STARTADDR ENDADDR DESTADDR",CR,LF
         .TEXT   " F(ill) memory            F   STARTADDR ENDADDR CONST",CR,LF
