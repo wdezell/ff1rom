@@ -1,0 +1,138 @@
+
+        ;; M(ODIFY) MEMORY
+        ;;
+        ;; FORMAT:  M  ADDRESS
+        ;;
+        ;;   THE MODIFY MEMORY COMMAND ALLOWS INDIVIDUAL MEMORY LOCATIONS TO BE DISPLAYED
+        ;;   AND/OR ALTERED USING THE MONITOR.  THIS COMMAND ACCEPTS ONE REQUIRED PARAMETER,
+        ;;   WHICH IS THE MEMORY ADDRESS AT WHICH TO BEGIN EXAMINING OR ALTERING DATA.
+        ;;   EACH LINE HAS THE FOLLOWING FORMAT:
+        ;;
+        ;;   AAAA  DD  _
+        ;;
+        ;;   WHERE AAAA IS THE CURRENT MEMORY ADDRESS AND DD IS THE HEXADECIMAL VALUE OF
+        ;;   THE DATA IN THAT LOCATION.  AFTER DISPLAYING THE CONTENTS OF A MEMORY LOCATION
+        ;;   THE ROUTINE WAITS FOR ONE OF THE FOLLOWING ITEMS TO BE INPUT FROM THE CONSOLE:
+        ;;
+        ;;   * TYPING A CARRIAGE RETURN ALONE WILL CAUSE THE ROUTINE TO DISPLAY THE DATA AT
+        ;;     THE NEXT LOCATION
+        ;;
+        ;;   * ENTERING A MINUS SIGN WILL HAVE SIMILAR EFFECT, EXCEPT THE ADDRESS IS
+        ;;     DECREMENTED RATHER THAN INCREMENTED
+        ;;
+        ;;   * ENTERING A NUMBER WILL CAUSE THAT VALUE TO BE STORED AT THE CURRENT LOCATION
+        ;;     AND ADVANCE TO THE NEXT LOCATION.  THE RADIX SUFFIXES B, D, H, AND Q ARE
+        ;;     SUPPORTED.  IF NO SUFFIX IS PROVIDED INPUT ASSUMES DECIMAL.
+        ;;
+        ;;   * ENTERING A PERIOD EXITS MEMORY MODIFICATION AND RETURNS TO THE MAIN PROMPT
+        ;;
+        ;; --------------------------------------------------------------------------------
+
+SMCMDM: .EQU    $
+
+        ;; VALIDATE CALLED CONDITIONS
+        ;;
+        ;; --------------------------------------------------------------------------------
+        ; VERIFY SMPB1 CONTAINS A VALID INT ADDRESS
+        LD      HL,SMPB1    ; PARAM BUFFER 1
+        CALL    STRLEN      ; CHECK FOR STRING LENGTH = 0
+        LD      A,B         ; LENGTH RETURNED AS BC PAIR, ENSURE BOTH REGS ARE 0
+        OR      C           ;
+        JP      Z,_SMMV1    ; BLANK, DISPLAY ERROR AND EXIT
+        CALL    TOINT       ; NOT BLANK = SPECIFIED ADDRESS. DOES IT CONVERT TO A NUMBER?
+        JP      NC,_SMEV1   ; NO
+        EX      DE,HL       ; YES - MOVE ADDRESS INTO HL FOR LOOP
+
+
+        ;; MEM MODIFY DISPLAY AND INPUT LOOP
+        ;;
+        ;; --------------------------------------------------------------------------------
+        ; DISPLAY ADDRESS
+        CALL    PRINL
+         .TEXT   CR,LF,NULL
+
+_SMMDI: CALL    PRINL       ; INDENT TO INDICATE A SUB-PROMPT
+        .TEXT   CR,LF,"  ",NULL
+
+        PUSH    HL          ; SAVE LOOP INDEX, NEED HL
+        LD      HL,SMCURA+1 ; POINT HL AT ADDRESS WORD HIGH BYTE
+        CALL    BY2HXA      ; CONVERT BYTE TO 2 PRINTABLE ASCII CHARS IN REG PAIR DE
+        LD      C,D         ; PRINT
+        CALL    CONOUT
+        LD      C,E
+        CALL    CONOUT
+
+        LD      HL,SMCURA   ; POINT HL AT ADDRESS WORD LOW BYTE
+        CALL    BY2HXA      ; CONVERT BYTE TO 2 PRINTABLE ASCII CHARS IN REG PAIR DE
+        LD      C,D         ; PRINT
+        CALL    CONOUT
+        LD      C,E
+        CALL    CONOUT
+
+        CALL    PRINL
+        .TEXT   "H  ",NULL
+
+        ; DISPLAY DATA CONTAINED AT ADDRESS
+        LD      HL,(SMCURA)
+        CALL    BY2HXA      ; CONVERT BYTE VALUE TO PRINTABLE 2-CHAR HEX VALUE IN REG PAIR DE
+        LD      C,D         ; PRINT HEX DIGIT FOR HIGH NIBBLE
+        CALL    CONOUT      ;
+        LD      C,E         ; PRINT HEX DIGIT FOR LOW NIBBLE
+        CALL    CONOUT
+
+        CALL    PRINL
+        .TEXT   "  >",NULL
+
+        ;; HERE WE WILL HAVE OUR OWN LOCAL PARSE LOOP BECAUSE OUR NEEDS ARE SIMPLE, SPECIFIC,
+        ;; AND IT'D BE MORE WORK RE-USING THE TOP-LEVEL PARSER.  WILL WILL, HOWEVER, LEVERAGE
+        ;; CONBUF FOR OUR PURPOSES.
+
+        ;; GET USER INPUT
+        LD      HL,CONBUF   ; RETURN BUFFER
+        LD      B,CNBSIZ    ; BUFFER SIZE
+        CALL    CONLIN      ; COUNT OF CHARS READ RETURNED IN A
+        LD      B,A         ; COPY OF COUNT READ TO B
+        CP      0           ; IS COUNT ZERO? (USER JUST PRESSED ENTER)
+        JR      NZ,_SMMPV   ; COUNT NOT ZERO, HAVE A LINE AND TO PARSE & VALIDATE
+
+        POP     HL          ; RESTORE LOOP INDEX
+        INC     HL          ; ADVANCE TO NEXT ADDRESS
+        LD      (SMCURA),HL ; STORE FOR DISPLAY CONVERION
+        JR      _SMMDI
+
+        ; PARSE AND VALIDATE
+_SMMPV: LD      A,(CONBUF)  ; GET FIRST CHARACTER
+        CP      '.'         ; WAS IT A PERIOD?
+        RET     Z           ; YES - EXIT TO MAIN PARSER PROMPT (MON >)
+
+        CP      '-'         ; WAS IT A MINUS SIGN?
+        JR      NZ,_SMMPD   ; NO - WE'VE POSSIBLY GOT SOME DATA
+
+        POP     HL          ; RESTORE LOOP INDEX
+        DEC     HL          ; REVERT TO PRIOR ADDRESS
+        LD      (SMCURA),HL ; STORE FOR DISPLAY CONVERION
+        JP      _SMMDI
+
+_SMMPD: LD      HL,CONBUF   ; SEE IF CONBUF CONTAINS A VALID NUMBER
+        CALL    TOINT       ; DOES IT CONVERT?
+        JR      NC,_SMMV1   ; NO
+        LD      A,D         ; HIGH BYTE OF CONVERSION RESULT MUST BE ZERO OR ELSE NUMBER TOO BIG
+        CP      0
+        JR      NZ,_SMMV2   ; NUMBER EXCEEDS BYTE CAPACITY OF 255
+        LD      A,E         ; NUMBER IS GOOD
+        LD      (SMCURA),A  ; UPDATE CONTENTS OF MEMORY WITH NEW VALUE
+
+        POP     HL          ; RESTORE LOOP INDEX
+        INC     HL          ; ADVANCE TO NEXT ADDRESS
+        LD      (SMCURA),HL ; STORE FOR DISPLAY CONVERION
+        JP      _SMMDI
+
+
+        ; SYSMON COMMAND 'M' VALIDATION ERRORS
+_SMMV1: LD      HL,SMERR00  ; LOAD 'SYNTAX ERROR' MESSAGE
+        CALL    SMPRSE      ; DISPLAY AND EXIT
+        RET
+
+_SMMV2: LD      HL,SMERR05  ; LOAD 'OVERFLOW ERROR' MESSAGE
+        CALL    SMPRSE      ; DISPLAY AND EXIT
+        RET

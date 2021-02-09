@@ -43,17 +43,17 @@ SMMENU: .EQU    $
         .TEXT   " Command                  Format",CR,LF
         .TEXT   " --------------------     ----------------------------------------------",CR,LF
         ;; TODO       D(isassmble) memory      D   STARTADDR ENDADDR
-        .TEXT   " E(xamine) memory         E   <STARTADDR> <ENDADDR> | <STARTADDR> | ",CR,LF
-        .TEXT   " M(odify) memory          M   <ADDRESS>",CR,LF
+        .TEXT   " E(xamine) memory         E   STARTADDR ENDADDR | STARTADDR | ",CR,LF
+        .TEXT   " M(odify) memory          M   ADDRESS",CR,LF
         .TEXT   " G(o) execute memory      G   ADDRESS",CR,LF
         .TEXT   " C(opy) memory            C   STARTADDR ENDADDR DESTADDR",CR,LF
         .TEXT   " F(ill) memory            F   STARTADDR ENDADDR CONST",CR,LF
         .TEXT   " T(est) memory            T   STARTADDR ENDADDR",CR,LF
-        .TEXT   " H(ex Load) memory        H   SER_A/B BAUD PARITY WORD STOP AUTOEXECUTE",CR,LF
+;       .TEXT   " H(ex Load) memory        H   SER_A/B BAUD PARITY WORD STOP AUTOEXECUTE",CR,LF
         .TEXT   CR,LF
         .TEXT   " R(ead) mass storage      R   UNIT TRACK SECTOR DESTADDR COUNT",CR,LF
         .TEXT   " W(rite) mass storage     W   UNIT TRACK SECTOR STARTADDR ENDADDR",CR,LF
-        .TEXT   " B(oot)                   B   ?,M #, 1-7",CR,LF
+;       .TEXT   " B(oot)                   B   ?,M #, 1-7",CR,LF
         .TEXT   CR,LF
         .TEXT   " I(nput) port             I   PORTNUM COUNT",CR,LF
         .TEXT   " O(utput) port            O   PORTNUM CONST COUNT",CR,LF
@@ -284,7 +284,7 @@ SMERR01:.TEXT   "INVALID COMMAND",CR,LF,NULL
 SMERR02:.TEXT   "PARAMETER WIDTH",CR,LF,NULL
 SMERR03:.TEXT   "NOT IMPLEMENTED",CR,LF,NULL
 SMERR04:.TEXT   "MALFORMED RANGE",CR,LF,NULL
-SMERR05:.TEXT   "NOT ALLOWED",CR,LF,NULL
+SMERR05:.TEXT   "OVERFLOW ERROR",CR,LF,NULL
 
         ;; -- TABLE: PARSE DESTINATION BUFFER LOOKUP --
 SMCBSL: .DW     0           ; BUFFER SELECTOR (ADDRESS OF DESTINATION BUFFER WE'RE PARSING INTO)
@@ -425,10 +425,7 @@ SMCMDI: CALL    PRINL
         ;
         RET
 
-SMCMDM: CALL    PRINL
-        .TEXT   CR,LF,"COMMAND 'M' NOT YET IMPLEMENTED",NULL
-        ;
-        RET
+        IMPORT "smcmd_m.asm"        ;; MODIFY MEMORY
 
 SMCMDO: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'O' NOT YET IMPLEMENTED",NULL
