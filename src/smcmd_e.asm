@@ -81,7 +81,7 @@ _SMDSA: .EQU    $
         ; SET END ADDRESS AS CURRENT + 256
         LD      HL,(SMCURA) ; GET CURRENT ADDRESS FROM VARIABLE 'SMCURA'
         LD      DE,0100H    ;
-        ADC     HL,DE
+        ADD     HL,DE
         JR      C,_SMENX    ; EXCEEDED LAST MEMORY LOCATION - CONSTRAIN
         LD      (SMENDA),HL ; VALID ENDING ADDRESS - SAVE TO WORK VAR
         JR      _SMDISP     ; DISPLAY
@@ -94,11 +94,13 @@ _SMENX: LD      HL,0FFFFH   ; LIMIT ENDING ADDRESS TO LAST BYTE OF MEMORY
         ;; DISPLAY BYTES BETWEEN START ADDRESS AND END ADDRESS
 _SMDSE: .EQU    $
 
-        CALL    _SMDISP     ; DISPLAY
+        CALL    _SMDISP     ; DISPLAY (THOUGHT WE'D HAVE MORE TO DO HERE)
         RET
 
 
         ;; DISPLAY WORKER ROUTINE
+        ;;
+        ;; ------------------------------------------------------------------------
 _SMDISP:CALL    PRINL
         .TEXT   CR,LF,NULL
 
@@ -134,10 +136,12 @@ _SMDSD: CALL    BY2HXA              ; CONVERT BYTE VALUE TO PRINTABLE 2-CHAR HEX
         CALL    PRINL               ; PRINT SEPARATOR BETWEEN BYTE HEX REPRESENTATION DIGIT PAIRS
         .TEXT   " ",NULL
 
+        ; FIXME -- MUST DISALLOW RUNNING PAST END OF MEMORY
+
         INC     HL                  ; NEXT BYTE
         DJNZ    _SMDSD              ;
 
-        LD      (SMCURA),HL         ; UPDATE CURRENT ADDRESS
+_SMDEM: LD      (SMCURA),HL         ; UPDATE CURRENT ADDRESS
 
         CALL    PRINL               ; PRINT AN EXTRA SPACE SEPARATOR
         .TEXT   " ",NULL
@@ -163,8 +167,7 @@ _SMDSD: CALL    BY2HXA              ; CONVERT BYTE VALUE TO PRINTABLE 2-CHAR HEX
         JR      NZ,_SMDSL
 
         ; UPDATE DEFAULT START ADDRESS FOR NEXT INVOCATION
-        INC     HL
-        LD      (SMCURA),HL         ; UPDATE CURRENT ADDRESS
+_SMDFN: LD      (SMCURA),HL         ; UPDATE CURRENT ADDRESS
 
         RET
 
