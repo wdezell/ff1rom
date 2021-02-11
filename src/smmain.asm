@@ -45,19 +45,19 @@ SMMENU: .EQU    $
         .TEXT   " D(ump) memory            D   STARTADDR ENDADDR | STARTADDR | ",CR,LF
         .TEXT   " M(odify) memory          M   ADDRESS",CR,LF
         .TEXT   " G(o) execute memory      G   ADDRESS",CR,LF
-        .TEXT   " C(opy) memory            C   STARTADDR ENDADDR DESTADDR",CR,LF
-        .TEXT   " F(ill) memory            F   STARTADDR ENDADDR CONST",CR,LF
-        .TEXT   " T(est) memory            T   STARTADDR ENDADDR",CR,LF
-;       .TEXT   " H(ex Load) memory        H   SER_A/B BAUD PARITY WORD STOP AUTOEXECUTE",CR,LF
+        .TEXT   " C(opy) memory           *C   STARTADDR ENDADDR DESTADDR",CR,LF
+        .TEXT   " F(ill) memory           *F   STARTADDR ENDADDR CONST",CR,LF
+        .TEXT   " T(est) memory           *T   STARTADDR ENDADDR",CR,LF
+;       .TEXT   " H(ex Load) memory       *H   SER_A/B BAUD PARITY WORD STOP AUTOEXECUTE",CR,LF
         .TEXT   CR,LF
-        .TEXT   " R(ead) mass storage      R   UNIT TRACK SECTOR DESTADDR COUNT",CR,LF
-        .TEXT   " W(rite) mass storage     W   UNIT TRACK SECTOR STARTADDR ENDADDR",CR,LF
-;       .TEXT   " B(oot)                   B   ?,M #, 1-7",CR,LF
+        .TEXT   " R(ead) mass storage     *R   UNIT TRACK SECTOR DESTADDR COUNT",CR,LF
+        .TEXT   " W(rite) mass storage    *W   UNIT TRACK SECTOR STARTADDR ENDADDR",CR,LF
+        .TEXT   " B(oot)                  *B   ?,M #, 1-7",CR,LF
         .TEXT   CR,LF
-        .TEXT   " I(nput) port             I   PORTNUM COUNT",CR,LF
-        .TEXT   " O(utput) port            O   PORTNUM CONST COUNT",CR,LF
+        .TEXT   " I(nput) port            *I   PORTNUM COUNT",CR,LF
+        .TEXT   " O(utput) port           *O   PORTNUM CONST COUNT",CR,LF
         .TEXT   CR,LF
-        .TEXT   " ? (Help)",CR,LF,CR,LF,NULL
+        .TEXT   " ? (Help)                * = NOT IMPLEMENTED YET",CR,LF,CR,LF,NULL
 
         ; CLEAR ACTIVE COMMAND REFERENCE
         ;
@@ -400,10 +400,7 @@ SMCMDF: CALL    PRINL
         ;
         RET
 
-SMCMDG: CALL    PRINL
-        .TEXT   CR,LF,"COMMAND 'G' NOT YET IMPLEMENTED",NULL
-        ;
-        RET
+        IMPORT "smcmd_g.asm"        ;; G(O)  EXECUTE MEMORY
 
 SMCMDH: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'H' NOT YET IMPLEMENTED",NULL

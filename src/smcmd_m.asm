@@ -39,7 +39,7 @@ SMCMDM: .EQU    $
         OR      C           ;
         JP      Z,_SMMV1    ; BLANK, DISPLAY ERROR AND EXIT
         CALL    TOINT       ; NOT BLANK = SPECIFIED ADDRESS. DOES IT CONVERT TO A NUMBER?
-        JP      NC,_SMEV1   ; NO
+        JP      NC,_SMMV1   ; NO
         EX      DE,HL       ; YES - MOVE ADDRESS INTO HL FOR LOOP
 
 
