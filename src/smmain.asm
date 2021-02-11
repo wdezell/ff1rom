@@ -42,8 +42,7 @@ SMMENU: .EQU    $
         .TEXT   CR,LF, "SYSTEM MONITOR",CR,LF,CR,LF      ; FIXME - display address and size here
         .TEXT   " Command                  Format",CR,LF
         .TEXT   " --------------------     ----------------------------------------------",CR,LF
-        ;; TODO       D(isassmble) memory      D   STARTADDR ENDADDR
-        .TEXT   " E(xamine) memory         E   STARTADDR ENDADDR | STARTADDR | ",CR,LF
+        .TEXT   " D(ump) memory            D   STARTADDR ENDADDR | STARTADDR | ",CR,LF
         .TEXT   " M(odify) memory          M   ADDRESS",CR,LF
         .TEXT   " G(o) execute memory      G   ADDRESS",CR,LF
         .TEXT   " C(opy) memory            C   STARTADDR ENDADDR DESTADDR",CR,LF
@@ -363,7 +362,7 @@ _SMVM:  LD      HL,SMCURCM  ; UPDATE 'CURRENT COMMAND' REFERENCE BYTE
 
         ;; VALIDATION AND DISPATCH WORKING STORAGE
 SMCURCM:.DB     ' '                     ; CURRENT COMMAND MODE
-SMVCMDS:.TEXT   ".?BCEFGHIMORTW"        ; VALID MAIN MENU COMMANDS
+SMVCMDS:.TEXT   ".?BCDFGHIMORTW"        ; VALID MAIN MENU COMMANDS
 SMVCMCT:.EQU    $-SMVCMDS               ; COUNT OF COMMANDS
 
         ; TABLE: MAIN MENU COMMAND HANDLER DISPATCH
@@ -371,7 +370,7 @@ SMCMTAB:.DW     DBGMKY                  ; '.' (HIDDEN DEBUG MONKEY)
         .DW     SMMENU                  ; ?
         .DW     SMCMDB                  ; B
         .DW     SMCMDC                  ; C
-        .DW     SMCMDE                  ; E
+        .DW     SMCMDD                  ; D
         .DW     SMCMDF                  ; F
         .DW     SMCMDG                  ; G
         .DW     SMCMDH                  ; H
@@ -403,7 +402,7 @@ SMCMDC: CALL    PRINL
         ;
         RET
 
-        IMPORT "smcmd_e.asm"        ;; EXAMINE MEMORY
+        IMPORT "smcmd_d.asm"        ;; DUMP MEMORY
 
 SMCMDF: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'F' NOT YET IMPLEMENTED",NULL
