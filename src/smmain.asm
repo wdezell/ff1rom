@@ -64,15 +64,6 @@ SMMENU: .EQU    $
         RET
 
 
-IF 0    ; TODO -- REMOVE AS UNNECESSARY
-        ;; CLEAR ACTIVE COMMAND REFERENCE
-        ;; -------------------------------------------------------------
-SMCCC:  PUSH    AF
-        LD      A,' '
-        LD      (SMCURCM),A
-        POP     AF
-        RET
-ENDIF
         ;; SYSMON INIT
         ;;  INITIALIZE WORK BUFFERS, COUNTERS
         ;; -------------------------------------------------------------

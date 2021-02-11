@@ -102,10 +102,13 @@ _SMDSE: .EQU    $
         ;;
         ;; ------------------------------------------------------------------------
 _SMDISP:CALL    PRINL
-        .TEXT   CR,LF,NULL
+        .TEXT   CR,LF,CR,LF,NULL
 
         ; PRINT ADDRESS
-_SMDSL: LD      HL,SMCURA+1         ; POINT HL AT ADDRESS WORD HIGH BYTE
+_SMDSL: CALL    PRINL               ; INDENT
+        .TEXT   "  ",NULL
+
+        LD      HL,SMCURA+1         ; POINT HL AT ADDRESS WORD HIGH BYTE
         CALL    BY2HXA              ; CONVERT BYTE TO 2 PRINTABLE ASCII CHARS IN REG PAIR DE
         LD      C,D                 ; PRINT
         CALL    CONOUT
