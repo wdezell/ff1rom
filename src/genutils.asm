@@ -769,14 +769,10 @@ SETBDR: .EQU    $
         OUT     (C),L                   ; TC VIA PARAMETER
         RET
 
-        ; TODO - EASTER EGG / TEST MESSAGE -- OBFUSCATE
-XMSG:   CALL    PRINL
-        .TEXT   "My father was the keeper of the Eddystone Light.",CR,LF
-        .TEXT   "He slept with a mermaid one fine night.",CR,LF
-        .TEXT   "Out of that union there came three -",CR,LF
-        .TEXT   "A porpoise and a porgy and the other was me.",CR,LF,CR,LF,NULL
-
-        JP      ABEND
+WDEMSG: CALL    PRINL
+        INCBIN  "wdemsg"
+        .DB     CR,LF,NULL
+        RET
 
 ;; -------------------------------------------------------------
 ;; USEFUL CONSTANTS

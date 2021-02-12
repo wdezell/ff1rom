@@ -108,9 +108,11 @@ MSKISR: .ORG    38H
         EI
         RETI            ; UNUSED
 
-    ;; 45 FREE BYTES HERE W/ CURRENT 38HNULL HANDLER
-        
-    ;; NON-MASKABLE INTERRUPT HANDLER
+        ;; 45 FREE BYTES HERE W/ CURRENT 38HNULL HANDLER
+        CALL    WDEMSG
+        RET
+
+        ;; NON-MASKABLE INTERRUPT HANDLER
 NMIISR: .ORG    66H        
         RETN            ; UNUSED
         
