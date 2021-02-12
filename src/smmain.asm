@@ -45,7 +45,7 @@ SMMENU: .EQU    $
         .TEXT   " D(ump) memory            D   STARTADDR ENDADDR | STARTADDR | ",CR,LF
         .TEXT   " M(odify) memory          M   ADDRESS",CR,LF
         .TEXT   " G(o) execute memory      G   ADDRESS",CR,LF
-        .TEXT   " C(opy) memory           *C   STARTADDR ENDADDR DESTADDR",CR,LF
+        .TEXT   " C(opy) memory            C   STARTADDR ENDADDR DESTADDR",CR,LF
         .TEXT   " F(ill) memory           *F   STARTADDR ENDADDR CONST",CR,LF
         .TEXT   " T(est) memory           *T   STARTADDR ENDADDR",CR,LF
 ;       .TEXT   " H(ex Load) memory       *H   SER_A/B BAUD PARITY WORD STOP AUTOEXECUTE",CR,LF
@@ -274,7 +274,7 @@ SMERR01:.TEXT   "INVALID COMMAND",CR,LF,NULL
 SMERR02:.TEXT   "PARAMETER WIDTH",CR,LF,NULL
 SMERR03:.TEXT   "NOT IMPLEMENTED",CR,LF,NULL
 SMERR04:.TEXT   "MALFORMED RANGE",CR,LF,NULL
-SMERR05:.TEXT   "OVERFLOW ERROR",CR,LF,NULL
+SMERR05:.TEXT   "RANGE OR SIZE",CR,LF,NULL
 
         ;; -- TABLE: PARSE DESTINATION BUFFER LOOKUP --
 SMCBSL: .DW     0           ; BUFFER SELECTOR (ADDRESS OF DESTINATION BUFFER WE'RE PARSING INTO)
@@ -388,10 +388,7 @@ SMCMDB: CALL    PRINL
         ;
         RET
 
-SMCMDC: CALL    PRINL
-        .TEXT   CR,LF,"COMMAND 'C' NOT YET IMPLEMENTED",NULL
-        ;
-        RET
+        IMPORT "smcmd_c.asm"        ;; COPY MEMORY
 
         IMPORT "smcmd_d.asm"        ;; DUMP MEMORY
 
