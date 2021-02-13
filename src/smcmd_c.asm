@@ -16,7 +16,6 @@ SMCMDC: .EQU    $
 
         ;; VALIDATE CALLED CONDITIONS
         ;;
-        ;;  DISPATCH ASSURES US THAT SMPB0 CONTAINS 'D' (EVEN FOR ENTER-ONLY) USER INPUT
         ;; --------------------------------------------------------------------------------
         ; VERIFY SMPB1 NOT BLANK AND VALID INT
         LD      HL,SMPB1    ; PARAM BUFFER 1
