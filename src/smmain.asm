@@ -54,13 +54,11 @@ SMMENU: .EQU    $
         .TEXT   " W(rite) mass storage    *W   UNIT TRACK SECTOR STARTADDR ENDADDR",CR,LF
 ;       .TEXT   " B(oot)                  *B   ?,M #, 1-7",CR,LF
         .TEXT   CR,LF
-        .TEXT   " I(nput) port            *I   PORTNUM COUNT",CR,LF
-        .TEXT   " O(utput) port           *O   PORTNUM CONST COUNT",CR,LF
+        .TEXT   " I(nput) port            *I   PORTWORD COUNT SAVEADDR",CR,LF
+        .TEXT   " O(utput) port           *O   PORTWORD VALUE | PORTWORD COUNT SRCADDR DELAY",CR,LF
         .TEXT   CR,LF
         .TEXT   " ? (Help)                * = NOT IMPLEMENTED YET",CR,LF,CR,LF,NULL
 
-        ; CLEAR ACTIVE COMMAND REFERENCE
-        ;
         RET
 
 
@@ -401,10 +399,7 @@ SMCMDH: CALL    PRINL
         ;
         RET
 
-SMCMDI: CALL    PRINL
-        .TEXT   CR,LF,"COMMAND 'I' NOT YET IMPLEMENTED",NULL
-        ;
-        RET
+        IMPORT "smcmd_i.asm"        ;; INPUT FROM I/O PORT
 
         IMPORT "smcmd_m.asm"        ;; MODIFY MEMORY
 
@@ -412,6 +407,8 @@ SMCMDO: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'O' NOT YET IMPLEMENTED",NULL
         ;
         RET
+
+        IMPORT "smcmd_m.asm"        ;; MODIFY MEMORY
 
 SMCMDR: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'R' NOT YET IMPLEMENTED",NULL
