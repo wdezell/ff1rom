@@ -25,5 +25,5 @@ CNBSIZ: .EQU    160
 
         ;; STACK AT TOP OF MEMORY
 STACK:  .EQU    MEMTOP              ; STACK GROWS DOWNWARD
-STKSIZ: .EQU    512                 ; STACK SPACE
+STKSIZ: .EQU    384                 ; STACK SPACE
 STKBOT: .EQU    STACK-STKSIZ        ; END (BOTTOM) OF STACK

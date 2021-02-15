@@ -8,6 +8,9 @@
         ;;
         ;;   THE I/O PORT IS SPECIFIED BY THE PORT PARAMETER. PORT MUST BE IN THE RANGE 0-255.
         ;;
+        ;;   THIS ROUTINE DOES NOT IN AND OF ITSELF IMPLEMENT OR SUPPORT ANY SORT OF HANDSHAKING
+        ;;   AND THEREFOR MAY BE OF LIMITED USE FOR NON-TRIVIAL REPEATED READS.
+        ;;
         ;; --------------------------------------------------------------------------------
 SMCMDI: .EQU    $
 
@@ -49,7 +52,7 @@ SMCMDI: .EQU    $
         JR      Z,_SMIV1    ; BLANK - SYNTAX ERROR
         CALL    TOINT       ; NOT BLANK. DOES IT CONVERT TO A NUMBER?
         JP      NC,_SMIV1   ; NO - SYNTAX ERROR
-        LD      (_SMISAD),DE; YES - SAVE PARAMETER COUNT
+        LD      (_SMISAD),DE; YES - SAVE PARAMETER SAVE ADDRESS
 
         ;; SETUP TRANSFER DESTINATION AND COUNT
         LD      HL,(_SMISAD); STORE BEGINNING AT ADDRESS SPECIFIED
@@ -80,3 +83,5 @@ _SMIV2: LD      HL,SMERR05  ; LOAD 'RANGE OR SIZE' MESSAGE
 _SMIPRT:.DB     1           ; INPUT PORT WORD
 _SMICNT:.DB     1           ; COUNT OF BYTES TO READ
 _SMISAD:.DW     1           ; STARTING ADDRESS AT WHICH TO SAVE INPUT DATA
+
+        ;------ END SMCMD_I --------------------------------

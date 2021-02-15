@@ -581,7 +581,7 @@ CLSVT:  CALL    PRINL
         ;;  ~4 USEC OVERALL SETUP AND TEARDOWN TIMES.
         ;;
         ;; REGISTERS AFFECTED:
-        ;;  B
+        ;;  B   PARAMETER - COUNT OF .25-SEC DELAYS TO PAUSE
         ;;  AF'
         ;; -------------------------------------------------------------
         ;;

@@ -39,10 +39,10 @@ SMMENU: .EQU    $
         CALL    CLSA3
 
         CALL    PRINL
-        .TEXT   CR,LF, "SYSTEM MONITOR",CR,LF,CR,LF      ; FIXME - display address and size here
+        .TEXT   CR,LF, "SYSTEM MONITOR",CR,LF,CR,LF
         .TEXT   " Command                  Format",CR,LF
         .TEXT   " --------------------     ----------------------------------------------",CR,LF
-        .TEXT   " D(ump) memory            D   STARTADDR ENDADDR | STARTADDR | ",CR,LF
+        .TEXT   " D(ump) memory            D   STARTADDR ENDADDR | STARTADDR | <BLANK>",CR,LF
         .TEXT   " M(odify) memory          M   ADDRESS",CR,LF
         .TEXT   " G(o) execute memory      G   ADDRESS",CR,LF
         .TEXT   " C(opy) memory            C   STARTADDR ENDADDR DESTADDR",CR,LF
@@ -54,8 +54,8 @@ SMMENU: .EQU    $
         .TEXT   " W(rite) mass storage    *W   UNIT TRACK SECTOR STARTADDR ENDADDR",CR,LF
 ;       .TEXT   " B(oot)                  *B   ?,M #, 1-7",CR,LF
         .TEXT   CR,LF
-        .TEXT   " I(nput) port            *I   PORTWORD COUNT SAVEADDR",CR,LF
-        .TEXT   " O(utput) port           *O   PORTWORD VALUE | PORTWORD COUNT SRCADDR DELAY",CR,LF
+        .TEXT   " I(nput) port             I   PORT COUNT SAVEADDR",CR,LF
+        .TEXT   " O(utput) port            O   PORT VALUE | PORT COUNT SRCADDR DELAY",CR,LF
         .TEXT   CR,LF
         .TEXT   " ? (Help)                * = NOT IMPLEMENTED YET",CR,LF,CR,LF,NULL
 
@@ -403,12 +403,7 @@ SMCMDH: CALL    PRINL
 
         IMPORT "smcmd_m.asm"        ;; MODIFY MEMORY
 
-SMCMDO: CALL    PRINL
-        .TEXT   CR,LF,"COMMAND 'O' NOT YET IMPLEMENTED",NULL
-        ;
-        RET
-
-        IMPORT "smcmd_m.asm"        ;; MODIFY MEMORY
+        IMPORT "smcmd_o.asm"        ;; OUTPUT TO I/O PORT
 
 SMCMDR: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'R' NOT YET IMPLEMENTED",NULL
