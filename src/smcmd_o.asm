@@ -60,7 +60,7 @@ SMCMDO: .EQU    $
         LD      (_SMOSAD),DE; YES - SAVE PARAMETER SOURCE ADDRESS
 
         ; VERIFY SMPB4 NOT BLANK AND VALID INT
-        LD      HL,SMPB1    ; PARAM BUFFER 1
+        LD      HL,SMPB4    ; PARAM BUFFER 1
         CALL    STRLEN      ; CHECK FOR STRING LENGTH = 0
         LD      A,B         ; LENGTH RETURNED AS BC PAIR, ENSURE BOTH REGS ARE 0
         OR      C           ;
@@ -82,13 +82,14 @@ SMCMDO: .EQU    $
         LD      A,(_SMOPRT) ; GET PORT FROM SAVED PARAMETER
         LD      C,A         ; AND STORE IN REG C
 
+
 _SMOMXL:LD      A,(HL)      ; LOAD
         OUT     (C),A       ; AND WRITE IT OUT TO SPECIFIED PORT
         PUSH    BC          ; SAVE REG B COUNT
         LD      B,D         ; COPY DELAY COUNT INTO REG B AS CALL PARAMETER
         CALL    DLY25B      ; AND DELAY
-        INC     HL          ; POINT TO NEXT DATUM
         POP     BC          ; RESTORE ONGOING COUNT INTO REG B
+        INC     HL          ; POINT TO NEXT DATUM
         DJNZ    _SMOMXL     ; LOOP UNTIL WE'VE WRITTEN ALL
 
         CALL    PRINL

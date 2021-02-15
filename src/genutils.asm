@@ -577,26 +577,33 @@ CLSVT:  CALL    PRINL
         ;;  FOR EVERY COUNT SPECIFIED BY B
         ;;
         ;;  TIMING IS BASED ON EXECUTION TIMES ON A 6.144 MHZ SYSTEM
-        ;;  CLOCK.  DOES NOT ACCOUNT FOR CALL & RETURN TIMES NOR
-        ;;  ~4 USEC OVERALL SETUP AND TEARDOWN TIMES.
+        ;;  CLOCK.  OVERALL TIMING IS EXPRESSED APPROXIMATELY BY THE
+        ;;  FOLLOWING FORMULA (INCLUDING CALL AND RET TIMES):
+        ;;
+        ;;  DELAY IN MICROSECONDS = 11.23US + (B * 250,000US)
+        ;;
         ;;
         ;; REGISTERS AFFECTED:
         ;;  B   PARAMETER - COUNT OF .25-SEC DELAYS TO PAUSE
-        ;;  AF'
+        ;;
         ;; -------------------------------------------------------------
         ;;
-DLY25B:	EX	    AF,AF'          ; 0.65  US @ 6.144 MHZ          ;; TODO - DEBUG MONKEY THIS BIATCH
-	    LD	    DE,34176D		; 1.63
-_DLY25:	DEC	    DE			    ; 0.975  ---
-	    LD	    A,D			    ; 0.65   ^
-	    OR	    E 			    ; 0.65   5.205 US
-	    JP	    NZ,_DLY25		; 1.63
-	    NOP				        ; 0.65   v
-	    NOP 				    ; 0.65   ---
-	    DJNZ	DLY25B		    ; 2.11 B != 0, 1.3 US B = 0
-	    EX	    AF,AF'          ; 0.65
+        ;CALL   DLY25B      ; 17T
+DLY25B: PUSH    DE          ; 11T   ; SAVE REG PAIR DE
+        PUSH    AF          ; 11T   ; AND A, FLAGS
 
-	    RET
+_DL25O:	LD	    DE,54858D   ; 10T  1.627US          (250000US - 87T)/28T
+_DL25I:	DEC	    DE          ; 6T   28T 4.557US
+	    LD	    A,D         ; 4T   |
+	    OR	    E           ; 4T   |
+	    NOP                 ; 4T   |
+	    JP	    NZ,_DL25I   ; 10T  -
+	    DJNZ	_DL25O      ; 8T  1.302US B!=0, 5T .814US B=0
+
+        POP     AF          ; 10T
+	    POP     DE          ; 10T
+	    RET                 ; 10T
+
 
         ;; "MATHEWS SAVE REGISTER ROUTINE"
         ;;  FROM ZILOG MICROPROCESSOR APPLICATIONS REFERENCE BOOK VOLUME 1, 2-18-81

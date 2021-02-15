@@ -1,5 +1,5 @@
 
-IF 0
+IF 1
         ;; THIS FILE IS A FREE-FORM SCRATCH PAD TO INVOKE / TEST WHATEVER WITHOUT
         ;; BREAKING MAINLINE CODE.  WE WLL BE CALLED FROM THE MON> PROMPT BY THE
         ;; HIDDEN '.' COMMAND
@@ -9,98 +9,35 @@ IF 0
 
         ;; ------------------------------------------------------------------------
 
-IF 0
-        ; RE-VERIFY M168U
-        CALL    PRINL
-        .TEXT   CR,LF,CR,LF,"RE-TESTING M168U.",CR,LF
-        .TEXT   "9 X 2634 = 23706  [9, A4A,5C9A]",CR,LF,NULL
+        ; TESTING DLY25B
+        LD      HL, SMPB1   ; DELAY COUNT PASSED IN AS PARAM
+        CALL    TOINT       ; CONVERT
+        JR      NC,_DM1     ; CONVERSION ERROR
 
-        LD      DE,0A4AH
-        LD      A,9
-        CALL    M168U
-        RST     10H
-ENDIF
-        ; TEST TOINT PARSING OF SMPB1, SMPB2 SMPB 3, SMPB4, AND SMPB5
-        ; USAGE: . # #D #H #0 #B
-        CALL    PRINL
-        .TEXT   CR,LF,"CONBUF: ",NULL
-
-        LD      HL,CONBUF
-        CALL    PRSTRZ
+        LD      A,D         ; LIMIT TO 0-255
+        CP      0
+        JR      NZ,_DM2     ; HIGH BYTE WAS NON-ZERO
 
         CALL    PRINL
-        .TEXT   CR,LF,CR,LF,NULL
-        ; ----------------------
+        .TEXT   CR,LF,"  START",CR,LF,NULL
+
+        LD      B,E         ; DELAY COUNT INTO B
+        CALL    DLY25B
 
         CALL    PRINL
-        .TEXT   CR,LF,"SMPB1: ",NULL
+        .TEXT   "  STOP",CR,LF,CR,LF,NULL
 
-        LD      HL,SMPB1
-        CALL    PRSTRZ
+        JR      _DMFIN
 
-        CALL    PRINL
-        .TEXT   CR,LF,CR,LF,NULL
+_DM1:   CALL    PRINL
+        .TEXT   CR,LF,CR,LF,"NUMERIC CONVERSION ERROR",CR,LF,NULL
+        JP      ABEND
 
-        LD      HL, SMPB1
-        CALL    TOINT
-        RST     10H
-        ; ----------------------
+_DM2:   CALL    PRINL
+        .TEXT   CR,LF,CR,LF,"PARAM MUST BE 0-255",CR,LF,NULL
+        JP      ABEND
 
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB2: ",NULL
-
-        LD      HL,SMPB2
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,CR,LF,NULL
-
-        LD      HL, SMPB2
-        CALL    TOINT
-        RST     10H
-        ; ----------------------
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB3: ",NULL
-
-        LD      HL,SMPB3
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,CR,LF,NULL
-
-        LD      HL, SMPB3
-        CALL    TOINT
-        RST     10H
-        ; ----------------------
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB4: ",NULL
-
-        LD      HL,SMPB4
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,CR,LF,NULL
-
-        LD      HL, SMPB4
-        CALL    TOINT
-        RST     10H
-        ; ----------------------
-
-        CALL    PRINL
-        .TEXT   CR,LF,"SMPB5: ",NULL
-
-        LD      HL,SMPB5
-        CALL    PRSTRZ
-
-        CALL    PRINL
-        .TEXT   CR,LF,CR,LF,NULL
-
-        LD      HL, SMPB5
-        CALL    TOINT
-        RST     10H
-
+_DMFIN: .EQU $
 
         ; ------------------------------------------------------
 ELSE
