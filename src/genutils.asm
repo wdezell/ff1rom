@@ -585,7 +585,7 @@ CLSVT:  CALL    PRINL
         ;;  AF'
         ;; -------------------------------------------------------------
         ;;
-DLY25B:	EX	    AF,AF'          ; 0.65  US @ 6.144 MHZ
+DLY25B:	EX	    AF,AF'          ; 0.65  US @ 6.144 MHZ          ;; TODO - DEBUG MONKEY THIS BIATCH
 	    LD	    DE,34176D		; 1.63
 _DLY25:	DEC	    DE			    ; 0.975  ---
 	    LD	    A,D			    ; 0.65   ^
@@ -682,6 +682,11 @@ TABDSP: .EQU    $
 ;; -------------------------------------------------------------
 ;; SERIAL UTILITY ROUTINES
 ;; -------------------------------------------------------------
+        ;; TODO -- DECOUPLE AND "PARAMETERIZE" THIS A BIT BETTER
+        ;;         THIS  SHOULD BE STRUCTURED FOR EASIER POST-BOOT
+        ;;         CALLS SO RECONFIGURE CONSOLE AT WILL OR SETUP
+        ;;         CHANNEL B WITHOUT RE-INVENTING THE WHEEL IN
+        ;;         DUPLICATE CODE.  GOAL = A "SERIAL CONTROL BLOCK"
 
         ;; BASIC CONSOLE INITIALIZATION
         ;;  SIO CHANNEL A WILL BE CONFIGURED TO 19200-N-8-1 FOR TX &
