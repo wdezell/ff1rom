@@ -19,9 +19,9 @@ SMCMDG: .EQU    $
         CALL    STRLEN      ; CHECK FOR STRING LENGTH = 0
         LD      A,B         ; LENGTH RETURNED AS BC PAIR, ENSURE BOTH REGS ARE 0
         OR      C           ;
-        JP      Z,_SMGV1    ; BLANK, DISPLAY ERROR AND EXIT
+        JP      Z,_SMEROS   ; BLANK, DISPLAY ERROR AND EXIT
         CALL    TOINT       ; NOT BLANK = SPECIFIED ADDRESS. DOES IT CONVERT TO A NUMBER?
-        JP      NC,_SMGV1   ; NO
+        JP      NC,_SMEROS  ; NO
         EX      DE,HL       ; YES - MOVE ADDRESS INTO HL
 
 
@@ -30,10 +30,5 @@ SMCMDG: .EQU    $
         PUSH     HL
         RET                 ; EXECUTION XFERS TO ADDRESS WE JUST PUT ON STACK
 
-
-        ; SYSMON COMMAND 'G' VALIDATION ERRORS
-_SMGV1: LD      HL,SMERR00  ; LOAD 'SYNTAX ERROR' MESSAGE
-        CALL    SMPRSE      ; DISPLAY AND EXIT
-        RET
 
         ;------ END SMCMD_G --------------------------------

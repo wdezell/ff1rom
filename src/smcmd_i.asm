@@ -22,11 +22,11 @@ SMCMDI: .EQU    $
         CALL    STRLEN      ; CHECK FOR STRING LENGTH = 0
         LD      A,B         ; LENGTH RETURNED AS BC PAIR, ENSURE BOTH REGS ARE 0
         OR      C           ;
-        JP      Z,_SMIV1    ; BLANK - SYNTAX ERROR
+        JP      Z,_SMESYN   ; BLANK - SYNTAX ERROR
         CALL    TOINT       ; NOT BLANK. DOES IT CONVERT TO A NUMBER?
         LD      A,D         ; VERIFY VALUE ENTERED FITS IN SINGLE REGISTER E -- D MUST BE ZERO
         CP      0           ; IS IT?
-        JP      NZ,_SMIV2   ; NO - SIZE ERROR
+        JP      NZ,_SMEROS  ; NO - SIZE ERROR
         LD      A,E         ; MOVE INTO ACCUMULATOR FOR MEMORY SAVE
         LD      (_SMIPRT),A ; YES - SAVE PARAMETER PORT
 
@@ -35,12 +35,12 @@ SMCMDI: .EQU    $
         CALL    STRLEN      ; CHECK FOR STRING LENGTH = 0
         LD      A,B         ; LENGTH RETURNED AS BC PAIR, ENSURE BOTH REGS ARE 0
         OR      C           ;
-        JR      Z,_SMIV1    ; BLANK - SYNTAX ERROR
+        JP      Z,_SMESYN   ; BLANK - SYNTAX ERROR
         CALL    TOINT       ; NOT BLANK. DOES IT CONVERT TO A NUMBER?
-        JP      NC,_SMIV1   ; NO - SYNTAX ERROR
+        JP      NC,_SMESYN  ; NO - SYNTAX ERROR
         LD      A,D         ; VERIFY VALUE ENTERED FITS IN SINGLE REGISTER E -- D MUST BE ZERO
         CP      0           ; IS IT?
-        JP      NZ,_SMIV2   ; NO - SIZE ERROR
+        JP      NZ,_SMEROS  ; NO - SIZE ERROR
         LD      A,E         ; MOVE INTO ACCUMULATOR FOR MEMORY SAVE
         LD      (_SMICNT),A ; YES - SAVE PARAMETER COUNT
 
@@ -49,9 +49,9 @@ SMCMDI: .EQU    $
         CALL    STRLEN      ; CHECK FOR STRING LENGTH = 0
         LD      A,B         ; LENGTH RETURNED AS BC PAIR, ENSURE BOTH REGS ARE 0
         OR      C           ;
-        JR      Z,_SMIV1    ; BLANK - SYNTAX ERROR
+        JP      Z,_SMESYN   ; BLANK - SYNTAX ERROR
         CALL    TOINT       ; NOT BLANK. DOES IT CONVERT TO A NUMBER?
-        JP      NC,_SMIV1   ; NO - SYNTAX ERROR
+        JP      NC,_SMESYN  ; NO - SYNTAX ERROR
         LD      (_SMISAD),DE; YES - SAVE PARAMETER SAVE ADDRESS
 
         ;; SETUP TRANSFER DESTINATION AND COUNT
@@ -67,16 +67,6 @@ SMCMDI: .EQU    $
         CALL    PRINL
         .TEXT   CR,LF,CR,LF,"  TRANSFER OPERATION COMPLETED",CR,LF,CR,LF,NULL
 
-        RET
-
-
-        ; SYSMON COMMAND 'I' VALIDATION ERRORS
-_SMIV1: LD      HL,SMERR00  ; LOAD 'SYNTAX ERROR' MESSAGE
-        CALL    SMPRSE      ; DISPLAY AND EXIT
-        RET
-
-_SMIV2: LD      HL,SMERR05  ; LOAD 'RANGE OR SIZE' MESSAGE
-        CALL    SMPRSE      ; DISPLAY AND EXIT
         RET
 
 

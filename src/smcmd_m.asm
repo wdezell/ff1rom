@@ -37,9 +37,9 @@ SMCMDM: .EQU    $
         CALL    STRLEN      ; CHECK FOR STRING LENGTH = 0
         LD      A,B         ; LENGTH RETURNED AS BC PAIR, ENSURE BOTH REGS ARE 0
         OR      C           ;
-        JP      Z,_SMMV1    ; BLANK, DISPLAY ERROR AND EXIT
+        JP      Z,_SMESYN   ; BLANK, DISPLAY ERROR AND EXIT
         CALL    TOINT       ; NOT BLANK = SPECIFIED ADDRESS. DOES IT CONVERT TO A NUMBER?
-        JP      NC,_SMMV1   ; NO
+        JP      NC,_SMESYN  ; NO
         EX      DE,HL       ; YES - MOVE ADDRESS INTO HL FOR LOOP
 
 
@@ -121,7 +121,7 @@ _SMMDI: CALL    PRINL
 
         LD      HL,CONBUF   ; SPECIFY BUFFER LOCATION
         CALL    TOINT       ; AND CONVERT (RESULT IS IN DE)
-        ;JR      NC,_SMMV1   ; ERROR BAIL IF CONVERSION PROBLEM
+        ;JR      NC,_SMESYN:  ; ERROR BAIL IF CONVERSION PROBLEM
 
         ; ELSE STORE TO MEMORY, ADVANCE, DISPLAY
         POP     HL          ; RESTORE LOOP INDEX
@@ -150,10 +150,5 @@ _SMMDC: POP     HL          ; RESTORE LOOP INDEX
         LD      (SMCURA),HL ; STORE FOR DISPLAY CONVERION
         JP      _SMMDI
 
-
-        ; SYSMON COMMAND 'M' VALIDATION ERRORS
-_SMMV1: LD      HL,SMERR00  ; LOAD 'SYNTAX ERROR' MESSAGE
-        CALL    SMPRSE      ; DISPLAY AND EXIT
-        RET
 
         ;------ END SMCMD_M --------------------------------

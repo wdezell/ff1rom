@@ -1,5 +1,4 @@
 
-IF 0
         ;; THIS FILE IS A FREE-FORM SCRATCH PAD TO INVOKE / TEST WHATEVER WITHOUT
         ;; BREAKING MAINLINE CODE.  WE WLL BE CALLED FROM THE MON> PROMPT BY THE
         ;; HIDDEN '.' COMMAND
@@ -9,6 +8,7 @@ IF 0
 
         ;; ------------------------------------------------------------------------
 
+IF 0
         ; TESTING DLY25B
         LD      HL, SMPB1   ; DELAY COUNT PASSED IN AS PARAM
         CALL    TOINT       ; CONVERT

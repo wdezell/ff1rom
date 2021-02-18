@@ -27,11 +27,11 @@ SMCMDO: .EQU    $
         CALL    STRLEN      ; CHECK FOR STRING LENGTH = 0
         LD      A,B         ; LENGTH RETURNED AS BC PAIR, ENSURE BOTH REGS ARE 0
         OR      C           ;
-        JP      Z,_SMOV1    ; BLANK - SYNTAX ERROR
+        JP      Z,_SMESYN   ; BLANK - SYNTAX ERROR
         CALL    TOINT       ; NOT BLANK. DOES IT CONVERT TO A NUMBER?
         LD      A,D         ; VERIFY VALUE ENTERED FITS IN SINGLE REGISTER E -- D MUST BE ZERO
         CP      0           ; IS IT?
-        JP      NZ,_SMOV2   ; NO - SIZE ERROR
+        JP      NZ,_SMEROS  ; NO - SIZE ERROR
         LD      A,E         ; MOVE INTO ACCUMULATOR FOR MEMORY SAVE
         LD      (_SMOPRT),A ; YES - SAVE PARAMETER PORT
 
@@ -40,12 +40,12 @@ SMCMDO: .EQU    $
         CALL    STRLEN      ; CHECK FOR STRING LENGTH = 0
         LD      A,B         ; LENGTH RETURNED AS BC PAIR, ENSURE BOTH REGS ARE 0
         OR      C           ;
-        JP      Z,_SMOV1    ; BLANK - SYNTAX ERROR
+        JP      Z,_SMESYN   ; BLANK - SYNTAX ERROR
         CALL    TOINT       ; NOT BLANK. DOES IT CONVERT TO A NUMBER?
-        JP      NC,_SMOV1   ; NO - SYNTAX ERROR
+        JP      NC,_SMESYN  ; NO - SYNTAX ERROR
         LD      A,D         ; VERIFY VALUE ENTERED FITS IN SINGLE REGISTER E -- D MUST BE ZERO
         CP      0           ; IS IT?
-        JP      NZ,_SMOV2   ; NO - SIZE ERROR
+        JP      NZ,_SMEROS  ; NO - SIZE ERROR
         LD      A,E         ; MOVE INTO ACCUMULATOR FOR MEMORY SAVE
         LD      (_SMOCV),A  ; YES - SAVE PARAMETER COUNT/VALUE (ROLE DEPENDS ON MODE)
 
@@ -56,7 +56,7 @@ SMCMDO: .EQU    $
         OR      C           ;
         JR      Z,_SMOOSM   ; BLANK - NOT ERROR, MEANS SIMPLE ONE-SHOT MODE
         CALL    TOINT       ; NOT BLANK. DOES IT CONVERT TO A NUMBER?
-        JP      NC,_SMOV1   ; NO - SYNTAX ERROR
+        JP      NC,_SMESYN  ; NO - SYNTAX ERROR
         LD      (_SMOSAD),DE; YES - SAVE PARAMETER SOURCE ADDRESS
 
         ; VERIFY SMPB4 NOT BLANK AND VALID INT
@@ -64,11 +64,11 @@ SMCMDO: .EQU    $
         CALL    STRLEN      ; CHECK FOR STRING LENGTH = 0
         LD      A,B         ; LENGTH RETURNED AS BC PAIR, ENSURE BOTH REGS ARE 0
         OR      C           ;
-        JP      Z,_SMOV1    ; BLANK - SYNTAX ERROR
+        JP      Z,_SMESYN   ; BLANK - SYNTAX ERROR
         CALL    TOINT       ; NOT BLANK. DOES IT CONVERT TO A NUMBER?
         LD      A,D         ; VERIFY VALUE ENTERED FITS IN SINGLE REGISTER E -- D MUST BE ZERO
         CP      0           ; IS IT?
-        JP      NZ,_SMOV2   ; NO - SIZE ERROR
+        JP      NZ,_SMEROS  ; NO - SIZE ERROR
         LD      A,E         ; MOVE INTO ACCUMULATOR FOR MEMORY SAVE
         LD      (_SMODLY),A ; YES - SAVE PARAMETER DELAY
 
@@ -106,17 +106,6 @@ _SMOOSM:LD      A,(_SMOPRT) ; GET PORT FROM SAVED PARAMETER
         CALL    PRINL
         .TEXT   CR,LF,CR,LF,"  SINGLE TRANSFER OPERATION COMPLETED",CR,LF,CR,LF,NULL
 
-        RET
-
-
-        ; SYSMON COMMAND 'I' VALIDATION ERRORS
-_SMOV1: LD      HL,SMERR00  ; LOAD 'SYNTAX ERROR' MESSAGE
-        CALL    SMPRSE      ; DISPLAY AND EXIT
-        RET
-
-
-_SMOV2: LD      HL,SMERR05  ; LOAD 'RANGE OR SIZE' MESSAGE
-        CALL    SMPRSE      ; DISPLAY AND EXIT
         RET
 
 
