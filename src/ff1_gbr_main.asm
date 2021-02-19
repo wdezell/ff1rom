@@ -144,7 +144,7 @@ IMPORT "initmmgr.asm"
         CALL    PRINL
         .TEXT   CR,LF,"Firefly Z80 Revison 1",CR,LF
         .TEXT   "BIOS 0.3",CR,LF
-        .TEXT   "William D. Ezell  2017-2020",CR,LF,CR,LF,NULL
+        .TEXT   "William D. Ezell  2017-2021",CR,LF,CR,LF,NULL
 
 
         ;; THE LOWER THREE (3) BITS OF THE BYTE READABLE FROM THE

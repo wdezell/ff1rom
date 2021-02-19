@@ -56,6 +56,7 @@ SMMENU: .EQU    $
         .TEXT   CR,LF
         .TEXT   " I(nput) port             I   PORT COUNT SAVEADDR",CR,LF
         .TEXT   " O(utput) port            O   PORT VALUE | PORT COUNT SRCADDR DELAY",CR,LF
+        .TEXT   " S(erial) Parameters     *S   CH(A|B) BAUD PARITY WORDLEN STOP",CR,LF
         .TEXT   CR,LF
         .TEXT   " ? (Help)                * = NOT IMPLEMENTED YET",CR,LF,CR,LF,NULL
 
@@ -316,7 +317,7 @@ _SMVM:  LD      HL,SMCURCM  ; UPDATE 'CURRENT COMMAND' REFERENCE BYTE
 
         ;; VALIDATION AND DISPATCH WORKING STORAGE
 SMCURCM:.DB     ' '                     ; CURRENT COMMAND MODE
-SMVCMDS:.TEXT   ".?BCDFGHIMORTW"        ; VALID MAIN MENU COMMANDS
+SMVCMDS:.TEXT   ".?BCDFGHIMORSTW"       ; VALID MAIN MENU COMMANDS
 SMVCMCT:.EQU    $-SMVCMDS               ; COUNT OF COMMANDS
 
         ; TABLE: MAIN MENU COMMAND HANDLER DISPATCH
@@ -332,6 +333,7 @@ SMCMTAB:.DW     DBGMKY                  ; '.' (HIDDEN DEBUG MONKEY)
         .DW     SMCMDM                  ; M
         .DW     SMCMDO                  ; O
         .DW     SMCMDR                  ; R
+        .DW     SMCMDS                  ; S
         .DW     SMCMDT                  ; T
         .DW     SMCMDW                  ; W
 
@@ -372,6 +374,11 @@ SMCMDH: CALL    PRINL
 
 SMCMDR: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'R' NOT YET IMPLEMENTED",NULL
+        ;
+        RET
+
+SMCMDS: CALL    PRINL
+        .TEXT   CR,LF,"COMMAND 'S' NOT YET IMPLEMENTED",NULL
         ;
         RET
 
