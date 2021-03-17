@@ -377,6 +377,9 @@ SMCMDR: CALL    PRINL
         ;
         RET
 
+; when implemented this should probably present a minicom-style menu to set BASIC parameters
+; (no plans to try and provide a menu interface to control/configure all possible mode settings)
+;
 SMCMDS: CALL    PRINL
         .TEXT   CR,LF,"COMMAND 'S' NOT YET IMPLEMENTED",NULL
         ;
