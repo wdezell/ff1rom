@@ -582,6 +582,7 @@ CLSVT:  CALL    PRINL
         ;;
         ;;  DELAY IN MICROSECONDS = 14.160US + (B * 250,000US)
         ;;
+        ;;  TIMING RANGE: 0.25 - 63.75 SECONDS, APPROXIMATE
         ;;
         ;; REGISTERS AFFECTED:
         ;;  B   PARAMETER - COUNT OF .25-SEC DELAYS TO PAUSE

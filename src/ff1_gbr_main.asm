@@ -133,7 +133,9 @@ RESET:  .EQU    $
 
 IMPORT "initmmgr.asm"
 
-        ;; INITIALIZE SIO CHANNEL A ("CONSOLE") TO 9600 BAUD N-8-1
+        ;; STACK NOW AVAILABLE FOR USE!
+
+        ;; INITIALIZE SIO CHANNEL A ("CONSOLE") TO 19200 BAUD N-8-1
         CALL    CONINIT
 
         CALL    CLSVT       ; CLEAR SCREEN FOR VT-52 COMPATIBLE TERM
@@ -142,7 +144,7 @@ IMPORT "initmmgr.asm"
 
         ;; BOOT SPLASH
         CALL    PRINL
-        .TEXT   CR,LF,"Firefly Z80 Revison 1",CR,LF
+        .TEXT   CR,LF,"Firefly Z80 Board Revison 1",CR,LF
         .TEXT   "BIOS 0.3",CR,LF
         .TEXT   "William D. Ezell  2017-2021",CR,LF,CR,LF,NULL
 

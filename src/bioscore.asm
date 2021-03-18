@@ -1,6 +1,9 @@
 BBIOSS: .EQU    $           ; BOARD BIOS START. TAG FOR RELOC & SIZE CALCS
         .PHASE BBIOS        ; ASSEMBLE RELATIVE TO EXECUTION LOCATION
 
+;; BOARD BIOS CORE -- ROUTINES HERE SHOULD HAVE NO DEPENDENCIES.  THEY
+;;   WILL BE RETAINED AS LOW-LEVEL BOARD INTERFACES FOR CP/M ET AL
+
 ;; -------------------------------------------------------------
 ;; CONSOLE UTILITY ROUTINES
 ;; -------------------------------------------------------------
