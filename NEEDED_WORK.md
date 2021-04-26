@@ -4,11 +4,6 @@ Roughly listed in order of priority.
 
 ----
 
-##### Git: Named branches for firmware release points
-Also keep binary images from each release branch so can flash without requirement of re-assembling (one day might not be possible or convenient).
-
-----
-
 ##### Console Serial Port Abstraction
 A byte (or bit) that designates which serial channel (A or B) is active console
 
